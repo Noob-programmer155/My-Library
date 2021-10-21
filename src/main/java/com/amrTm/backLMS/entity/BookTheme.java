@@ -1,0 +1,19 @@
+package com.amrTm.backLMS.entity;
+
+public enum BookTheme {
+	SAINS,
+	SOCIAL,
+	LAW,
+	POLITICS,
+	MATHEMATICS,
+	BIOLOGY,
+	PHYSICS,
+	GEOGRAPHICS,
+	RELIGION,
+	ECONOMICS,
+	BUSINESS,
+	TECHNOLOGY,
+	TECH,
+	COMPUTERS,
+	HISTORY
+}
