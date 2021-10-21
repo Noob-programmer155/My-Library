@@ -5,7 +5,9 @@ import Home from './component/Home';
 import Login from './component/login';
 import SignUp from './component/signup';
 // import User from './component/User'
-import MyLibrary from './component/My_Library'
+import MyLibrary from './component/My_Library';
+import VerOAuth from './component/verifyOauth';
+import Ver from './component/verify';
 
 function App() {
   return(
@@ -16,6 +18,8 @@ function App() {
           <Route exact path="/login" component={Login}/>
           <Route exact path="/signup" component={SignUp}/>
           <Route exact path="/my-library" component={MyLibrary}/>
+          <Route exact path="/verify-user" component={VerOAuth}/>
+          <Route exact path="/validate" component={Ver}/>
         </Switch>
       </div>
     </BrowserRouter>

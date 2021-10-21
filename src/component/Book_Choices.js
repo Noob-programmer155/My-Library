@@ -63,7 +63,6 @@ const useStyle = makeStyles({
 
 export default function BookChoice() {
   const style = useStyle();
-  const {format} = require('date-fns');
   const favBuku = useSelector(favoriteBooks);
   const recBuku = useSelector(recommendBooks);
   const myBuku = useSelector(myBooks);
@@ -110,8 +109,8 @@ export default function BookChoice() {
             })
           ):(
             recBuku.map((a,i) => {
-              return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                publisher={a.publisher} date={format(new Date(a.publishDate), 'dd-MM-yyyy')} description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}/>)
+              return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image} status={a.status}
+                publisher={a.publisher} date={a.publishDate} description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}/>)
             })
           )}
         </Stack>
@@ -123,8 +122,8 @@ export default function BookChoice() {
             })
           ):(
             favBuku.map((a,i) => {
-              return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                publisher={a.publisher} date={format(new Date(a.publishDate), 'dd-MM-yyyy')} description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}/>)
+              return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image} status={a.status}
+                publisher={a.publisher} date={a.publishDate} description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}/>)
             })
           )}
         </Stack>
@@ -136,8 +135,8 @@ export default function BookChoice() {
             })
           ):(
             myBuku.map((a,i) => {
-              return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                publisher={a.publisher} date={format(new Date(a.publishDate), 'dd-MM-yyyy')} description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}/>)
+              return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image} status={a.status}
+                publisher={a.publisher} date={a.publishDate} description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}/>)
             })
           )}
         </Stack>

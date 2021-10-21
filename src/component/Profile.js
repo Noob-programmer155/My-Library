@@ -8,6 +8,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import PeopleIcon from '@mui/icons-material/People';
 import {useHistory} from 'react-router-dom';
+import {verUser} from './constant/constantDataURL';
 import {Typography, Box, IconButton, Avatar, Skeleton, Chip, Divider, Button} from '@mui/material';
 
 const theme = createTheme();
@@ -138,16 +139,16 @@ const useStyle = makeStyles({
   },
 });
 
-export default function Profile() {
-  const [error, setError] = useState();
-  const [respon, setRespon] = useState();
+export default function Profile(props) {
+  const {error, onerror} = props;
   const style = useStyle();
   const history = useHistory();
   const userProfile = useSelector(profile);
+  const [respon, setRespon] = useState()
   useEffect(() => {
-    axios.get("http://localhost:8895/user/get",{
+    axios.get(verUser,{
       withCredentials:true,
-    }).then(a => a.data !== null && typeof a.data === 'string'? setRespon(a.data):null).catch(error => setError(error.message))
+    }).then(a => a.data !== null && typeof a.data === 'string' && a.data === 'validate'? setRespon("ok"):onerror("there is an incorrect response from server, please try again")).catch(err => onerror(err.message))
   },[]);
   const preload = (
     <>

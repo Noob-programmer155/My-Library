@@ -5,11 +5,13 @@ import {setTypes, setChoices, linktypes, linkchoice} from './funcredux/linkedRes
 import axios from 'axios'
 import {books, setBooks, bookThemes, favoriteBooks, recommendBooks, myBooks} from './funcredux/book_redux';
 import {Box, TextField, Typography, Stack, IconButton, useMediaQuery} from '@mui/material';
+import {mainBookURL} from './constant/constantDataURL';
 import BookView from './subcomponent/Book_view';
 import SearchIcon from '@mui/icons-material/Search';
 import BarChartIcon from '@mui/icons-material/BarChart';
 
-export default function MainContainer() {
+export default function MainContainer(props) {
+  const {onerror} = props;
   const prof = useSelector(profile);
   const buku = useSelector(books);
   const favBuku = useSelector(favoriteBooks);
@@ -18,26 +20,23 @@ export default function MainContainer() {
   const themes = useSelector(bookThemes);
   const type = useSelector(linktypes);
   const choice = useSelector(linkchoice);
-  const {format} = require('date-fns');
   const dispatch = useDispatch();
-  const [respon,setRespon]=useState();
-  const [error,setError]=useState();
   const md = useMediaQuery('(min-width:900px)')
   useEffect(()=>{
     if(prof.id !== null || prof.id >= 0){
-      axios.get("http://localhost:8895/book/getbooks",{
+      axios.get(mainBookURL,{
         withCredentials:true,
         params: {
           idUs: prof.id,
         },
-      }).then(a => a.data !== null? dispatch(setBooks(a.data)):setError("there is a network error"))
-        .catch(err => setError(err.message));
+      }).then(a => a.data !== null? dispatch(setBooks(a.data)):onerror("there is a network error"))
+        .catch(err => onerror(err.message));
     }
     else{
-      axios.get("http://localhost:8895/book/getbooks",{
+      axios.get(mainBookURL,{
         withCredentials:true,
-      }).then(a => a.data !== null? dispatch(setBooks(a.data)):setError("there is a network error"))
-        .catch(err => setError(err.message));
+      }).then(a => a.data !== null? dispatch(setBooks(a.data)):onerror("there is a network error"))
+        .catch(err => onerror(err.message));
     }
   },[])
   const clone = []
@@ -52,7 +51,7 @@ export default function MainContainer() {
           {(buku)?
             (buku.filter(a => a.theme === theme).map((a,i) => (
                 <BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                  publisher={a.publisher} date={format(new Date(a.publishDate), 'dd-MM-yyyy')}
+                  publisher={a.publisher} date={a.publishDate} status={a.status}
                   description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}
                   sx={{marginBottom: (theme) => theme.spacing(1), marginRight: (theme) => theme.spacing(1)}}/>
               ))
@@ -74,7 +73,7 @@ export default function MainContainer() {
             {(recBuku)?
               (recBuku.map((a,i) => (
                   <BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                    publisher={a.publisher} date={format(new Date(a.publishDate), 'dd-MM-yyyy')}
+                    publisher={a.publisher} date={a.publishDate} status={a.status}
                     description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}
                     sx={{marginBottom: (theme) => theme.spacing(1), marginRight: (theme) => theme.spacing(1)}}/>
                 ))
@@ -94,7 +93,7 @@ export default function MainContainer() {
             {(favBuku)?
               (favBuku.map((a,i) => (
                   <BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                    publisher={a.publisher} date={format(new Date(a.publishDate), 'dd-MM-yyyy')}
+                    publisher={a.publisher} date={a.publishDate} status={a.status}
                     description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}
                     sx={{marginBottom: (theme) => theme.spacing(1), marginRight: (theme) => theme.spacing(1)}}/>
                 ))
@@ -114,7 +113,7 @@ export default function MainContainer() {
             {(myBuku)?
               (myBuku.map((a,i) => (
                   <BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                    publisher={a.publisher} date={format(new Date(a.publishDate), 'dd-MM-yyyy')}
+                    publisher={a.publisher} date={a.publishDate} status={a.status}
                     description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}
                     sx={{marginBottom: (theme) => theme.spacing(1), marginRight: (theme) => theme.spacing(1)}}/>
                 ))
@@ -134,7 +133,7 @@ export default function MainContainer() {
             {(buku)?
               (buku.map((a,i) => (
                   <BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                    publisher={a.publisher} date={format(new Date(a.publishDate), 'dd-MM-yyyy')}
+                    publisher={a.publisher} date={a.publishDate} status={a.status}
                     description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}
                     sx={{marginBottom: (theme) => theme.spacing(1), marginRight: (theme) => theme.spacing(1)}}/>
                 ))

@@ -1,5 +1,7 @@
 import React,{useState} from 'react';
 import axios from 'axios';
+import {useDispatch} from 'react-redux';
+import {setProf} from './funcredux/profile_redux';
 import {Paper, Box, Stack, Typography, Button, TextField, InputAdornment, Divider, IconButton, Avatar} from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -7,6 +9,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
+import {signUp} from './constant/constantDataURL';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import {useHistory} from 'react-router-dom';
 
@@ -61,19 +64,30 @@ export default function SignUp() {
   const [img, setImg] =useState()
   const history = useHistory();
   const [verPass, setVerPass] = useState();
+  const dispatch = useDispatch();
   const handlesignup = () => {
     let user = new FormData()
     user.append('name',data.name)
     user.append('password',data.pass)
     user.append('email',data.email)
     user.append('image',img)
-    axios.post('http://localhost:8895/user/signup', user, {
+    axios.post(signUp, user, {
       withCredentials:true,
       headers:{
         'Content-Type':'multipart/form-data',
       },
-    }).then(a => (a.data !== null)? history.push("/?verify=1"):alert("Terjadi Kesalahan Server"))
-    .catch(err => alert("Terjadi Kesalahan Server"))
+    }).then(res => {if(res.data !== null) {
+      dispatch(setProf({
+        id:res.data.id,
+        name:res.data.name,
+        email:res.data.email,
+        role:res.data.role,
+        image:res.data.image,
+        imageUrl:res.data.image_url,
+      }))
+      history.push("/?verify=1")
+    }})
+    .catch(err => alert(err.message))
   }
   const handleVerPass= (a) => {
     if(data.pass && a.target.value===data.pass){

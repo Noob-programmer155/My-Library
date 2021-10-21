@@ -1,7 +1,12 @@
 import React, {useState} from 'react';
 import {Box, Paper, Skeleton, CardMedia, Typography, Button, Divider, Stack, IconButton} from '@mui/material';
 import {makeStyles} from '@mui/styles';
+import axios from 'axios';
 import {createTheme} from '@mui/material/styles';
+import {useDispatch, useSelector} from 'react-redux';
+import {profile} from '../funcredux/profile_redux';
+import {modifyBookURL, modifyBookFavURL} from '../constant/constantDataURL';
+import {addBookFav, removeBookFav} from '../funcredux/book_redux';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import CloseIcon from '@mui/icons-material/Close';
@@ -34,16 +39,64 @@ const useStyle = makeStyles({
 });
 
 export default function Book(props) {
-  const{id, title, author, image, publisher, date, description, theme, data, isOpen, favorite} = props;
-  const [fav, setFav] = useState(false);
+  const{id, title, author, image, publisher, date, description, theme, data, isOpen, favorite, status} = props;
+  const [fav, setFav] = useState(favorite);
+  const {format} = require('date-fns');
+  const[error, setError] = useState();
+  const prof = useSelector(profile);
+  const dispatch = useDispatch();
   const handleFav = (a) => {
     setFav(!fav);
+    if(fav){
+      dispatch(addBookFav({
+        id:id,
+        title:title,
+        author:author,
+        publisher:publisher,
+        publishDate: date,
+        description:description,
+        theme:theme,
+        data:data,
+        image:image,
+        favorite:favorite,
+        status:status}))
+      axios.put(modifyBookFavURL, null, {
+        withCredentials:true,
+        params:{
+          idb: id,
+          idu: (prof)? prof.id:0,
+          del: false,
+        },
+      }).catch(err=>setError(err.message))
+    }else{
+      dispatch(removeBookFav({
+        id:id,
+        title:title,
+        author:author,
+        publisher:publisher,
+        publishDate: date,
+        description:description,
+        theme:theme,
+        data:data,
+        image:image,
+        favorite:favorite,
+        status:status}))
+      axios.put(modifyBookFavURL, null, {
+        withCredentials:true,
+        params:{
+          idb: id,
+          idu: (prof)? prof.id:0,
+          del: true,
+        },
+      }).catch(err=>setError(err.message))
+    }
   }
   const handleDownload = (a) => {
     var file = require('file-saver');
     let hg = new Uint8Array(data);
     var blob = new Blob([hg],{type: 'application/pdf'});
     file.saveAs(blob, `${title}.pdf`);
+    
   }
   const style = useStyle();
   return(
@@ -75,7 +128,7 @@ export default function Book(props) {
             </Box>
             <Box>
               <Typography noWrap className={style.textSec}>{': '+publisher}</Typography>
-              <Typography noWrap className={style.textSec}>{': '+date}</Typography>
+              <Typography noWrap className={style.textSec}>{`: ${(date)? format(new Date(date), 'dd MMM yyyy'): date}`}</Typography>
               <Typography noWrap className={style.textSec}>{': '+theme}</Typography>
             </Box>
           </Stack>

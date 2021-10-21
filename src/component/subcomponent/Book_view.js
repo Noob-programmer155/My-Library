@@ -48,12 +48,13 @@ const useStyle = makeStyles({
 
 export default function BookView(props) {
   const style = useStyle();
-  const {id, key, title, author, image, publisher, date, description, theme, data, favorite, ...attr} = props;
+  const {id, key, title, author, image, publisher, date, description, status, theme, data, favorite, ...attr} = props;
   const[open, setOpen] = useState();
   return(
     <>
       {
         (id)? (
+          <>
           <Card key={key} className={style.root} {...attr}>
             <CardActionArea onClick={a => setOpen(id)}>
               <Box justifyContent='center' alignItems='center' display='flex' width='100%'>
@@ -69,14 +70,15 @@ export default function BookView(props) {
               <Typography className={style.text} sx={{color:'#ff8000'}}>{author}</Typography>
             </CardActionArea>
           </Card>
+          <Backdrop sx={{zIndex: (theme) => theme.zIndex.drawer + 1, width:'100vw', height:'100vh'}} open={open}>
+            <Book id={id} title={title} author={author} image={image} publisher={publisher} isOpen={setOpen}
+              date={date} description={description} theme={theme} data={data} favorite={favorite} status={status}/>
+          </Backdrop>
+          </>
         ):(
           <Skeleton key={key} className={style.load} variant='rectangular' {...attr}/>
         )
       }
-      <Backdrop sx={{zIndex: (theme) => theme.zIndex.drawer + 1, width:'100vw', height:'100vh'}} open={open}>
-        <Book id={id} title={title} author={author} image={image} publisher={publisher} isOpen={setOpen}
-          date={date} description={description} theme={theme} data={data} favorite={favorite}/>
-      </Backdrop>
     </>
   );
 }

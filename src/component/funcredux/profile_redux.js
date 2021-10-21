@@ -4,7 +4,7 @@ export const profileFunc = createSlice({
   name: 'profile',
   initialState: {
     profile: {
-      id:1,
+      id: 1,
       name:'Arrijal Amar M',
       email:'Rijal.amar29@gmail.com',
       role:'ADMINISTRATIF',
@@ -14,17 +14,12 @@ export const profileFunc = createSlice({
     book: [],
   },
   reducers:{
-    setId: (state, value) => {state.profile.id = value.payload},
-    setName: (state, value) => {state.profile.name = value.payload},
-    setEmail: (state, value) => {state.profile.email = value.payload},
-    setRole: (state, value) => {state.profile.role = value.payload},
-    setImage: (state, value) => {state.profile.image = value.payload},
-    setImageUrl: (state, value) => {state.profile.imageUrl = value.payload},
+    setProf: (state, value) => {state.profile = value.payload},
     setBooks: (state,value) => {state.book = value.payload}
   }
 });
 
-export const {setId, setName, setEmail, setRole, setImage, setImageUrl, setBooks} = profileFunc.actions
+export const {setProf, setBooks} = profileFunc.actions
 
 export const profile = state => state.profile.profile
 

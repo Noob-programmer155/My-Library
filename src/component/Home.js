@@ -11,18 +11,19 @@ const Container = forwardRef(function Container(props, ref) {
 
 export default function Home(props) {
   const [verify, setVerify] = useState();
+  const [error, setError] = useState();
   useEffect(()=>{
     let param = new URLSearchParams(props.location.search);
     if(param){
       let ver = param.get('verify')
-      if(ver){setVerify(ver)}
+      if(ver===1){setVerify("Please check your email to verify account")}
     }
   },[])
   return(
     <Box sx={{background: '#009999'}}>
       <Box sx={{display: {xs: 'block', md: 'flex'}, flexWrap:'wrap', maxWidth:'100vw'}}>
         <Box width={{xs: '100%', md: '30%'}} sx={{display:'flex', flexWrap:'wrap', alignItems:'Center', justifyContent:'center'}}>
-          <Profile/>
+          <Profile error={error} onerror={setError}/>
         </Box>
         <Box width={{xs: '100%', md: '69%'}}>
           <BookChoice/>
@@ -31,12 +32,12 @@ export default function Home(props) {
           <TypeContainer/>
         </Box>
         <Box width={{xs: '100%', md: '69%'}}>
-          <MainContainer/>
+          <MainContainer onerror={setError}/>
         </Box>
       </Box>
       <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={verify}>
-        <Container severity='info' onClose={a => setVerify(null)}>
-          Please check your email to verify account
+        <Container severity={(error)? 'error':'info'} onClose={a => (error)? setError(null):setVerify(null)}>
+          {(error)? error:verify}
         </Container>
       </Snackbar>
     </Box>
