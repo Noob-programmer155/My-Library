@@ -1,4 +1,4 @@
-package com.amrTm.backLMS.token_service;
+package com.amrTm.backLMS.service.token;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -18,9 +18,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import com.amrTm.backLMS.cookie_tools.Cookie_Tools;
-import com.amrTm.backLMS.cookie_tools.CustomCookie;
-import com.amrTm.backLMS.cookie_tools.CustomCookie.site;
+import com.amrTm.backLMS.configuration.CookieConfig;
+import com.amrTm.backLMS.configuration.CustomCookie;
+import com.amrTm.backLMS.configuration.CustomCookie.site;
 import com.amrTm.backLMS.entity.Role;
 
 import io.jsonwebtoken.Claims;
@@ -68,7 +68,7 @@ public class TokenTools {
 		cookie.setMaxAge(86400l);
 		cookie.setPath("/");
 		cookie.setSameSite(site.NONE);
-		Cookie_Tools.buildCookie(res, cookie);
+		CookieConfig.buildCookie(res, cookie);
 		return true;
 	}
 	
@@ -79,7 +79,7 @@ public class TokenTools {
 	}
 	
 	public String resolveToken(HttpServletRequest req) throws ParseException {
-		CustomCookie cookie = Cookie_Tools.getCustomCookie(req, "JLMS_TOKEN");
+		CustomCookie cookie = CookieConfig.getCustomCookie(req, "JLMS_TOKEN");
 		return cookie.getValue();
 	}
 	

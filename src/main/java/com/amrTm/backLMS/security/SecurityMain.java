@@ -13,8 +13,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.amrTm.backLMS.token_service.TokenFilter;
-import com.amrTm.backLMS.token_service.TokenTools;
+import com.amrTm.backLMS.service.UserDetailService;
+import com.amrTm.backLMS.service.UserOAuth2Service;
+import com.amrTm.backLMS.service.token.TokenFilter;
+import com.amrTm.backLMS.service.token.TokenTools;
 
 @Configuration
 @EnableWebSecurity
@@ -22,7 +24,7 @@ import com.amrTm.backLMS.token_service.TokenTools;
 public class SecurityMain extends WebSecurityConfigurerAdapter{
 	
 	@Autowired
-	private UserDetailServ userDetailServ;
+	private UserDetailService userDetailServ;
 	
 	@Autowired
 	private UserOAuth2Service userOAuth2Service; 

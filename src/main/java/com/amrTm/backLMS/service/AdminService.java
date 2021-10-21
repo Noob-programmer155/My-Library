@@ -18,9 +18,8 @@ import com.amrTm.backLMS.DTO.UserDTO;
 import com.amrTm.backLMS.DTO.UserInfoDTO;
 import com.amrTm.backLMS.entity.Role;
 import com.amrTm.backLMS.entity.User;
-import com.amrTm.backLMS.mailservice.MailService;
 import com.amrTm.backLMS.repository.UserRepo;
-import com.amrTm.backLMS.token_service.TokenTools;
+import com.amrTm.backLMS.service.token.TokenTools;
 
 @Service
 public class AdminService {

@@ -1,4 +1,4 @@
-package com.amrTm.backLMS.repository;
+package com.amrTm.backLMS.configuration;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -13,7 +13,7 @@ import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 @Configuration
-public class DataSources {
+public class DataSourcesConfig {
 	@Bean
 	public DataSource dataSource() {
 		DriverManagerDataSource data = new DriverManagerDataSource();

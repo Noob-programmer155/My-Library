@@ -1,11 +1,15 @@
-package com.amrTm.backLMS.oauth2user;
+package com.amrTm.backLMS.configuration;
 
 import java.util.Map;
 
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 
-import com.amrTm.backLMS.entity.Provider;
+import com.amrTm.backLMS.entity.userOAuth.FacebookUser;
+import com.amrTm.backLMS.entity.userOAuth.GithubUser;
+import com.amrTm.backLMS.entity.userOAuth.GoogleUser;
+import com.amrTm.backLMS.entity.userOAuth.Provider;
+import com.amrTm.backLMS.entity.userOAuth.UserOAuth;
 
 public class UserOAuthFactory {
 	public static UserOAuth getUserOAuth(String registration, Map<String,Object> attr) {

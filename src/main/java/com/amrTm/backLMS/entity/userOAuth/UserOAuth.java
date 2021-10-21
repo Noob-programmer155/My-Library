@@ -1,4 +1,4 @@
-package com.amrTm.backLMS.oauth2user;
+package com.amrTm.backLMS.entity.userOAuth;
 
 import java.util.Map;
 

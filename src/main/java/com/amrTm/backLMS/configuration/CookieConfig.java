@@ -1,11 +1,11 @@
-package com.amrTm.backLMS.cookie_tools;
+package com.amrTm.backLMS.configuration;
 
 import java.text.ParseException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class Cookie_Tools {
+public class CookieConfig {
 	public static CustomCookie getCustomCookie(HttpServletRequest req, String cookiename) throws ParseException {
 		String sw = req.getHeader("Cookie");
 		CustomCookie cc = null;

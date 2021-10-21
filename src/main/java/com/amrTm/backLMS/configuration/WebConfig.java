@@ -1,4 +1,4 @@
-package com.amrTm.backLMS.security;
+package com.amrTm.backLMS.configuration;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

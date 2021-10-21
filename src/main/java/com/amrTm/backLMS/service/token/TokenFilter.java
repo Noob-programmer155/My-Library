@@ -1,4 +1,4 @@
-package com.amrTm.backLMS.token_service;
+package com.amrTm.backLMS.service.token;
 
 import java.io.IOException;
 import java.text.ParseException;

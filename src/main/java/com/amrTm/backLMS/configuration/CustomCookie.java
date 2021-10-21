@@ -1,4 +1,4 @@
-package com.amrTm.backLMS.cookie_tools;
+package com.amrTm.backLMS.configuration;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

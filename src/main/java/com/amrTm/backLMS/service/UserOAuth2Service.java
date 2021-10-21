@@ -1,4 +1,4 @@
-package com.amrTm.backLMS.security;
+package com.amrTm.backLMS.service;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -12,12 +12,13 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import com.amrTm.backLMS.entity.Provider;
+import com.amrTm.backLMS.configuration.UserOAuthFactory;
 import com.amrTm.backLMS.entity.Role;
 import com.amrTm.backLMS.entity.User;
-import com.amrTm.backLMS.oauth2user.UserOAuth;
-import com.amrTm.backLMS.oauth2user.UserOAuthFactory;
+import com.amrTm.backLMS.entity.userOAuth.Provider;
+import com.amrTm.backLMS.entity.userOAuth.UserOAuth;
 import com.amrTm.backLMS.repository.UserRepo;
+import com.amrTm.backLMS.security.UserDetail;
 
 @Service
 public class UserOAuth2Service extends DefaultOAuth2UserService{
