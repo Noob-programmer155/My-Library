@@ -1,15 +1,18 @@
-import React, {useState} from 'react';
-import {Box, Paper, Skeleton, CardMedia, Typography, Button, Divider, Stack, IconButton} from '@mui/material';
+import React, {useState, forwardRef} from 'react';
+import {Box, Paper, CardMedia, Typography, Button, Divider, Stack, IconButton
+    , Snackbar, Alert, Chip, Dialog, DialogActions, DialogContent,DialogContentText, DialogTitle} from '@mui/material';
 import {makeStyles} from '@mui/styles';
 import axios from 'axios';
 import {createTheme} from '@mui/material/styles';
 import {useDispatch, useSelector} from 'react-redux';
 import {profile} from '../funcredux/profile_redux';
-import {modifyBookURL, modifyBookFavURL} from '../constant/constantDataURL';
-import {addBookFav, removeBookFav} from '../funcredux/book_redux';
+import {ContainerFeedback} from './otherComponent';
+import {modifyBookFavURL,modifyBookRekURL, imageBookURL, deleteBookURL} from '../constant/constantDataURL';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
+import WarningIcon from '@mui/icons-material/Warning';
 
 const theme = createTheme();
 const useStyle = makeStyles({
@@ -18,6 +21,7 @@ const useStyle = makeStyles({
       fontFamily: 'Verdana',
       color: '#000000',
       fontSize:'4vw',
+      width:'100%',
       [theme.breakpoints.up('sm')]:{
         fontSize:'1.8vw',
       },
@@ -29,37 +33,34 @@ const useStyle = makeStyles({
       fontFamily: 'Verdana',
       color: '#4d4d4d',
       fontSize:'4vw',
+      marginLeft:'5px',
+      width:'100%',
       [theme.breakpoints.up('sm')]:{
         fontSize:'1.8vw',
       },
       [theme.breakpoints.up('md')]:{
         fontSize:'1vw',
       },
+    },
+    chip:{
+      fontFamily:'Segoe UI',
+      fontWeight:700,
     }
 });
 
 export default function Book(props) {
   const{id, title, author, image, publisher, date, description, theme, data, isOpen, favorite, status} = props;
+  const colorData = [{back:'#b3ffb3',clr:'#009933'},{back:'#ccf5ff',clr:'#0066ff'},{back:'#ffe0b3',clr:'#ff6600'},
+    {back:'#e6ccff',clr:'#c61aff'},{back:'#e6e6ff',clr:'#6600ff'}];
   const [fav, setFav] = useState(favorite);
   const {format} = require('date-fns');
   const[error, setError] = useState();
+  const[deletes, setDeletes] = useState();
   const prof = useSelector(profile);
   const dispatch = useDispatch();
   const handleFav = (a) => {
     setFav(!fav);
     if(fav){
-      dispatch(addBookFav({
-        id:id,
-        title:title,
-        author:author,
-        publisher:publisher,
-        publishDate: date,
-        description:description,
-        theme:theme,
-        data:data,
-        image:image,
-        favorite:favorite,
-        status:status}))
       axios.put(modifyBookFavURL, null, {
         withCredentials:true,
         params:{
@@ -67,20 +68,8 @@ export default function Book(props) {
           idu: (prof)? prof.id:0,
           del: false,
         },
-      }).catch(err=>setError(err.message))
+      }).catch(err=>{setError(err.message);setFav(false);})
     }else{
-      dispatch(removeBookFav({
-        id:id,
-        title:title,
-        author:author,
-        publisher:publisher,
-        publishDate: date,
-        description:description,
-        theme:theme,
-        data:data,
-        image:image,
-        favorite:favorite,
-        status:status}))
       axios.put(modifyBookFavURL, null, {
         withCredentials:true,
         params:{
@@ -88,57 +77,119 @@ export default function Book(props) {
           idu: (prof)? prof.id:0,
           del: true,
         },
-      }).catch(err=>setError(err.message))
+      }).catch(err=>{setError(err.message);setFav(false);})
     }
   }
   const handleDownload = (a) => {
     var file = require('file-saver');
-    let hg = new Uint8Array(data);
-    var blob = new Blob([hg],{type: 'application/pdf'});
-    file.saveAs(blob, `${title}.pdf`);
-    
+    file.saveAs(`${imageBookURL}${data}`, `${title}.pdf`);
+    axios.post(modifyBookRekURL,null,{
+      withCredentials:true,
+      params:{
+        idBook: id,
+      }
+    }).catch(err=>setError(err.message))
   }
   const style = useStyle();
   return(
-    <Paper sx={{minWidth:'300px', maxWidth:'90vw', zIndex: (theme) => theme.zIndex.drawer + 2, paddingTop:'10px',paddingBottom:'10px'}}>
-      <Stack divider={<Divider orientation="vertical" flexItem />} spacing={{xs:0, md:1}} direction={{xs: 'column', md:'row'}} sx={{width:'100%'}}>
-        <Box justifyContent='center' alignItems='center' display='flex'>
-          <CardMedia image={image} sx={{width:'200px', minHeight: '200px'}}/>
-        </Box>
-        <Box style={{padding:'6px'}}>
-          <Box justifyContent={{md: 'flex-end', xs: 'center'}} width='100%' alignItems='center' display='flex'>
-            <IconButton onClick={a => isOpen(null)} sx={{position: 'relative', top:{md:'-25px', xs:0}, left:{md:'20px', xs:0}, background:'#ffa366', color:'#ff1a1a', '&:hover':{background:'#ff1a1a', color:'#ffff'}}}><CloseIcon/></IconButton>
+    <>
+      <Paper sx={{minWidth:'250px', maxWidth:'90vw', zIndex: (theme) => theme.zIndex.drawer + 2, padding:'10px'}}>
+        <Stack divider={<Divider orientation="vertical" flexItem />} spacing={{xs:0, md:1}} direction={{xs: 'column', md:'row'}} sx={{width:'100%'}}>
+          <Box justifyContent='center' alignItems='center' display='flex'>
+            <CardMedia image={image}//{`${imageBookURL}${image}`}
+              sx={{width:'200px', minHeight: '200px'}}/>
           </Box>
-          <Stack direction='row' style={{overflow:'auto', marginTop:'10px',marginBottom:'10px'}} sx={{width:'100%', maxWidth:'100%'}}>
-            <Box>
-              <Typography noWrap className={style.text}>Id</Typography>
-              <Typography noWrap className={style.text}>Title</Typography>
-              <Typography noWrap className={style.text}>Author</Typography>
+          <Box style={{padding:'5px'}}>
+            <Box justifyContent={{md: 'flex-end', xs: 'center'}} width='100%' alignItems='center' display='flex'>
+              {(prof && status)?
+                  (
+                    <IconButton onClick={()=> setDeletes(prof.id)} sx={{position: 'relative', top:{md:'-35px', xs:0}, left:{md:'35px', xs:0},
+                      background:'#ffa366', color:'#ff1a1a', marginRight:'10px', '&:hover':{background:'#ff1a1a', color:'#ffff'}}}><DeleteIcon/></IconButton>
+                  ):(<></>)
+              }
+              <IconButton onClick={a => isOpen(null)} sx={{position: 'relative', top:{md:'-35px', xs:0}, left:{md:'35px', xs:0},
+                background:'#ffa366', color:'#ff1a1a', '&:hover':{background:'#ff1a1a', color:'#ffff'}}}><CloseIcon/></IconButton>
+            </Box>
+            <Box style={{overflow:'auto', marginTop:'10px',marginBottom:'10px'}} sx={{width:'100%', maxWidth:'100%'}}>
+              <table style={{width:'99%'}}>
+                <tr>
+                  <td><Typography noWrap className={style.text}>Id</Typography></td>
+                  <td><Typography noWrap className={style.textSec}>{id}</Typography></td>
+                  <td><Typography noWrap className={style.text}>Publisher</Typography></td>
+                  <td><Typography noWrap className={style.textSec}>{publisher}</Typography></td>
+                </tr>
+                <tr>
+                  <td><Typography noWrap className={style.text}>Title</Typography></td>
+                  <td><Typography noWrap className={style.textSec}>{title}</Typography></td>
+                  <td><Typography noWrap className={style.text}>Publish</Typography></td>
+                  <td><Typography noWrap className={style.textSec}>{(date)? format(new Date(date), 'dd MMM yyyy'): date}</Typography></td>
+                </tr>
+                <tr>
+                  <td><Typography noWrap className={style.text}>Author</Typography></td>
+                  <td><Typography noWrap className={style.textSec}>{author}</Typography></td>
+                </tr>
+              </table>
             </Box>
             <Box>
-              <Typography noWrap className={style.textSec}>{': '+id}</Typography>
-              <Typography noWrap className={style.textSec}>{': '+title}</Typography>
-              <Typography noWrap className={style.textSec}>{': '+author}</Typography>
-            </Box>
-            <Divider orientation="vertical" flexItem sx={{background:'#000000', marginLeft:'10px', marginRight:'10px'}}/>
-            <Box>
-              <Typography noWrap className={style.text}>Publisher</Typography>
-              <Typography noWrap className={style.text}>Publish</Typography>
               <Typography noWrap className={style.text}>Theme</Typography>
+              <Stack spacing={1} direction='row' sx={{marginTop:'10px', marginBottom:'10px', maxWidth:'100%', overflow:'auto'}}>
+                {
+                  (theme)? (
+                    theme.map((a,i) => {
+                      var color = (/[A-E]/.exec(a.charAt(0)) !== null)?colorData[0]:(/[F-J]/.exec(a.charAt(0)) !== null)?colorData[1]:
+                        (/[K-O]/.exec(a.charAt(0)) !== null)?colorData[2]:(/[P-T]/.exec(a.charAt(0)) !== null)?colorData[3]:colorData[4]
+                      return <Chip key={i} className={style.chip} style={{background:color.back,color:color.clr}} label={a} size="small"/>
+                    })
+                  ) : (<></>)
+                }
+              </Stack>
             </Box>
-            <Box>
-              <Typography noWrap className={style.textSec}>{': '+publisher}</Typography>
-              <Typography noWrap className={style.textSec}>{`: ${(date)? format(new Date(date), 'dd MMM yyyy'): date}`}</Typography>
-              <Typography noWrap className={style.textSec}>{': '+theme}</Typography>
+            <Typography sx={{fontFamily:'Arial',overflow: 'auto' ,fontSize:{xs:'4.5vw', sm:'2vw', md:'1.2vw'}, textAlign:'justify', textIndent: '15px', maxHeight: '150px'}}>{description}</Typography>
+            <Box justifyContent='center' alignItems='center' display='flex' sx={{marginTop:'20px'}}>
+              <Button variant='contained' sx={{marginRight:'15px'}} onClick={handleDownload} disabled={(data)? false:true}>Download</Button>
+              <IconButton onClick={handleFav} disabled={(data)? false:true}>{(fav)? <FavoriteIcon sx={{color:'red'}}/> : <FavoriteBorderIcon/>}</IconButton>
             </Box>
-          </Stack>
-          <Typography style={{overflow: 'auto',fontSize:'18px'}} sx={{fontFamily:'Arial', textAlign:'justify', textIndent: '15px', maxHeight: '150px'}}>{description}</Typography>
-          <Box justifyContent='center' alignItems='center' display='flex' sx={{marginTop:'20px'}}>
-            <Button variant='contained' sx={{marginRight:'15px'}} onClick={handleDownload} disabled={(data)? false:true}>Download</Button>
-            <IconButton onClick={handleFav} disabled={(data)? false:true}>{(fav)? <FavoriteIcon sx={{color:'red'}}/> : <FavoriteBorderIcon/>}</IconButton>
           </Box>
-        </Box>
-      </Stack>
-    </Paper>
+        </Stack>
+      </Paper>
+      <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={error}>
+        <ContainerFeedback severity='error' onClose={a => setError(null)}>
+          {error}
+        </ContainerFeedback>
+      </Snackbar>
+      <OnDelete open={deletes} idBook={id} onClose={setDeletes}/>
+    </>
   );
+}
+
+function OnDelete(props) {
+  const{open, idBook, onClose} = props;
+  const handleClose = () => {
+    onClose(false);
+  };
+  const handleDelete = () => {
+    axios.delete(deleteBookURL,{
+      withCredentials:true,
+      params:{
+        id:idBook,
+      }
+    })
+  }
+  return(
+    <Dialog open={Boolean(open)} onClose={handleClose} sx={{zIndex: (theme) => theme.zIndex.drawer + 3}}>
+      <DialogTitle>
+        Delete this Book ?
+      </DialogTitle>
+      <DialogContent sx={{display:'flex', justifyContent:'center',alignItems:'center'}}>
+        <WarningIcon sx={{fontSize:'80px', marginRight:'10px', color:'#ffcc00'}}/>
+        <DialogContentText>
+          Are you sure to delete this book, it cannot be undone after you delete it
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleDelete}>Delete</Button>
+        <Button onClick={handleClose}>Cancel</Button>
+      </DialogActions>
+    </Dialog>
+  )
 }

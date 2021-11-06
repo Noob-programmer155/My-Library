@@ -20,19 +20,21 @@ export default function Home(props) {
     }
   },[])
   return(
-    <Box sx={{background: '#009999'}}>
-      <Box sx={{display: {xs: 'block', md: 'flex'}, flexWrap:'wrap', maxWidth:'100vw'}}>
-        <Box width={{xs: '100%', md: '30%'}} sx={{display:'flex', flexWrap:'wrap', alignItems:'Center', justifyContent:'center'}}>
-          <Profile error={error} onerror={setError}/>
-        </Box>
-        <Box width={{xs: '100%', md: '69%'}}>
-          <BookChoice/>
-        </Box>
-        <Box width={{xs: '100%', md: '30%'}} display={{xs:'none', md:'block'}}>
-          <TypeContainer/>
-        </Box>
-        <Box width={{xs: '100%', md: '69%'}}>
-          <MainContainer onerror={setError}/>
+    <>
+      <Box sx={{background: '#009999'}}>
+        <Box sx={{display: {xs: 'block', md: 'flex'}, flexWrap:'wrap', maxWidth:'100vw'}}>
+          <Box width={{xs: '100%', md: '30%'}} sx={{display:'flex', flexWrap:'wrap', alignItems:'Center', justifyContent:'center'}}>
+            <Profile error={error} onerror={setError}/>
+          </Box>
+          <Box width={{xs: '100%', md: '69%'}}>
+            <BookChoice/>
+          </Box>
+          <Box width={{xs: '100%', md: '30%'}} display={{xs:'none', md:'block'}}>
+            <TypeContainer/>
+          </Box>
+          <Box width={{xs: '100%', md: '69%'}}>
+            <MainContainer onerror={setError}/>
+          </Box>
         </Box>
       </Box>
       <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={verify}>
@@ -40,6 +42,6 @@ export default function Home(props) {
           {(error)? error:verify}
         </Container>
       </Snackbar>
-    </Box>
+    </>
   );
 }

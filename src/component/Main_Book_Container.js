@@ -1,36 +1,43 @@
 import React, {useState, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {profile} from './funcredux/profile_redux';
-import {setTypes, setChoices, linktypes, linkchoice} from './funcredux/linkedRes';
+import {linkbook, initbooklink} from './funcredux/linkedRes';
 import axios from 'axios'
 import {books, setBooks, bookThemes, favoriteBooks, recommendBooks, myBooks} from './funcredux/book_redux';
 import {Box, TextField, Typography, Stack, IconButton, useMediaQuery} from '@mui/material';
 import {mainBookURL} from './constant/constantDataURL';
-import BookView from './subcomponent/Book_view';
-import SearchIcon from '@mui/icons-material/Search';
-import BarChartIcon from '@mui/icons-material/BarChart';
+import {Search, Container} from './subcomponent/otherComponent'
+import TypeContainer from './Type_book';
 
 export default function MainContainer(props) {
   const {onerror} = props;
   const prof = useSelector(profile);
-  const buku = useSelector(books);
-  const favBuku = useSelector(favoriteBooks);
-  const recBuku = useSelector(recommendBooks);
-  const myBuku = useSelector(myBooks);
+  var buku = useSelector(books);
+  var favBuku = useSelector(favoriteBooks);
+  var recBuku = useSelector(recommendBooks);
+  var myBuku = useSelector(myBooks);
   const themes = useSelector(bookThemes);
-  const type = useSelector(linktypes);
-  const choice = useSelector(linkchoice);
+  const link = useSelector(linkbook);
+  const initlink = useSelector(initbooklink);
   const dispatch = useDispatch();
   const md = useMediaQuery('(min-width:900px)')
   useEffect(()=>{
     if(prof.id !== null || prof.id >= 0){
-      axios.get(mainBookURL,{
-        withCredentials:true,
-        params: {
-          idUs: prof.id,
-        },
-      }).then(a => a.data !== null? dispatch(setBooks(a.data)):onerror("there is a network error"))
-        .catch(err => onerror(err.message));
+      if (prof.role !== 'ANON'){
+        axios.get(mainBookURL,{
+          withCredentials:true,
+          params: {
+            idUs: prof.id,
+          },
+        }).then(a => a.data !== null? dispatch(setBooks(a.data)):onerror("there is a network error"))
+          .catch(err => onerror(err.message));
+      }
+      else {
+        axios.get(mainBookURL,{
+          withCredentials:true,
+        }).then(a => a.data !== null? dispatch(setBooks(a.data)):onerror("there is a network error"))
+          .catch(err => onerror(err.message));
+      }
     }
     else{
       axios.get(mainBookURL,{
@@ -38,155 +45,30 @@ export default function MainContainer(props) {
       }).then(a => a.data !== null? dispatch(setBooks(a.data)):onerror("there is a network error"))
         .catch(err => onerror(err.message));
     }
-  },[])
-  const clone = []
-  for(var s = 0; s < 20; s++){
-    clone.push(<BookView key={s} id={null} sx={{marginBottom:(theme) => theme.spacing(1), marginRight: (theme) => theme.spacing(1)}}/>)
-  }
-  const Contain = (props) => {
-      const {index, ids, reverseids, value, theme} = props;
-      return(
-        <div id={`${ids}${index}`} hidden={value !== index} aria-labelledby={`${reverseids}${index}`}>
-          <Box display='flex' flexWrap='wrap' sx={{maxWidth:'100%', maxHeight:'500px', overflow:'auto'}}>
-          {(buku)?
-            (buku.filter(a => a.theme === theme).map((a,i) => (
-                <BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                  publisher={a.publisher} date={a.publishDate} status={a.status}
-                  description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}
-                  sx={{marginBottom: (theme) => theme.spacing(1), marginRight: (theme) => theme.spacing(1)}}/>
-              ))
-            ):(
-              <>
-                {clone}
-              </>)
-          }
-          </Box>
-        </div>
-      );
-  }
-  const ContainChoice = (props) => {
-      const {index, ids, reverseids, value, type} = props;
-      if(type === "recommended"){
-        return(
-          <div id={`${ids}${index}`} hidden={value !== index} aria-labelledby={`${reverseids}${index}`}>
-            <Box display='flex' flexWrap='wrap' sx={{maxWidth:'100%', maxHeight:'500px', overflow:'auto'}}>
-            {(recBuku)?
-              (recBuku.map((a,i) => (
-                  <BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                    publisher={a.publisher} date={a.publishDate} status={a.status}
-                    description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}
-                    sx={{marginBottom: (theme) => theme.spacing(1), marginRight: (theme) => theme.spacing(1)}}/>
-                ))
-              ):(
-                <>
-                  {clone}
-                </>)
-            }
-            </Box>
-          </div>
-        );
-      }
-      else if(type === "favorite"){
-        return(
-          <div id={`${ids}${index}`} hidden={value !== index} aria-labelledby={`${reverseids}${index}`}>
-            <Box display='flex' flexWrap='wrap' sx={{maxWidth:'100%', maxHeight:'500px', overflow:'auto'}}>
-            {(favBuku)?
-              (favBuku.map((a,i) => (
-                  <BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                    publisher={a.publisher} date={a.publishDate} status={a.status}
-                    description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}
-                    sx={{marginBottom: (theme) => theme.spacing(1), marginRight: (theme) => theme.spacing(1)}}/>
-                ))
-              ):(
-                <>
-                  {clone}
-                </>)
-            }
-            </Box>
-          </div>
-        );
-      }
-      else if(type === "mybook"){
-        return(
-          <div id={`${ids}${index}`} hidden={value !== index} aria-labelledby={`${reverseids}${index}`}>
-            <Box display='flex' flexWrap='wrap' sx={{maxWidth:'100%', maxHeight:'500px', overflow:'auto'}}>
-            {(myBuku)?
-              (myBuku.map((a,i) => (
-                  <BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                    publisher={a.publisher} date={a.publishDate} status={a.status}
-                    description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}
-                    sx={{marginBottom: (theme) => theme.spacing(1), marginRight: (theme) => theme.spacing(1)}}/>
-                ))
-              ):(
-                <>
-                  {clone}
-                </>)
-            }
-            </Box>
-          </div>
-        );
-      }
-      else if(type === "allBook"){
-        return(
-          <div id={`${ids}${index}`} hidden={value !== index} aria-labelledby={`${reverseids}${index}`}>
-            <Box display='flex' flexWrap='wrap' sx={{maxWidth:'100%', maxHeight:'500px', overflow:'auto'}}>
-            {(buku)?
-              (buku.map((a,i) => (
-                  <BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image}
-                    publisher={a.publisher} date={a.publishDate} status={a.status}
-                    description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}
-                    sx={{marginBottom: (theme) => theme.spacing(1), marginRight: (theme) => theme.spacing(1)}}/>
-                ))
-              ):(
-                <>
-                  {clone}
-                </>)
-            }
-            </Box>
-          </div>
-        );
-      }
-      else {
-        return ;
-      }
-  }
+  },[prof])
   return(
     <Box sx={{marginTop:'20px'}}>
       <Box>
-        <Box display='flex' justifyContent='flex-start' alignItems='center' sx={{paddingLeft:'10px', paddingBottom:'30px'}}>
-          <TextField hiddenLabel placeholder='Search...' size='small'
-            inputProps={{
-              style: {
-                color:'#ffff',
-                borderRadius: '20px',
-                height: (md)? '17px':'9px',
-                fontSize: (md)?  '15px':'7px',
-              }
-            }}
-            InputProps={{
-              style: {borderRadius: '20px'}
-            }}/>
-          <IconButton sx={{color:'#ffff', background:'#004d4d', marginLeft:'7px', '&:hover':{background:'#004d4d'}}}><SearchIcon sx={{fontSize: (md)? '25px':'10px'}}/></IconButton>
-          <IconButton sx={{color:'#ffff', background:'#004d4d', marginLeft:'7px', '&:hover':{background:'#004d4d'}}}><BarChartIcon sx={{fontSize: (md)? '25px':'10px'}}/></IconButton>
-        </Box>
+        <Search/>
       </Box>
-      <Box display={(md)? 'flex':'none'} flexWrap='wrap' sx={{paddingLeft:'10px', maxWidth:'100%', maxHeight:'500px', overflow:'auto'}}>
+      <Box>
+        <TypeContainer style={{display:(md)?'none':'flex'}}/>
+        <Box display='flex' flexWrap='wrap' sx={{paddingLeft:'10px', marginTop:'20px', maxWidth:'100%', maxHeight:'500px', overflow:'auto'}}>
+        {
+          (buku)? (
+            [recBuku,favBuku,myBuku,buku].map((a,i) => (
+                <Container index={i} ids='btn-Cho-' reverseids='mob-cho-' value={link} data={a}/>
+              ))
+          ):(<></>)
+        }
         {
           (themes)? (
             themes.map((a,i) => (
-              <Contain index={i} ids='panel-main-' reverseids='btn-type-' value={type} theme={a}/>
+              <Container index={initlink+i} ids='panel-main-' reverseids='btn-type-' value={link} data={buku.filter(b => b.theme.indexOf(a) !== -1)}/>
             ))
           ):(<></>)
         }
-      </Box>
-      <Box display={(md)? 'none':'flex'} flexWrap='wrap' sx={{paddingLeft:'10px', maxWidth:'100%', maxHeight:'500px', overflow:'auto'}}>
-        {
-          (buku)? (
-            ["recommended","favorite","mybook","allBook"].map((a,i) => (
-              <ContainChoice index={i} ids='btn-Cho-' reverseids='mob-cho-' value={choice} type={a}/>
-            ))
-          ):(<></>)
-        }
+        </Box>
       </Box>
     </Box>
   );

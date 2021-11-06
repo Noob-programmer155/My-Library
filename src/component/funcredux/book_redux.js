@@ -4,24 +4,24 @@ import gbr from '../other/gambar.png';
 export const bookFunc = createSlice({
   name:'book',
   initialState:{
-    books: [{id:1,
+    books: [{id:'11:gy2g',
       title:'Java Programming',
       author: 'Arrijal Amar M',
       publisher: 'AmrTm',
       publishDate: '2021-10-01T21:25',
-      description: 'Wsandjag ajsgdu absdja buisbdj asb cha buasj',
-      theme: 'COMPUTERS',
+      description: 'Wsandjag ajsgdu absdja buisbdj asb cha buasj huibuias iasj iash uhsaui uasbu gusag usauig usag uygsu gydsuv usdgy guydsvh vdshv yusd vgyusdv usdg yubsdui gyusdg fuysdgu ygysduv ytvsdhgyusdv uydsgu ihsdu bsdg yusdgu bsd usgd hgsdu giusdg usgyu gsdu fyusfdfusid guisdg uisdg uisg iusdg iugsdiu gisd isd giusdg usdg uisbdu igsdiu gsdiu gsiudg iusdg iusdg ui',
+      theme: ['COMPUTERS','PROGRAMMING LANGUAGE'],
       data: null,
       image: gbr,
       favorite: true,
       status: false},
-      {id:2,
+      {id:'12:gy2y',
         title:'Tanah',
         author: 'Ridwan N',
         publisher: 'AmrTm',
         publishDate: '2021-08-05T21:25',
         description: 'shdjsgdyugs sdgfuysdbf sdugcbsd cusdhjfb sdsdb',
-        theme: 'SAINS',
+        theme: ['SAINS','GEOGRAPHICS'],
         data: null,
         image: gbr,
         favorite: true,
@@ -37,15 +37,10 @@ export const bookFunc = createSlice({
     setBookFav: (s, a) => {s.bookFav = a.payload},
     setBookSeller: (s, a) => {s.bookSeller = a.payload},
     setBookTheme: (s, a) => {s.bookTheme = a.payload},
-    addBookTheme: (s, a) => {s.bookTheme.push(a.payload)},
-    addBookFav: (s, a) => {s.bookFav.push(a.payload)},
-    addBookSeller: (s, a) => {s.bookSeller.push(a.payload)},
-    removeBookFav: (s, a) => {s.bookFav.splice(s.bookFav.indexOf(a.payload),1)},
-    removeBookSeller: (s, a) => {s.bookSeller.splice(s.bookFav.indexOf(a.payload),1)},
   },
 })
 
-export const {setBooks, setBookFav, setBookRek, setBookSeller, setBookTheme, addBookFav, addBookSeller, addBookTheme, removeBookFav, removeBookSeller} = bookFunc.actions
+export const {setBooks, setBookFav, setBookRek, setBookSeller, setBookTheme} = bookFunc.actions
 
 export const books = state => state.book.books
 

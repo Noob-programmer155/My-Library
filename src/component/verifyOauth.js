@@ -1,17 +1,14 @@
 import React,{useEffect, useState} from 'react';
 import axios from 'axios';
-import {useDispatch} from 'react-redux';
-import {setProf} from './funcredux/profile_redux';
 import {useHistory} from 'react-router-dom';
 import './css/loadVer.css';
-import {valOauth} from './constant/constantDataURL';
+import {valOauthURL} from './constant/constantDataURL';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import {Box, Typography, Stack} from '@mui/material';
 
 export default function VerOAuth(props) {
   const [error, setError] = useState();
   const [respon, setRespon] = useState('Please wait until verification complete...');
-  const dispatch = useDispatch();
   const history = useHistory();
   useEffect(()=>{
     let param = new URLSearchParams(props.location.search);
@@ -23,20 +20,13 @@ export default function VerOAuth(props) {
       data.append('email',email);
       data.append('username',name);
       data.append('id',acc);
-      axios.post(valOauth,data,{
+      axios.post(valOauthURL,data,{
         withCredentials:true,
         headers:{
           'Content-Type':'application/x-www-form-urlencoded',
         },
       }).then(a => {if (a.data !== null){
         setRespon('Verification Success, redirecting to home page...')
-        dispatch(setProf({
-          name:a.data.name,
-          email:a.data.email,
-          role:a.data.role,
-          image:a.data.image,
-          imageUrl:a.data.image_url,
-        }))
         history.push("/")
       }}).catch(err => setError(err.message));
     }

@@ -8,21 +8,20 @@ export const profileFunc = createSlice({
       name:'Arrijal Amar M',
       email:'Rijal.amar29@gmail.com',
       role:'ADMINISTRATIF',
-      image:null,
       imageUrl:null,
     },
-    book: [],
+    online : false,
   },
   reducers:{
     setProf: (state, value) => {state.profile = value.payload},
-    setBooks: (state,value) => {state.book = value.payload}
+    setOnline: (state, value) => {state.profile = value.payload},
   }
 });
 
-export const {setProf, setBooks} = profileFunc.actions
+export const {setProf, setOnline} = profileFunc.actions
 
 export const profile = state => state.profile.profile
 
-export const myBook = state => state.profile.book
+export const userOnline = state => state.profile.online
 
 export default profileFunc.reducer

@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import {useSelector, useDispatch} from 'react-redux';
-import {setChoices, linkchoice} from './funcredux/linkedRes';
+import {setBookLink, linkbook, initbooklink} from './funcredux/linkedRes';
 import {favoriteBooks, recommendBooks, myBooks, books, setBooks, setBookFav, setBookRek, setBookSeller} from './funcredux/book_redux';
 import BookView from './subcomponent/Book_view';
 import {Box, Typography, Skeleton, Stack, IconButton, Tabs, Tab} from '@mui/material';
@@ -30,7 +30,7 @@ const useStyle = makeStyles({
   },
   mobile: {
     minWidth:'100vw',
-    display:'block',
+    display:'flex',
     [theme.breakpoints.up('md')]:{
       display: 'none',
     },
@@ -66,8 +66,9 @@ export default function BookChoice() {
   const favBuku = useSelector(favoriteBooks);
   const recBuku = useSelector(recommendBooks);
   const myBuku = useSelector(myBooks);
+  const initlink = useSelector(initbooklink);
   const buku = useSelector(books);
-  const link = useSelector(linkchoice);
+  const link = useSelector(linkbook);
   const dispatch = useDispatch();
   var choice = (ds) => {
     return {
@@ -96,57 +97,41 @@ export default function BookChoice() {
     }
   },[buku])
   const handleChange = (a,n) =>{
-    dispatch(setChoices(n))
+    dispatch(setBookLink(n))
   }
   return(
     <>
       <Box className={style.root}>
-        <Typography className={style.text}>Recommended Books</Typography>
-        <Stack direction='row' spacing={1} className={style.scroll}>
-          {(recBuku.length===0)?(
-            [1,2,3,4,5,6,7,8,9,10].map((a,i) => {
-              return(<BookView key={i} id={null}/>)
-            })
-          ):(
-            recBuku.map((a,i) => {
-              return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image} status={a.status}
-                publisher={a.publisher} date={a.publishDate} description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}/>)
-            })
-          )}
-        </Stack>
-        <Typography className={style.text}>Favorite Books</Typography>
-        <Stack direction='row' spacing={1} className={style.scroll}>
-          {(favBuku.length===0)?(
-            [1,2,3,4,5,6,7,8,9,10].map((a,i) => {
-              return(<BookView key={i} id={null}/>)
-            })
-          ):(
-            favBuku.map((a,i) => {
-              return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image} status={a.status}
-                publisher={a.publisher} date={a.publishDate} description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}/>)
-            })
-          )}
-        </Stack>
-        <Typography className={style.text}>My Books</Typography>
-        <Stack direction='row' spacing={1} className={style.scroll}>
-          {(myBuku.length===0)?(
-            [1,2,3,4,5,6,7,8,9,10].map((a,i) => {
-              return(<BookView key={i} id={null}/>)
-            })
-          ):(
-            myBuku.map((a,i) => {
-              return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image} status={a.status}
-                publisher={a.publisher} date={a.publishDate} description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}/>)
-            })
-          )}
-        </Stack>
+        {
+          [
+            {title:'Recommended Books', data:recBuku},
+            {title:'Favorite Books', data:favBuku},
+            {title:'My Books', data:myBuku}].map(h => (
+              <>
+                <Typography className={style.text}>{h.title}</Typography>
+                <Stack direction='row' spacing={1} className={style.scroll}>
+                  {(h.data.length===0)?(
+                    [1,2,3,4,5,6,7,8,9,10].map((a,i) => {
+                      return(<BookView key={i} id={null}/>)
+                    })
+                  ):(
+                    h.data.map((a,i) => {
+                      return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image} status={a.status}
+                        publisher={a.publisher} date={a.publishDate} description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}/>)
+                    })
+                  )}
+                </Stack>
+              </>
+            ))
+        }
       </Box>
-      <Tabs variant='fullWidth' className={style.mobile} value={link} onChange={handleChange}
+      <Tabs variant='scrollable' scrollButtons='auto' className={style.mobile} value={(link>=initlink)?3:link} onChange={handleChange}
         textColor='inherit' indicatorColor="secondary">
         {
-            [<StarsIcon fontSize='small'/>, <FavoriteIcon fontSize='small'/>, <BookIcon fontSize='small'/>, <LibraryBooksIcon fontSize='small'/>].map((a,i) => (
-              <Tab sx={{color:'#ffff'}} icon={a} {...choice(i)}/>
-            ))
+            [{icon:<StarsIcon fontSize='small'/>,label:'Rekomend Book'}, {icon:<FavoriteIcon fontSize='small'/>,label:'Favorite Book'},
+            {icon:<BookIcon fontSize='small'/>,label:'My Book'}, {icon:<LibraryBooksIcon fontSize='small'/>,label:'All Book'}].map((a,i) => {
+              return <Tab sx={{color:'#ffff'}} icon={a.icon} label={a.label} {...choice(i)} value={i}/>
+            })
         }
       </Tabs>
     </>

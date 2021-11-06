@@ -1,14 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import {makeStyles} from '@mui/styles';
 import {createTheme} from '@mui/material/styles';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import axios from 'axios';
-import {profile} from './funcredux/profile_redux';
+import {profile, setProf, setOnline, userOnline} from './funcredux/profile_redux';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import PeopleIcon from '@mui/icons-material/People';
 import {useHistory} from 'react-router-dom';
-import {verUser} from './constant/constantDataURL';
+import {verUserURL,imageUserURL,addUserOnlineURL,deleteUserOnlineURL} from './constant/constantDataURL';
 import {Typography, Box, IconButton, Avatar, Skeleton, Chip, Divider, Button} from '@mui/material';
 
 const theme = createTheme();
@@ -140,15 +140,55 @@ const useStyle = makeStyles({
 });
 
 export default function Profile(props) {
-  const {error, onerror} = props;
+  const {error, onerror, container} = props;
   const style = useStyle();
   const history = useHistory();
+  const dispatch = useDispatch();
   const userProfile = useSelector(profile);
-  const [respon, setRespon] = useState()
-  useEffect(() => {
-    axios.get(verUser,{
+  const isOnline = useSelector(userOnline);
+  const [respon, setRespon] = useState();
+  useEffect(async() => {
+    axios.get(verUserURL,{
       withCredentials:true,
-    }).then(a => a.data !== null && typeof a.data === 'string' && a.data === 'validate'? setRespon("ok"):onerror("there is an incorrect response from server, please try again")).catch(err => onerror(err.message))
+    }).then(a => {if (a.data !== null){
+      dispatch(setProf({
+        id: a.data.id,
+        name: a.data.name,
+        email:a.data.email,
+        role:a.data.role,
+        imageUrl:a.data.image_url}));
+      setRespon(true);
+      if(window.navigator.onLine){
+        if(!isOnline){
+          axios.post(addUserOnlineURL,a.data.id,{
+            withCredentials:true,
+          }).then(a => dispatch(setOnline(true)))
+          .catch(err => onerror(err.message))
+        }
+      }
+      else{
+        axios.delete(deleteUserOnlineURL,{
+          withCredentials:true,
+          params:{
+            id: a.data.id,
+          },
+        }).then(a => dispatch(setOnline(false)))
+        .catch(err => onerror(err.message))
+      }
+    }
+    else {
+      onerror("there is an incorrect response from server, please try again");
+    }}).catch(err => {onerror(err.message);})//history.push("/");})
+    if(container === "library"){
+      if(!userProfile || userProfile.role !== 'SELLER') {
+        history.push("/login")
+      }
+    }
+    else if (container === "user") {
+      if(!['ADMINISTRATIF','MANAGER'].includes(userProfile.role)) {
+        history.push("/login")
+      }
+    }
   },[]);
   const preload = (
     <>
@@ -164,7 +204,7 @@ export default function Profile(props) {
     </>
   );
   const log = (
-    <Button variant='contained' className={style.button} onClick={a => history.push('/login')}>Login</Button>
+    <Button variant='contained' className={style.button} onClick={a => history.push('/login')}>Login / SignUp</Button>
   )
   return(
       <>
@@ -174,13 +214,15 @@ export default function Profile(props) {
               <Box display='flex' alignItems='center' justifyContent='flex-end' width='100%'>
                 {
                   (userProfile.role === 'MANAGER' || userProfile.role === 'ADMINISTRATIF')?
-                  (<Chip className={style.chip} icon={<PeopleIcon style={{color:'#ffff'}} className={style.chipIcon}/>} label="Users" onClick={a => history.push("/hstdyw-admin")}/>):<></>
+                  (<Chip className={style.chip} icon={<PeopleIcon style={{color:'#ffff'}} className={style.chipIcon}/>} label="Users" onClick={() => history.push("/hstdyw-admin")}/>):<></>
                 }
-                <Chip className={style.chip} icon={<LocalLibraryIcon style={{color:'#ffff'}} className={style.chipIcon}/>} label="My Library" onClick={a => history.push("/my-library")}/>
-                <IconButton style={{color:'#ffff', marginRight: '5px', marginTop: '10px'}} fontSize='small'><SettingsIcon/></IconButton>
+                {(userProfile.role === 'SELLER')?
+                  <Chip className={style.chip} icon={<LocalLibraryIcon style={{color:'#ffff'}} className={style.chipIcon}/>} label="My Library" onClick={() => history.push("/my-library")}/>:<></>
+                }
+                <IconButton style={{color:'#ffff', marginRight: '5px', marginTop: '10px'}} fontSize='small' onClick={() => history.push("/setting")}><SettingsIcon/></IconButton>
               </Box>
               <Typography className={style.font1} variant='h5' width='100%' textAlign='center'><b>{userProfile.name}</b></Typography>
-              <Avatar className={style.avatar} src={(userProfile.imageUrl)? userProfile.imageUrl : ((userProfile.image)? userProfile.image : "sGd4TFc/")} alt={userProfile.name}/>
+              <Avatar className={style.avatar} src={`${imageUserURL}${(userProfile.imageUrl)? userProfile.imageUrl :  "sGd4TFc/"}`} alt={userProfile.name}/>
               <Typography className={style.font} variant='h6' width='100%' textAlign='center'>
                 {userProfile.email}<br/>
                 <Divider style={{background:'#ffff'}} light variant='middle'/>
@@ -189,18 +231,8 @@ export default function Profile(props) {
             </>
           ):(
           <>
-            {
-            (error)? (
-              <>
-                {preload}
-                {log}
-              </>
-            ):(
-              <>
-                {preload}
-              </>
-              )
-            }
+            {preload}
+            {log}
           </>)
           }
       </>

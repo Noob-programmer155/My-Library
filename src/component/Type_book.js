@@ -1,15 +1,17 @@
 import React,{useState, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {setBookTheme, bookThemes, books} from './funcredux/book_redux';
-import {setTypes, linktypes} from './funcredux/linkedRes';
+import {setBookLink, linkbook, initbooklink} from './funcredux/linkedRes';
 import {Stack, Tab, Tabs, Skeleton, Box, useMediaQuery} from '@mui/material';
 import {createTheme} from '@mui/material/styles';
 
-export default function TypeContainer() {
+export default function TypeContainer(props) {
+  const {...attr} = props;
   const dispatch = useDispatch();
   const themes = useSelector(bookThemes);
   const buku = useSelector(books);
-  const link = useSelector(linktypes);
+  const link = useSelector(linkbook);
+  const initstate = useSelector(initbooklink);
   const med = useMediaQuery('(min-width:900px)')
   var props = (i) => {
     return{
@@ -18,28 +20,31 @@ export default function TypeContainer() {
     }
   }
   const handleChange = (a, n) => {
-    dispatch(setTypes(n))
+    dispatch(setBookLink(n))
   }
   useEffect(()=>{
     if(buku.length > 0) {
-      var themeBook = []
-      buku.forEach((item, i) => {
-        if(themes.findIndex(x => x === item.theme) === -1){
-          themeBook.push(item.theme)
-        }
+      let arr = []
+      buku.forEach(it => {
+        it.theme.forEach(item => {
+          if(themes.findIndex(x => x === item) === -1){
+            arr.push(item)
+          }
+        });
       });
-      if(themeBook) {dispatch(setBookTheme(themeBook))}
+      dispatch(setBookTheme([...themes,...arr].sort()))
     }
   },[buku]);
   return(
     <>
       {(themes.length !== 0)?
-        (<Tabs variant="fullWidth" scrollButtons="auto" value={link} textColor='inherit' indicatorColor="secondary"
-          onChange={handleChange} orientation={(med)?'vertical':'horizontal'} sx={{width:'100%', maxHeight:'500px', color:'#ffff'}}>
+        (<Tabs variant={(med)?"fullWidth":'scrollable'} scrollButtons="auto" value={(link<initstate)?false:link} textColor='inherit' indicatorColor="secondary"
+          onChange={handleChange} orientation={(med)?'vertical':'horizontal'}
+          sx={{maxWidth:'100%', maxHeight:'500px', color:'#ffff', overflow:'auto'}} {...attr}>
           {
-            themes.map((a, i) => (
-              <Tab label={a} {...props(i)}/>
-            ))
+            themes.map((a, i) => {
+              return <Tab label={a} {...props(initstate+i)} value={initstate+i}/>
+            })
           }
         </Tabs>):(
           <Box>

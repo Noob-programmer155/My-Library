@@ -3,19 +3,18 @@ import {createSlice} from '@reduxjs/toolkit';
 export const linkedRes = createSlice({
   name: 'linked',
   initialState: {
-    choices: 0,
-    types: 0,
+    booklink: 4,
+    initstatechoicebook: 4,
   },
   reducers: {
-    setChoices: (s,a) => {s.choices = a.payload},
-    setTypes: (s,a) => {s.types = a.payload},
+    setBookLink: (s,a) => {s.booklink = a.payload},
   }
 })
 
-export const {setChoices, setTypes} = linkedRes.actions
+export const {setBookLink} = linkedRes.actions
 
-export const linkchoice = (state) => state.linked.choices
+export const linkbook = (state) => state.linked.booklink
 
-export const linktypes = (state) => state.linked.types
+export const initbooklink = (state) => state.linked.initstatechoicebook
 
 export default linkedRes.reducer
