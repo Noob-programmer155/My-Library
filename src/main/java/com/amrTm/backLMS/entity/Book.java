@@ -2,15 +2,15 @@ package com.amrTm.backLMS.entity;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
-import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
@@ -30,11 +30,9 @@ public class Book {
 	private Date publishDate;
 	private String description;
 	private int rekomended;
-	@Enumerated
-	private BookTheme theme;
-	@Lob
-	private byte[] data;
-	@Lob
+	@ElementCollection
+	private List<String> type;
+	private String file;
 	private String image;
 	@ManyToOne
 	@JoinTable(name="Book_User", joinColumns= {@JoinColumn(name="Book_Id")}, inverseJoinColumns = {@JoinColumn(name="User_Id")})
@@ -79,17 +77,17 @@ public class Book {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public BookTheme getTheme() {
-		return theme;
+	public List<String> getType() {
+		return type;
 	}
-	public void setTheme(BookTheme theme) {
-		this.theme = theme;
+	public void setType(List<String> type) {
+		this.type = type;
 	}
-	public byte[] getData() {
-		return data;
+	public String getFile() {
+		return file;
 	}
-	public void setData(byte[] data) {
-		this.data = data;
+	public void setFile(String file) {
+		this.file = file;
 	}
 	public String getImage() {
 		return image;

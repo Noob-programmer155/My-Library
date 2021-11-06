@@ -11,16 +11,18 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.amrTm.backLMS.DTO.UserDTO;
 import com.amrTm.backLMS.DTO.UserInfoDTO;
 import com.amrTm.backLMS.service.AdminService;
-import com.amrTm.backLMS.service.BookServices;
 import com.amrTm.backLMS.service.UserServices;
 
 @CrossOrigin
@@ -34,27 +36,34 @@ public class UserRest {
 	@Autowired
 	private AdminService adminService;
 	
-	@Autowired
-	private BookServices bookServices; 
-	
 	@GetMapping("/get")
-	public String getUser() {
-		return userServices.getUser();
+	public UserInfoDTO getAdmin() {
+		return adminService.getInfoAdmin();
 	}
 	
-	@GetMapping("/getall")
+	@GetMapping(path="/image/{path}", produces= {MediaType.IMAGE_JPEG_VALUE,MediaType.IMAGE_PNG_VALUE})
+	public byte[] getImage(@PathVariable String path) throws IOException {
+		return userServices.getImageUser(path);
+	}
+	
+	@GetMapping("/getalluser")
 	public List<UserInfoDTO> getAllUser(){
 		return userServices.getAllUser();
+	}
+	
+	@GetMapping("/getalladmin")
+	public List<UserInfoDTO> getAllAdmin(){
+		return userServices.getAllAdmin();
+	}
+	
+	@GetMapping("/getuseronline")
+	public List<Long> getUserOnline(){
+		return userServices.getUserOnline();
 	}
 	
 	@PostMapping(path="/validate", consumes= {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
 	public UserInfoDTO validate(@RequestParam(value="tkid") String token, HttpServletResponse res) throws IOException {
 		return adminService.validateUser(token, res);
-	}
-	
-	@GetMapping("/get/tg5YVtsj6M")
-	public UserInfoDTO getAdmin() {
-		return adminService.getInfoAdmin();
 	}
 	
 	@PostMapping(path="/verify-oauth", consumes= {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
@@ -68,7 +77,7 @@ public class UserRest {
 	}
 	
 	@PostMapping(path="/signup", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
-	public UserInfoDTO signUp(UserDTO user, HttpServletResponse res) throws IOException, MessagingException {
+	public UserInfoDTO signUp(@RequestPart UserDTO user, HttpServletResponse res) throws IOException, MessagingException {
 		return adminService.standardSignup(user, res);
 	}
 	
@@ -90,15 +99,15 @@ public class UserRest {
 		return "Success";
 	}
 	
-	@PutMapping(path="/modify", consumes= {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-	public String modifyUser(@RequestParam String name, @RequestParam String email, UserDTO userModel) throws IOException {
-		userServices.modifyUser(name, email, userModel);
+	@PostMapping("/adduseronline")
+	public String addUserOnline(@RequestBody Long id) {
+		userServices.addUserOnline(id);
 		return "Success";
 	}
 	
-	@PutMapping(path="/modify/book", consumes= {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-	public String modifyUserBook(@RequestParam int idU, @RequestParam String idB, @RequestParam boolean del) {
-		bookServices.modifyBookFav(idB,idU,del);
+	@PutMapping(path="/modify", consumes= {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+	public String modifyUser(@RequestParam String name, @RequestParam String email, UserDTO userModel) throws IOException {
+		userServices.modifyUser(name, email, userModel);
 		return "Success";
 	}
 	
@@ -111,6 +120,12 @@ public class UserRest {
 	@DeleteMapping(path="/delete/admin", consumes= {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
 	public String deleteAdmin(@RequestParam String name, @RequestParam String email) {
 		userServices.deleteAdmin(name, email);
+		return "Success";
+	}
+	
+	@DeleteMapping("/delete/useronline")
+	public String deleteUser(@RequestParam Long id) {
+		userServices.deleteUserOnline(id);
 		return "Success";
 	}
 }

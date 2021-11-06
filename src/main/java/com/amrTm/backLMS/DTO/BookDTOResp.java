@@ -1,5 +1,7 @@
 package com.amrTm.backLMS.DTO;
 
+import java.util.List;
+
 public class BookDTOResp {
 	private String id;
 	private String title;
@@ -7,8 +9,8 @@ public class BookDTOResp {
 	private String publisher;
 	private String publishDate;
 	private String description;
-	private String theme;
-	private byte[] data;
+	private List<String> theme;
+	private String file;
 	private String image;
 	private boolean favorite;
 	private boolean status;
@@ -48,17 +50,17 @@ public class BookDTOResp {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public String getTheme() {
+	public List<String> getTheme() {
 		return theme;
 	}
-	public void setTheme(String theme) {
+	public void setTheme(List<String> theme) {
 		this.theme = theme;
 	}
-	public byte[] getData() {
-		return data;
+	public String getFile() {
+		return file;
 	}
-	public void setData(byte[] data) {
-		this.data = data;
+	public void setFile(String file) {
+		this.file = file;
 	}
 	public String getImage() {
 		return image;

@@ -1,16 +1,17 @@
 package com.amrTm.backLMS.DTO;
 
+import java.util.List;
+
 public class BookDTO {
 	private String id;
 	private String title;
 	private String author;
 	private String publisher;
-	private String publishDate;
 	private String description;
-	private String theme;
+	private List<String> theme;
 	private int user;
 	private boolean favorite;
-	private byte[] data;
+	private String file;
 	private String image;
 	public BookDTO() {
 		super();
@@ -39,22 +40,16 @@ public class BookDTO {
 	public void setPublisher(String publisher) {
 		this.publisher = publisher;
 	}
-	public String getPublishDate() {
-		return publishDate;
-	}
-	public void setPublishDate(String publishDate) {
-		this.publishDate = publishDate;
-	}
 	public String getDescription() {
 		return description;
 	}
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public String getTheme() {
+	public List<String> getTheme() {
 		return theme;
 	}
-	public void setTheme(String theme) {
+	public void setTheme(List<String> theme) {
 		this.theme = theme;
 	}
 	public boolean getFavorite() {
@@ -69,11 +64,11 @@ public class BookDTO {
 	public void setUser(int user) {
 		this.user = user;
 	}
-	public byte[] getData() {
-		return data;
+	public String getFile() {
+		return file;
 	}
-	public void setData(byte[] data) {
-		this.data = data;
+	public void setFile(String file) {
+		this.file = file;
 	}
 	public String getImage() {
 		return image;

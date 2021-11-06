@@ -10,7 +10,6 @@ import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.Email;
@@ -43,8 +42,6 @@ public class User {
 	private Provider provider;
 	private String clientId;
 	private String image_url;
-	@Lob
-	private String image;
 	public Provider getProvider() {
 		return provider;
 	}
@@ -92,12 +89,6 @@ public class User {
 	}
 	public void setRole(Role role) {
 		this.role = role;
-	}
-	public String getImage() {
-		return image;
-	}
-	public void setImage(String image) {
-		this.image = image;
 	}
 	public void addFavorite(Book book2) {
 		if(this.favorite.contains(book2)) return ;

@@ -6,7 +6,6 @@ public class UserInfoDTO {
 	private String email;
 	private String role;
 	private String image_url;
-	private String image;
 	public long getId() {
 		return id;
 	}
@@ -36,11 +35,5 @@ public class UserInfoDTO {
 	}
 	public void setImage_url(String image_url) {
 		this.image_url = image_url;
-	}
-	public String getImage() {
-		return image;
-	}
-	public void setImage(String image) {
-		this.image = image;
 	}
 }

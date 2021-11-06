@@ -1,6 +1,9 @@
 package com.amrTm.backLMS.service;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Base64;
+import java.util.Date;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.amrTm.backLMS.DTO.UserDTO;
 import com.amrTm.backLMS.DTO.UserInfoDTO;
+import com.amrTm.backLMS.configuration.FileConfig;
 import com.amrTm.backLMS.entity.Role;
 import com.amrTm.backLMS.entity.User;
 import com.amrTm.backLMS.repository.UserRepo;
@@ -41,7 +45,6 @@ public class AdminService {
 		return userRepo.findByEmail(email).map(a -> {
 			UserInfoDTO bg = new UserInfoDTO();
 			bg.setId(a.getId());
-			bg.setImage(a.getImage());
 			bg.setImage_url(a.getImage_url());
 			bg.setName(a.getName());
 			bg.setEmail(a.getEmail());
@@ -56,7 +59,6 @@ public class AdminService {
 		if (tokenTools.createToken(user.getName(), user.getEmail(), user.getRole(), res)) {
 			UserInfoDTO bg = new UserInfoDTO();
 			bg.setId(user.getId());
-			bg.setImage(user.getImage());
 			bg.setImage_url(user.getImage_url());
 			bg.setName(user.getName());
 			bg.setEmail(user.getEmail());
@@ -72,9 +74,8 @@ public class AdminService {
 		yu.setClientId(null);
 		yu.setEmail(user.getEmail());
 		if(!user.getImage().isEmpty()) {
-			yu.setImage(user.getImage());
+			yu.setImage_url(FileConfig.saveImageUser(Base64.getDecoder().decode(user.getImage()), new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date()))+"."+user.getImage().split(";")[0].split("/")[1]);
 		}
-		yu.setImage_url(null);
 		yu.setName(user.getName());
 		yu.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
 		yu.setProvider(null);
@@ -85,7 +86,6 @@ public class AdminService {
 		if (mailService.sendEmailValidation(user.getName(), user.getEmail())) {
 			UserInfoDTO bg = new UserInfoDTO();
 			bg.setId(hg.getId());
-			bg.setImage(hg.getImage());
 			bg.setImage_url(hg.getImage_url());
 			bg.setName(hg.getName());
 			bg.setEmail(hg.getEmail());
@@ -102,7 +102,6 @@ public class AdminService {
 			if(tokenTools.createToken(user.getName(), user.getEmail(), user.getRole(), res)) {
 				UserInfoDTO bg = new UserInfoDTO();
 				bg.setId(user.getId());
-				bg.setImage(user.getImage());
 				bg.setImage_url(user.getImage_url());
 				bg.setName(user.getName());
 				bg.setEmail(user.getEmail());

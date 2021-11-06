@@ -62,7 +62,6 @@ public class MailService {
 			if (tokenTools.createToken(yt.getName(), yt.getEmail(), yt.getRole(), res)) {
 				UserInfoDTO bg = new UserInfoDTO();
 				bg.setId(yt.getId());
-				bg.setImage(yt.getImage());
 				bg.setImage_url(yt.getImage_url());
 				bg.setName(yt.getName());
 				bg.setEmail(yt.getEmail());

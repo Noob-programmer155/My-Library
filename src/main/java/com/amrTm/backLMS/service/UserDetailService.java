@@ -28,7 +28,6 @@ public class UserDetailService implements UserDetailsService{
 			User user = new User();
 			user.setClientId(null);
 			user.setEmail("rijal.amar29@gmail.com");
-			user.setImage(null);
 			user.setImage_url(null);
 			user.setName("Amar");
 			user.setPassword(new BCryptPasswordEncoder().encode("Amar1234#"));

@@ -64,6 +64,7 @@ public class TokenTools {
 		cookie.setDomain("localhost");
 		cookie.setHttpOnly(true);
 //		cookie.setSecure(true);
+//		if using SameSite NONE, secure must to enable
 		cookie.setSecure(false);
 		cookie.setMaxAge(86400l);
 		cookie.setPath("/");

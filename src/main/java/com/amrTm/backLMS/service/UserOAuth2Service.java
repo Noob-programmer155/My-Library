@@ -70,7 +70,6 @@ public class UserOAuth2Service extends DefaultOAuth2UserService{
 		User user = new User();
 		user.setClientId(updateUser.getId());
 		user.setEmail(updateUser.getEmail());
-		user.setImage(null);
 		user.setImage_url(updateUser.getImageUrl());
 		user.setName(updateUser.getName());
 		user.setPassword(null);
