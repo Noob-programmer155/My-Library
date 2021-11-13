@@ -1,11 +1,14 @@
 import React,{useState,useEffect} from 'react';
-import {useSelector,useDispatch} from 'react-redux';
-import {getUsersURL, getAdminURL, getUserOnlineURL} from '../constant/constantDataURL';
+import {getUsersURL, getAdminURL, getUserOnlineURL, upgradeAdminURL} from '../constant/constantDataURL';
 import axios from 'axios';
 import {styled} from '@mui/material/styles';
-import {Paper, Table, TableContainer, TableHead, TableBody, TableCell, TableRow, TablePagination, Box, Typography} from '@mui/material';
+import {Paper, Table, TableContainer, TableHead, TableBody, TableCell, TableRow, IconButton,
+  TablePagination, Box, Typography} from '@mui/material';
+import {OnDeleteComponent} from './otherComponent';
 import UserInfo from './User'
 import Brightness1Icon from '@mui/icons-material/Brightness1';
+import AddBoxIcon from '@mui/icons-material/AddBox';
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 
 const Cell = styled(TableCell)(({theme}) => ({
   fontSize: '3vw',
@@ -18,7 +21,7 @@ const Cell = styled(TableCell)(({theme}) => ({
 }))
 
 export default function UserBuilder(props) {
-  const{type, setError} = props;
+  const{type, setError, role} = props;
   const[users, setUsers] = useState([
     {
       id: 1,
@@ -38,6 +41,7 @@ export default function UserBuilder(props) {
   const[onlineUsers, setOnlineUsers] = useState([1]);
   const[rowsPerPage, setRowsPerPage] = useState(5);
   const[page, setPage] = useState(0);
+  const[admin, setAdmin] = useState();
   const[info, setInfo] = useState();
   useEffect(()=>{
     axios.get(getUserOnlineURL,{
@@ -67,6 +71,30 @@ export default function UserBuilder(props) {
     setRowsPerPage(parseInt(e.target.value,10))
     setPage(0)
   }
+  const handleAddAdmin = (name,email) => (e) => {
+    var form = new FormData();
+    form.append('name',name)
+    form.append('email',email)
+    form.append('delete',false)
+    axios.post(upgradeAdminURL,form,{
+      withCredentials:true,
+      headers:{
+        'Content-Type':'multipart/form-data',
+      }
+    }).then().catch(err => setError(err.message))
+  }
+  const handleDeleteAdmin = (name,email) => (e) => {
+    var form = new FormData();
+    form.append('name',name)
+    form.append('email',email)
+    form.append('delete',true)
+    axios.post(upgradeAdminURL,form,{
+      withCredentials:true,
+      headers:{
+        'Content-Type':'multipart/form-data',
+      }
+    }).then().catch(err => setError(err.message))
+  }
   return(
     <>
       <Paper>
@@ -74,7 +102,7 @@ export default function UserBuilder(props) {
           <Table>
             <TableHead>
               <TableRow>
-                {['ID','Username','Email','Role','Status'].map(a => (
+                {['ID','Username','Email','Role','Status',''].map(a => (
                   <Cell align='center'>
                     {a}
                   </Cell>
@@ -100,6 +128,16 @@ export default function UserBuilder(props) {
                       ):(<Box justifyContent='center' alignItems='center' display='flex'>
                         <Brightness1Icon sx={{marginRight:'10px'}}/> Offline</Box>)}
                     </Cell>
+                    {(type==='user'&&role==='MANAGER')?
+                      <Cell>
+                        <IconButton onClick={(e) => {e.stopPropagation();setAdmin({name:a.name,email:a.email,type:type});}}><AddBoxIcon color='success'/></IconButton>
+                      </Cell>:<></>
+                    }
+                    {(type==='admin')?
+                      <Cell>
+                        <IconButton onClick={(e) => {e.stopPropagation();setAdmin({name:a.name,email:a.email,type:type});}}><RemoveCircleIcon color='error'/></IconButton>
+                      </Cell>:<></>
+                    }
                   </TableRow>
                 ))):(
                   <></>
@@ -118,7 +156,12 @@ export default function UserBuilder(props) {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-      <UserInfo data={info} setData={setInfo}/>
+      <UserInfo data={info} setData={setInfo} setError={setError} type={type}/>
+      <OnDeleteComponent onDelete={admin?(admin.type==='user'?handleAddAdmin(admin.name,admin.email):handleDeleteAdmin(admin.name,admin.email)):null}
+        title={admin?(admin.type==='user'?'Add to administration ?':'Remove from administration ?'):null}
+        content={admin?(admin.type==='user'?`Are you sure to add ${admin.name} to become administration ?`
+          :`Are you sure to remove ${admin.name} from administration ?`):null}
+        onClose={() => setAdmin(null)} open={admin} buttonTitle={admin?(admin.type==='user'?'Add':'Remove'):null}/>
     </>
   )
 }

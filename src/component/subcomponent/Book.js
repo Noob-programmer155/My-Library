@@ -1,18 +1,17 @@
 import React, {useState, forwardRef} from 'react';
 import {Box, Paper, CardMedia, Typography, Button, Divider, Stack, IconButton
-    , Snackbar, Alert, Chip, Dialog, DialogActions, DialogContent,DialogContentText, DialogTitle} from '@mui/material';
+    , Snackbar, Alert, Chip} from '@mui/material';
 import {makeStyles} from '@mui/styles';
 import axios from 'axios';
 import {createTheme} from '@mui/material/styles';
 import {useDispatch, useSelector} from 'react-redux';
 import {profile} from '../funcredux/profile_redux';
-import {ContainerFeedback} from './otherComponent';
+import {ContainerFeedback, OnDeleteComponent} from './otherComponent';
 import {modifyBookFavURL,modifyBookRekURL, imageBookURL, deleteBookURL} from '../constant/constantDataURL';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
-import WarningIcon from '@mui/icons-material/Warning';
 
 const theme = createTheme();
 const useStyle = makeStyles({
@@ -61,21 +60,25 @@ export default function Book(props) {
   const handleFav = (a) => {
     setFav(!fav);
     if(fav){
-      axios.put(modifyBookFavURL, null, {
+      var form = new FormData();
+      form.append('idb', id)
+      form.append('idu', (prof)? prof.id:0)
+      form.append('del', false)
+      axios.put(modifyBookFavURL, form, {
         withCredentials:true,
-        params:{
-          idb: id,
-          idu: (prof)? prof.id:0,
-          del: false,
+        headers:{
+          'Content-Type':'multipart/form-data',
         },
       }).catch(err=>{setError(err.message);setFav(false);})
     }else{
-      axios.put(modifyBookFavURL, null, {
+      var form = new FormData();
+      form.append('idb', id)
+      form.append('idu', (prof)? prof.id:0)
+      form.append('del', true)
+      axios.put(modifyBookFavURL, form, {
         withCredentials:true,
-        params:{
-          idb: id,
-          idu: (prof)? prof.id:0,
-          del: true,
+        headers:{
+          'Content-Type':'multipart/form-data',
         },
       }).catch(err=>{setError(err.message);setFav(false);})
     }
@@ -157,13 +160,13 @@ export default function Book(props) {
           {error}
         </ContainerFeedback>
       </Snackbar>
-      <OnDelete open={deletes} idBook={id} onClose={setDeletes}/>
+      <OnDelete open={deletes} idBook={id} onClose={setDeletes} onError={setError}/>
     </>
   );
 }
 
 function OnDelete(props) {
-  const{open, idBook, onClose} = props;
+  const{open, idBook, onClose, onError} = props;
   const handleClose = () => {
     onClose(false);
   };
@@ -173,23 +176,9 @@ function OnDelete(props) {
       params:{
         id:idBook,
       }
-    })
+    }).then(() => onClose(false)).catch(err => onError(err.message))
   }
-  return(
-    <Dialog open={Boolean(open)} onClose={handleClose} sx={{zIndex: (theme) => theme.zIndex.drawer + 3}}>
-      <DialogTitle>
-        Delete this Book ?
-      </DialogTitle>
-      <DialogContent sx={{display:'flex', justifyContent:'center',alignItems:'center'}}>
-        <WarningIcon sx={{fontSize:'80px', marginRight:'10px', color:'#ffcc00'}}/>
-        <DialogContentText>
-          Are you sure to delete this book, it cannot be undone after you delete it
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleDelete}>Delete</Button>
-        <Button onClick={handleClose}>Cancel</Button>
-      </DialogActions>
-    </Dialog>
-  )
+  return <OnDeleteComponent onDelete={handleDelete} title='Delete this Book ?'
+    content='Are you sure to delete this book, it cannot be undone after you delete it'
+    onClose={handleClose} open={open}/>
 }

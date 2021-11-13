@@ -23,7 +23,7 @@ export default function VerOAuth(props) {
       axios.post(valOauthURL,data,{
         withCredentials:true,
         headers:{
-          'Content-Type':'application/x-www-form-urlencoded',
+          'Content-Type':'multipart/form-data',
         },
       }).then(a => {if (a.data !== null){
         setRespon('Verification Success, redirecting to home page...')

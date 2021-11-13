@@ -40,7 +40,7 @@ export default function TypeContainer(props) {
       {(themes.length !== 0)?
         (<Tabs variant={(med)?"fullWidth":'scrollable'} scrollButtons="auto" value={(link<initstate)?false:link} textColor='inherit' indicatorColor="secondary"
           onChange={handleChange} orientation={(med)?'vertical':'horizontal'}
-          sx={{maxWidth:'100%', maxHeight:'500px', color:'#ffff', overflow:'auto'}} {...attr}>
+          sx={{maxWidth:'100%', maxHeight:'500px', color:'#ffff'}} {...attr}>
           {
             themes.map((a, i) => {
               return <Tab label={a} {...props(initstate+i)} value={initstate+i}/>

@@ -31,10 +31,10 @@ export default function UserContainer() {
         </Box>
         <Box sx={{width:{xs:'100vw', md:'69vw'}, maxWidth:'95%', marginTop:'30px'}}>
           <Panel index={0} value={link}>
-            <UserBuilder type='user' setError={setError}/>
+            <UserBuilder type='user' setError={setError} role={prof.role}/>
           </Panel>
           <Panel index={1} value={link}>
-            <UserBuilder type='admin' setError={setError}/>
+            <UserBuilder type='admin' setError={setError} role={prof.role}/>
           </Panel>
         </Box>
       </Box>

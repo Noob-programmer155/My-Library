@@ -11,6 +11,13 @@ export const getAdminURL = mainURL+"/user/getalladmin";
 export const addUserOnlineURL = mainURL+"/user/adduseronline";
 export const deleteUserOnlineURL = mainURL+"/user/delete/useronline";
 export const getUserOnlineURL = mainURL+"/user/getuseronline";
+export const deleteUserURL = mainURL+"/user/delete";
+export const deleteAdminURL = mainURL+"/user/delete/admin";
+export const verifyPasswordURL = mainURL+"/user/password";
+export const logOutURL = mainURL+"/user/logout";
+export const upgradeAdminURL = mainURL+"/user/modify/admin";
+export const upgradeUserURL = mainURL+"/user/modify/seller";
+export const modifyUserURL = mainURL+"/user/modify";
 
 //verify User
 export const valDefaultURL = mainURL+"/user/validate";
@@ -30,7 +37,7 @@ export const deleteBookURL = mainURL+"/book/delete";
 export const getBookTypeURL = mainURL+"/book/getType";
 export const addBookTypeURL = mainURL+"/book/addTypes";
 
-//image
+//fileandimage
 export const imageBookURL = mainURL+"/book/image/";
 export const fileBookURL = mainURL+"/book/file/";
 export const imageUserURL = mainURL+"/user/image/";

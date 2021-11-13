@@ -7,14 +7,14 @@ export const profileFunc = createSlice({
       id: 1,
       name:'Arrijal Amar M',
       email:'Rijal.amar29@gmail.com',
-      role:'ADMINISTRATIF',
+      role:'ANON',
       imageUrl:null,
     },
     online : false,
   },
   reducers:{
     setProf: (state, value) => {state.profile = value.payload},
-    setOnline: (state, value) => {state.profile = value.payload},
+    setOnline: (state, value) => {state.online = value.payload},
   }
 });
 

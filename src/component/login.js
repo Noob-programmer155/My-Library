@@ -33,7 +33,7 @@ export default function Login(props) {
     axios.post(logInURL ,user,{
       withCredentials:true,
       headers:{
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'multipart/form-data',
       },
     }).then(res => {if(res.data !== null){
       history.push('/')
@@ -73,11 +73,11 @@ export default function Login(props) {
           </Stack>
           <Divider sx={{marginTop:'20px',marginBottom:'20px'}}>OR</Divider>
           <Stack direction='column' spacing={1}>
-            <Button variant='contained' sx={{background:'#00cc99', '&:hover':{background:'#00b359'}}}
+            <Button variant='contained' sx={{background:'#00cc99' , textTransform:'capitalize', '&:hover':{background:'#00b359'}}}
               startIcon={<GoogleIcon/>} href={pathOauthURL+"/google"} rel='noreference noopener'>Login with Google</Button>
-            <Button variant='contained' sx={{background:'#6666ff'}}
+            <Button variant='contained' sx={{background:'#6666ff', textTransform:'capitalize'}}
               startIcon={<FacebookIcon/>} href={pathOauthURL+"/facebook"} rel='noreference noopener'>Login with Facebook</Button>
-            <Button variant='contained' sx={{background:'#333333','&:hover':{background:'#0d0d0d'}}}
+            <Button variant='contained' sx={{background:'#333333', textTransform:'capitalize', '&:hover':{background:'#0d0d0d'}}}
               startIcon={<GitHubIcon/>} href={pathOauthURL+"/github"} rel='noreference noopener'>Login with Github</Button>
           </Stack>
         </Paper>

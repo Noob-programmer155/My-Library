@@ -96,6 +96,7 @@ const useStyle = makeStyles({
     borderRadius: 0,
     width:'100%',
     height:'70px',
+    textTransform:'capitalize',
     '&:hover':{
         background:'rgba(0,0,0,0.5)'
     },
@@ -146,7 +147,7 @@ export default function Profile(props) {
   const dispatch = useDispatch();
   const userProfile = useSelector(profile);
   const isOnline = useSelector(userOnline);
-  const [respon, setRespon] = useState();
+  const [respon, setRespon] = useState('sa');
   useEffect(async() => {
     axios.get(verUserURL,{
       withCredentials:true,
@@ -222,7 +223,7 @@ export default function Profile(props) {
                 <IconButton style={{color:'#ffff', marginRight: '5px', marginTop: '10px'}} fontSize='small' onClick={() => history.push("/setting")}><SettingsIcon/></IconButton>
               </Box>
               <Typography className={style.font1} variant='h5' width='100%' textAlign='center'><b>{userProfile.name}</b></Typography>
-              <Avatar className={style.avatar} src={`${imageUserURL}${(userProfile.imageUrl)? userProfile.imageUrl :  "sGd4TFc/"}`} alt={userProfile.name}/>
+              <Avatar className={style.avatar} src={(userProfile.imageUrl)? `${imageUserURL}${userProfile.imageUrl}` :  "sGd4TFc/"} alt={userProfile.name}/>
               <Typography className={style.font} variant='h6' width='100%' textAlign='center'>
                 {userProfile.email}<br/>
                 <Divider style={{background:'#ffff'}} light variant='middle'/>

@@ -31,7 +31,7 @@ export default function MyLibrary() {
   },[user])
   return(
     <>
-      <Box display='flex' flexWrap='wrap' sx={{background: '#009999', minHeight:'100vh'}}>
+      <Box display='flex' flexWrap={{xs:'wrap', md:'nowrap'}} sx={{background: '#009999', minHeight:'100vh'}}>
         <Box sx={{width:{xs:'100vw', md:'30vw'}, maxHeight:'100vh'}} justifyContent='center' alignItems='center' display='flex' flexWrap='wrap'>
           <Profile error={error} onerror={setError} container="library"/>
           <Tabs variant="fullWidth" value={link} textColor='inherit' indicatorColor="secondary"
@@ -45,7 +45,7 @@ export default function MyLibrary() {
           </Tabs>
           // footer app
         </Box>
-        <Box sx={{width:{xs:'100vw', md:'67vw'}, padding: '10px'}}>
+        <Box sx={{width:{xs:'100vw', md:'70vw'}, padding: '10px'}}>
           <Panel index={0} value={link}>
             <>
               <Box>

@@ -85,7 +85,6 @@ function AddBook(props) {
   const[typeData,setTypeData] = useState([])
   const[openAddTheme, setOpenAddTheme] = useState()
   const themes = useSelector(bookThemes)
-  const dispatch = useDispatch()
   const prof = useSelector(profile)
   const handleChange = (e) => {
     setTypeSelect(e.target.value)

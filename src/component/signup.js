@@ -8,50 +8,9 @@ import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import {signUpURL} from './constant/constantDataURL';
+import {getBase64} from './subcomponent/otherComponent';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import {useHistory} from 'react-router-dom';
-
-function getBase64(file, callback) {
-  const resize = (img) => {
-    var canvas = document.createElement('canvas');
-    var width = img.width;
-    var height = img.height;
-    if(width > height){
-      if (width > 800){
-        height = Math.round(height *= 800 / width);
-        width = 800;
-      }
-    } else {
-      if (height > 600) {
-        width = Math.round(width *= 600 / height);
-        height = 600;
-      }
-    }
-    canvas.width = width;
-    canvas.height = height;
-    var data = canvas.getContext('2d');
-    data.drawImage(img,0,0,width,height);
-    return canvas.toDataURL('image/jpeg',1);
-  }
-
-  var read = new FileReader();
-  read.readAsArrayBuffer(file);
-  read.onload = function (e) {
-    var data = new Blob([e.target.result]);
-    window.URL = window.URL || window.webkitURL;
-    var url = window.URL.createObjectURL(data);
-
-    var image = new Image();
-    image.src = url;
-
-    image.onload = function () {
-      callback(resize(image));
-    }
-  }
-  read.onerror = function (s) {
-    alert(s);
-  }
-}
 
 export default function SignUp() {
   const [data, setData]=useState({
@@ -107,7 +66,8 @@ export default function SignUp() {
           <Box justifyContent='center' alignItems='center' display='flex' sx={{marginTop:'20px'}}>
             <label htmlFor='fotouser'>
               <input id='fotouser' type='file' accept="image/*" onChange={handleImage} style={{display:'none'}}/>
-              <Button sx={{background:'#b3b3b3', borderRadius:'50%', width:(th) => th.spacing(10), height:(th) => th.spacing(10)}} component='span'>{
+              <Button sx={{backgroundColor:'#f2f2f2', borderRadius:'50%', width:(th) => th.spacing(10),
+                height:(th) => th.spacing(10), '&:hover':{backgroundColor:'#d9d9d9'}}} component='span'>{
                 (img)? <Avatar src={img} sx={{width:(th) => th.spacing(10), height:(th) => th.spacing(10)}}/>:<AddPhotoAlternateIcon/>
               }</Button>
             </label>

@@ -4,17 +4,15 @@ import {useSelector, useDispatch} from 'react-redux';
 import {setBookLink, linkbook, initbooklink} from './funcredux/linkedRes';
 import {favoriteBooks, recommendBooks, myBooks, books, setBooks, setBookFav, setBookRek, setBookSeller} from './funcredux/book_redux';
 import BookView from './subcomponent/Book_view';
-import {Box, Typography, Skeleton, Stack, IconButton, Tabs, Tab} from '@mui/material';
+import {Box, Typography, Skeleton, Stack, IconButton, Tabs, Tab, useMediaQuery} from '@mui/material';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import StarsIcon from '@mui/icons-material/Stars';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import BookIcon from '@mui/icons-material/Book';
-
 import {makeStyles} from '@mui/styles';
 import {createTheme} from '@mui/material/styles';
 
 const theme = createTheme();
-
 const useStyle = makeStyles({
   root:{
     background: '#009999',
@@ -29,7 +27,8 @@ const useStyle = makeStyles({
     },
   },
   mobile: {
-    minWidth:'100vw',
+    maxWidth:'100%',
+    width:'100%',
     display:'flex',
     [theme.breakpoints.up('md')]:{
       display: 'none',
@@ -69,6 +68,7 @@ export default function BookChoice() {
   const initlink = useSelector(initbooklink);
   const buku = useSelector(books);
   const link = useSelector(linkbook);
+  const sm = useMediaQuery('(min-width:600px)')
   const dispatch = useDispatch();
   var choice = (ds) => {
     return {
@@ -125,7 +125,7 @@ export default function BookChoice() {
             ))
         }
       </Box>
-      <Tabs variant='scrollable' scrollButtons='auto' className={style.mobile} value={(link>=initlink)?3:link} onChange={handleChange}
+      <Tabs variant={(sm)?'fullWidth':'scrollable'} scrollButtons='auto' className={style.mobile} value={(link>=initlink)?3:link} onChange={handleChange}
         textColor='inherit' indicatorColor="secondary">
         {
             [{icon:<StarsIcon fontSize='small'/>,label:'Rekomend Book'}, {icon:<FavoriteIcon fontSize='small'/>,label:'Favorite Book'},
