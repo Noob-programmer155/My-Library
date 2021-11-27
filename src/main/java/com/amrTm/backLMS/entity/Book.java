@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -28,11 +29,14 @@ public class Book {
 	private String author;
 	private String publisher;
 	private Date publishDate;
+	@Column(length=5000000)
 	private String description;
 	private int rekomended;
 	@ElementCollection
 	private List<String> type;
+	@Column(nullable=false)
 	private String file;
+	@Column(nullable=false)
 	private String image;
 	@ManyToOne
 	@JoinTable(name="Book_User", joinColumns= {@JoinColumn(name="Book_Id")}, inverseJoinColumns = {@JoinColumn(name="User_Id")})

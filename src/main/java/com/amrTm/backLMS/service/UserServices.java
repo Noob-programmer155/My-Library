@@ -3,15 +3,14 @@ package com.amrTm.backLMS.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.amrTm.backLMS.DTO.UserDTO;
 import com.amrTm.backLMS.DTO.UserInfoDTO;
@@ -28,14 +27,9 @@ public class UserServices {
 	
 	private List<Long> userOnline = new ArrayList<>();
 	
-	@PreAuthorize("hasAnyAuthority('USER','SELLER','ADMINISTRATIF','MANAGER')")
-	public String getUser() {
-		return "validate";
-	}
-	
-	@PreAuthorize("hasAnyAuthority('USER','SELLER','ADMINISTRATIF','MANAGER')")
+	@PreAuthorize("hasAnyAuthority('ANON','USER','SELLER','ADMINISTRATIF','MANAGER')")
 	public byte[] getImageUser(String path) throws IOException {
-		ClassPathResource resource = new ClassPathResource("image/user/"+path);
+		ClassPathResource resource = new ClassPathResource("static/image/user/"+path);
 		return resource.getInputStream().readAllBytes();
 	}
 	
@@ -65,19 +59,25 @@ public class UserServices {
 		}).collect(Collectors.toList());
 	}
 	
-	@PreAuthorize("hasAnyAuthority('USER','SELLER','ADMINISTRATIF','MANAGER')")
-	public void modifyUser(String name, String email, UserDTO userModel) throws IOException {
+	@PreAuthorize("hasAnyAuthority('ANON','USER','SELLER','ADMINISTRATIF','MANAGER')")
+	public UserInfoDTO modifyUser(String name, String email, UserDTO userModel, MultipartFile image) throws IOException {
 		User user = userRepo.getByNameAndEmail(name, email);
 		user.setName(userModel.getName());
-		user.setEmail(userModel.getEmail());
-		if(!userModel.getImage().isEmpty()) 
-			user.setImage_url(FileConfig.saveImageUser(Base64.getDecoder().decode(userModel.getImage()), user.getImage_url()));
-		user.setPassword(new BCryptPasswordEncoder().encode(userModel.getPassword()));
-		
-		userRepo.save(user);
+		user.setEmail(userModel.getEmail().toLowerCase());
+		if(!image.isEmpty() || image != null) {
+			user.setImage_url(FileConfig.modifyImageUser(image,user.getImage_url()));
+		}
+		User us = userRepo.save(user);
+		UserInfoDTO user1 = new UserInfoDTO();
+		user1.setId(us.getId());
+		user1.setName(us.getName());
+		user1.setEmail(us.getEmail());
+		user1.setRole(us.getRole().toString());
+		user1.setImage_url(us.getImage_url());
+		return user1;
 	}
 	
-	@PreAuthorize("hasAnyAuthority('USER','SELLER','ADMINISTRATIF')")
+	@PreAuthorize("hasAuthority('ADMINISTRATIF')")
 	public void deleteUser(String name, String email) {
 		User user = userRepo.getByNameAndEmail(name, email);
 		if(user.getRole().equals(Role.SELLER) || user.getRole().equals(Role.USER)) {

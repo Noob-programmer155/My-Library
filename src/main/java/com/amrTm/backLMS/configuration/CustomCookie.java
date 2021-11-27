@@ -38,7 +38,11 @@ public class CustomCookie {
 		}
 		if(maxAge!=null) {
 			tr.append("Expires=");
-			tr.append(toUTCString(new Date(new Date().getTime()+(maxAge*1000))));
+			if(maxAge != 0) {
+				tr.append(toUTCString(new Date(new Date().getTime()+(maxAge*1000))));
+			}else {
+				tr.append(toUTCString(new Date(1)));
+			}
 			tr.append(';');
 		}
 		if (secure) {tr.append("Secure;");}

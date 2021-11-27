@@ -1,5 +1,7 @@
 package com.amrTm.backLMS.configuration;
 
+import java.util.Properties;
+
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
@@ -33,6 +35,8 @@ public class DataSourcesConfig {
 	public JpaVendorAdapter jpaVendorAdapter() {
 		HibernateJpaVendorAdapter vendor = new HibernateJpaVendorAdapter();
 		vendor.setDatabase(Database.MYSQL);
+		vendor.setDatabasePlatform("org.hibernate.dialect.MySQL8Dialect");
+		vendor.setShowSql(true);
 		vendor.setGenerateDdl(true);
 		return vendor;
 	}
@@ -42,6 +46,10 @@ public class DataSourcesConfig {
 		LocalContainerEntityManagerFactoryBean container = new LocalContainerEntityManagerFactoryBean();
 		container.setDataSource(dataSource());
 		container.setJpaVendorAdapter(jpaVendorAdapter());
+		Properties jpaProperties = new Properties();
+	    jpaProperties.put(org.hibernate.cfg.Environment.HBM2DDL_AUTO, "update");
+	    jpaProperties.put(org.hibernate.cfg.Environment.FORMAT_SQL, true);
+		container.setJpaProperties(jpaProperties);
 		container.setPackagesToScan("com.amrTm.backLMS.entity");
 		return container;
 	}

@@ -2,6 +2,8 @@ package com.amrTm.backLMS.service.token;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -10,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import io.jsonwebtoken.JwtException;
@@ -18,6 +21,9 @@ public class TokenFilter extends OncePerRequestFilter{
 	
 	private TokenTools tokenTools; 
 	
+	List<String> mapping = Arrays.asList("/user/validate","/user/login","/user/signup",
+			"/user/verify-oauth","/book/getbooks","/book/image/*");
+	private AntPathMatcher pathMatcher = new AntPathMatcher();
 	public TokenFilter(TokenTools tokenTools) {
 		this.tokenTools = tokenTools;
 	}
@@ -43,5 +49,9 @@ public class TokenFilter extends OncePerRequestFilter{
 			throw new IllegalArgumentException(e.getMessage());
 		}
 		filterChain.doFilter(request, response);
+	}
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+		return mapping.stream().anyMatch(a -> {return pathMatcher.match(a, request.getRequestURI());});
 	}
 }

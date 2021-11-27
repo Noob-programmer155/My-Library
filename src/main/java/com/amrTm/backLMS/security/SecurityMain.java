@@ -39,7 +39,7 @@ public class SecurityMain extends WebSecurityConfigurerAdapter{
 
 	@Override
 	public void configure(WebSecurity web) throws Exception {
-		web.ignoring().antMatchers("/user/validate","/user/login","/user/signup","/login/auth/**","/user/verify-oauth");
+		web.ignoring().antMatchers("/user/validate","/user/login","/user/login/**","/user/signup","/user/verify-oauth","/book/getbooks","/book/image/*");
 	}
 
 	@Override
@@ -52,25 +52,26 @@ public class SecurityMain extends WebSecurityConfigurerAdapter{
 				.disable()
 			.cors()
 			.and()
+			.formLogin().disable()
 			.authorizeRequests()
-				.antMatchers("/user/**","/book/**","/login/auth/**").permitAll()
+				.antMatchers("/user/**","/book/**").permitAll()
 				.anyRequest()
 					.authenticated()
 			.and()
 				.oauth2Login()
 					.userInfoEndpoint()
 						.userService(userOAuth2Service).and()
-						.authorizationEndpoint().baseUri("/login/auth")
+						.authorizationEndpoint().baseUri("/user/login/auth")
 			.and()
 				.successHandler(new UserOAuth2SuccessHandler())
-				.failureHandler(new UserOAuth2FailureHandler())
-			.and()
-				.logout()
-					.logoutUrl("/user/logout")
-					.clearAuthentication(true)
-					.invalidateHttpSession(true)
-					.deleteCookies("JSESSIONID","JLMS_TOKEN")
-					.permitAll();
+				.failureHandler(new UserOAuth2FailureHandler());
+//			.and()
+//				.logout()
+//					.logoutUrl("/user/logout")
+//					.clearAuthentication(true)
+//					.invalidateHttpSession(true)
+//					.deleteCookies("JSESSIONID","JLMS_TOKEN")
+//					.permitAll();
 				
 		http.addFilterBefore( new TokenFilter(tokenTools),UsernamePasswordAuthenticationFilter.class);
 	}

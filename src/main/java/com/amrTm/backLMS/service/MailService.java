@@ -1,13 +1,23 @@
 package com.amrTm.backLMS.service;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Base64;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.exception.MethodInvocationException;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
+import org.apache.velocity.runtime.RuntimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -26,29 +36,28 @@ public class MailService {
 	@Autowired
 	private TokenTools tokenTools; 
 	
+	@Value("classpath:/static/mailTemplate.vm")
+	private Resource mailTemplate;
+	
 	@Autowired
 	private UserRepo userRepo;
 	
-	private final String head = "<html> <head> <meta charset='utf-8'> <meta name='viewport' content='width=device-width, initial-scale=1'> "
-			+ "<style>.root {width:100vw;height:100vh;display:flex;display:-webkit-flex;display:-ms-flex;align-items:center;justify-content:center;}"
-			+ ".subroot {max-width:'70vw';display:flex;display:-webkit-flex;display:-ms-flex;align-items:center;justify-content:center;"
-			+ "flex-wrap:wrap;background-color:#99ffcc;border:5px solid #00e699;border-radius:20px;}"
-			+ "h3 {padding:15px;color:#00995c;width:100%;text-align:center;margin-top:35px;}"
-			+ "p {color:#00995c;width:100%;text-align:center;}"
-			+ "button {background-color:#ff6600;color:#ffff;border:3px solid #ff3300;border-radius:20px;padding:8px;margin-bottom:40px;}</style> </head> <body>"
-			+ "<div class='root'><div class='subroot'><h3>Assalamu`alaikum, ";
-	
-	private final String footer = "</h3><br/><p>Please verify if that you. By pressing the button bellow means you are verified :</p>"
-			+ "<button type='a' rel='noreferer noopener' href='http://localhost:3000/validate?tk=";
-	
-	private final String end = "' target='_blank'>click me</button></div></div></body></html>";
-	
-	public boolean sendEmailValidation(String username, String email) throws MessagingException {
+	public boolean sendEmailValidation(String username, String email) throws MessagingException, ResourceNotFoundException, ParseErrorException, MethodInvocationException, IOException {
 		MimeMessage msg = javaMailSender.createMimeMessage();
 		MimeMessageHelper help = new MimeMessageHelper(msg);
 		help.setTo(email);
 		help.setSubject("Email Validation");
-		help.setText(head+username+footer+Base64.getEncoder().encodeToString(email.getBytes())+end, true);
+		VelocityContext cntx = new VelocityContext();
+		cntx.put("name", username);
+		cntx.put("token", Base64.getEncoder().encodeToString(email.getBytes()));
+		StringWriter writer = new StringWriter();
+		VelocityEngine ve = new VelocityEngine();
+		ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
+		ve.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+		ve.init();
+		Template hg = ve.getTemplate("templates/mailTemplate.vm");
+		hg.merge(cntx, writer);
+		help.setText(writer.toString(), true);
 		javaMailSender.send(msg);
 		return true;
 	}

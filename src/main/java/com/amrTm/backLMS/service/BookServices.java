@@ -2,17 +2,18 @@ package com.amrTm.backLMS.service;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.amrTm.backLMS.DTO.BookDTO;
 import com.amrTm.backLMS.DTO.BookDTOResp;
@@ -52,14 +53,14 @@ public class BookServices {
 //		}).get();
 //	}
 	public byte[] getImageBook(String path) throws IOException {
-		ClassPathResource resource = new ClassPathResource("image/book/"+path);
+		ClassPathResource resource = new ClassPathResource("static/image/book/"+path);
 		return resource.getInputStream().readAllBytes();
 	}
 	
 	@PreAuthorize("hasAnyAuthority('USER','SELLER','ADMINISTRATIF','MANAGER')")
-	public byte[] getFileBook(String path) throws IOException {
-		ClassPathResource resource = new ClassPathResource("file/"+path);
-		return resource.getInputStream().readAllBytes();
+	public Resource getFileBook(String path) throws IOException {
+		ClassPathResource resource = new ClassPathResource("static/file/"+path);
+		return resource;
 	}
 	
 	public List<BookDTOResp> getAllBook() {
@@ -130,47 +131,45 @@ public class BookServices {
 	}
 	
 	@PreAuthorize("hasAuthority('SELLER')")
-	public void addBook(List<BookDTO> book) {
-		book.forEach(bookModel -> {
-			StringBuffer sb = new StringBuffer();
-			int c = (int)bookRepo.count();
-			sb.append(c+1+":");
-			String[] sa1 = bookModel.getTitle().split(" ");
-			for (String d : sa1) {sb.append(d.charAt(0));}
-			String[] sa2 = bookModel.getAuthor().split(" ");
-			for (String d : sa2) {sb.append(d.charAt(0));}
-			Book bfs = new Book();
-			bfs.setId(sb.toString());
-			bfs.setAuthor(bookModel.getAuthor());
-			bfs.setDescription(bookModel.getDescription());
-			bfs.setPublishDate(new Date());
-			bfs.setPublisher(bookModel.getPublisher());
-			bfs.setType(bookModel.getTheme());
-			bfs.setRekomended(0);
-			bfs.setTitle(bookModel.getTitle());
-			if(bookModel.getFile() != null) {
-				try {
-					bfs.setFile(FileConfig.saveFileBook(Base64.getDecoder().decode(bookModel.getFile()), new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date()))+"."+bookModel.getFile().split(";")[0].split("/")[1]);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+	public void addBook(BookDTO book, MultipartFile file, MultipartFile image) {
+		StringBuffer sb = new StringBuffer();
+		int c = (int)bookRepo.count();
+		sb.append(c+1+":");
+		String[] sa1 = book.getTitle().split(" ");
+		for (String d : sa1) {sb.append(d.charAt(0));}
+		String[] sa2 = book.getAuthor().split(" ");
+		for (String d : sa2) {sb.append(d.charAt(0));}
+		Book bfs = new Book();
+		bfs.setId(sb.toString());
+		bfs.setAuthor(book.getAuthor());
+		bfs.setDescription(book.getDescription());
+		bfs.setPublishDate(new Date());
+		bfs.setPublisher(book.getPublisher());
+		bfs.setType(book.getTheme());
+		bfs.setRekomended(0);
+		bfs.setTitle(book.getTitle());
+		if(!file.isEmpty() || file != null) {
+			try {
+				bfs.setFile(FileConfig.saveFileBook(file, new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date()),false));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			if(bookModel.getImage() != null) {
-				try {
-					bfs.setImage(FileConfig.saveImageBook(Base64.getDecoder().decode(bookModel.getImage()), new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date()))+"."+bookModel.getImage().split(";")[0].split("/")[1]);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		}
+		if(!image.isEmpty() || image != null) {
+			try {
+				bfs.setImage(FileConfig.saveImageBook(image,new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			
-			User user = userRepo.getById((long) bookModel.getUser());
-			bfs.setBookuser(user);
-			user.getMyBook().add(bfs);
-			
-			bookRepo.save(bfs);
-		});
+		}
+		
+		User user = userRepo.getById((long) book.getUser());
+		bfs.setBookuser(user);
+		user.getMyBook().add(bfs);
+		
+		bookRepo.save(bfs);
 	}
 	
 	@PreAuthorize("hasAuthority('SELLER')")
@@ -181,7 +180,7 @@ public class BookServices {
 	}
 	
 	@PreAuthorize("hasAuthority('SELLER')")
-	public void modifyBook(String id, BookDTO bookModel) {
+	public void modifyBook(String id, BookDTO bookModel, MultipartFile file, MultipartFile image) {
 		Book bfs = bookRepo.findById(id).get();
 		bfs.setAuthor(bookModel.getAuthor());
 		bfs.setDescription(bookModel.getDescription());
@@ -189,17 +188,17 @@ public class BookServices {
 		bfs.setPublisher(bookModel.getPublisher());
 		bfs.setTitle(bookModel.getTitle());
 		bfs.setType(bookModel.getTheme());
-		if(bookModel.getFile() != null) {
+		if(!file.isEmpty() || file != null) {
 			try {
-				bfs.setFile(FileConfig.saveFileBook(Base64.getDecoder().decode(bookModel.getFile()), bfs.getFile()));
+				bfs.setFile(FileConfig.saveFileBook(file, bfs.getFile(),true));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		if(bookModel.getImage() != null) {
+		if(!image.isEmpty() || image != null) {
 			try {
-				bfs.setImage(FileConfig.saveImageBook(Base64.getDecoder().decode(bookModel.getImage()), bfs.getImage()));
+				bfs.setImage(FileConfig.modifyImageBook(image,bfs.getImage()));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

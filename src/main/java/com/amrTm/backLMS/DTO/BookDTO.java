@@ -11,8 +11,6 @@ public class BookDTO {
 	private List<String> theme;
 	private int user;
 	private boolean favorite;
-	private String file;
-	private String image;
 	public BookDTO() {
 		super();
 	}
@@ -63,17 +61,5 @@ public class BookDTO {
 	}
 	public void setUser(int user) {
 		this.user = user;
-	}
-	public String getFile() {
-		return file;
-	}
-	public void setFile(String file) {
-		this.file = file;
-	}
-	public String getImage() {
-		return image;
-	}
-	public void setImage(String image) {
-		this.image = image;
 	}
 }
