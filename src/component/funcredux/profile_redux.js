@@ -3,13 +3,7 @@ import {createSlice} from '@reduxjs/toolkit';
 export const profileFunc = createSlice({
   name: 'profile',
   initialState: {
-    profile: {
-      id: 1,
-      name:'Arrijal Amar M',
-      email:'Rijal.amar29@gmail.com',
-      role:'ANON',
-      imageUrl:null,
-    },
+    profile: null,
     online : false,
   },
   reducers:{

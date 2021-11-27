@@ -7,7 +7,7 @@ import {createTheme} from '@mui/material/styles';
 import {useDispatch, useSelector} from 'react-redux';
 import {profile} from '../funcredux/profile_redux';
 import {ContainerFeedback, OnDeleteComponent} from './otherComponent';
-import {modifyBookFavURL,modifyBookRekURL, imageBookURL, deleteBookURL} from '../constant/constantDataURL';
+import {modifyBookFavURL,modifyBookRekURL, imageBookURL, deleteBookURL,fileBookURL} from '../constant/constantDataURL';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import CloseIcon from '@mui/icons-material/Close';
@@ -69,7 +69,7 @@ export default function Book(props) {
         headers:{
           'Content-Type':'multipart/form-data',
         },
-      }).catch(err=>{setError(err.message);setFav(false);})
+      }).catch(err=>{setError(err.message);setFav(!fav);})
     }else{
       var form = new FormData();
       form.append('idb', id)
@@ -80,12 +80,12 @@ export default function Book(props) {
         headers:{
           'Content-Type':'multipart/form-data',
         },
-      }).catch(err=>{setError(err.message);setFav(false);})
+      }).catch(err=>{setError(err.message);setFav(!fav);})
     }
   }
   const handleDownload = (a) => {
     var file = require('file-saver');
-    file.saveAs(`${imageBookURL}${data}`, `${title}.pdf`);
+    file.saveAs(`${fileBookURL}${data}`, `${title}.pdf`);
     axios.post(modifyBookRekURL,null,{
       withCredentials:true,
       params:{
@@ -99,7 +99,7 @@ export default function Book(props) {
       <Paper sx={{minWidth:'250px', maxWidth:'90vw', zIndex: (theme) => theme.zIndex.drawer + 2, padding:'10px'}}>
         <Stack divider={<Divider orientation="vertical" flexItem />} spacing={{xs:0, md:1}} direction={{xs: 'column', md:'row'}} sx={{width:'100%'}}>
           <Box justifyContent='center' alignItems='center' display='flex'>
-            <CardMedia image={image}//{`${imageBookURL}${image}`}
+            <CardMedia image={`${imageBookURL}${image}`}
               sx={{width:'200px', minHeight: '200px'}}/>
           </Box>
           <Box style={{padding:'5px'}}>

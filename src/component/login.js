@@ -9,12 +9,13 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import {useHistory} from 'react-router-dom';
-import {logInURL, pathOauthURL} from './constant/constantDataURL';
+import {logInURL} from './constant/constantDataURL';
 
 export default function Login(props) {
   const [view, setView] = useState(false);
   const [value, setValue] = useState({email:'',pass:''});
   const [error, setError] = useState();
+  const [preventClick, setPreventClick] = useState(false);
   const history = useHistory();
   useEffect(()=>{
     var param = new URLSearchParams(props.location.search);
@@ -27,6 +28,7 @@ export default function Login(props) {
     }
   },[])
   const handleDefault = () => {
+    setPreventClick(true)
     var user = new FormData();
     user.append('email',value.email);
     user.append('password',value.pass);
@@ -36,9 +38,9 @@ export default function Login(props) {
         'Content-Type': 'multipart/form-data',
       },
     }).then(res => {if(res.data !== null){
-      history.push('/')
+      history.push('/');
     }})
-    .catch(err => setError(err.message));
+    .catch(err => {setError("Your Credentials Not Valid !!!");setPreventClick(false);});
   }
   return(
     <Box justifyContent='center' alignItems='center' display='flex' flexWrap='wrap' sx={{width:'100vw',height:'100vh'}}>
@@ -69,16 +71,22 @@ export default function Login(props) {
                 label='Password'
               />
             </FormControl>
-            <Button variant='contained' startIcon={<LoginIcon/>} onClick={handleDefault}>Login</Button>
+            <Button variant='contained' startIcon={<LoginIcon/>} disabled={preventClick} onClick={handleDefault}>Login</Button>
           </Stack>
           <Divider sx={{marginTop:'20px',marginBottom:'20px'}}>OR</Divider>
           <Stack direction='column' spacing={1}>
-            <Button variant='contained' sx={{background:'#00cc99' , textTransform:'capitalize', '&:hover':{background:'#00b359'}}}
-              startIcon={<GoogleIcon/>} href={pathOauthURL+"/google"} rel='noreference noopener'>Login with Google</Button>
-            <Button variant='contained' sx={{background:'#6666ff', textTransform:'capitalize'}}
-              startIcon={<FacebookIcon/>} href={pathOauthURL+"/facebook"} rel='noreference noopener'>Login with Facebook</Button>
-            <Button variant='contained' sx={{background:'#333333', textTransform:'capitalize', '&:hover':{background:'#0d0d0d'}}}
-              startIcon={<GitHubIcon/>} href={pathOauthURL+"/github"} rel='noreference noopener'>Login with Github</Button>
+            <form action={logInURL} method='post'>
+              <Button variant='contained' sx={{background:'#00cc99', width:'100%', textTransform:'capitalize', '&:hover':{background:'#00b359'}}}
+                startIcon={<GoogleIcon/>} href={logInURL+"/auth/google"}>Login with Google</Button>
+            </form>
+            <form action={logInURL} method='post'>
+              <Button variant='contained' sx={{background:'#6666ff', width:'100%', textTransform:'capitalize'}}
+                startIcon={<FacebookIcon/>} href={logInURL+"/auth/facebook"}>Login with Facebook</Button>
+            </form>
+            <form action={logInURL} method='post'>
+              <Button variant='contained' sx={{background:'#333333', width:'100%', textTransform:'capitalize', '&:hover':{background:'#0d0d0d'}}}
+                startIcon={<GitHubIcon/>} href={logInURL+"/authlogInURL/github"}>Login with Github</Button>
+            </form>
           </Stack>
         </Paper>
         <Link href='/signup' underline='none'>

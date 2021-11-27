@@ -22,22 +22,7 @@ const Cell = styled(TableCell)(({theme}) => ({
 
 export default function UserBuilder(props) {
   const{type, setError, role} = props;
-  const[users, setUsers] = useState([
-    {
-      id: 1,
-      name:'Arrijal Amar M',
-      email:'Rijal.amar29@gmail.com',
-      role:'MANAGER',
-      image_url:null,
-    },
-    {
-      id: 2,
-      name:'Ridwan Nugroho',
-      email:'ridwan.n30@gmail.com',
-      role:'ADMINISTRATIF',
-      image_url:null,
-    }
-  ]);
+  const[users, setUsers] = useState([]);
   const[onlineUsers, setOnlineUsers] = useState([1]);
   const[rowsPerPage, setRowsPerPage] = useState(5);
   const[page, setPage] = useState(0);

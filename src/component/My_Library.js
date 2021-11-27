@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import {useSelector, useDispatch} from 'react-redux';
 import {profile} from './funcredux/profile_redux';
-import {myBooks, setBookSeller, setBookTheme} from './funcredux/book_redux';
+import {myBooks, setBookSeller, setBookTheme, bookThemes} from './funcredux/book_redux';
 import {Box, Tabs, Tab, useMediaQuery, Snackbar} from '@mui/material';
 import Profile from './Profile';
 import {getMyBookURL, getBookTypeURL} from './constant/constantDataURL';
@@ -11,6 +11,7 @@ import BookBuilder from './subcomponent/Book_Builder';
 
 export default function MyLibrary() {
   const[error, setError]=useState();
+  const[respon, setRespon]=useState();
   const user = useSelector(profile);
   const myBuku = useSelector(myBooks);
   const dispatch = useDispatch();
@@ -20,14 +21,19 @@ export default function MyLibrary() {
   }
   const med = useMediaQuery('(min-width:900px)');
   useEffect(async()=>{
-    axios.get(getMyBookURL,{
-      withCredentials:true
-    }).then(a => a.data !== null? dispatch(setBookSeller(a.data)):setError("there is an incorrect response from server, please try again"))
-    .catch(err => setError(err.message))
-    axios.get(getBookTypeURL,{
-      withCredentials:true
-    }).then(a => a.data !== null? dispatch(setBookTheme(a.data)):setError("there is an incorrect response from server, please try again"))
-    .catch(err => setError(err.message))
+    if(user) {
+      axios.get(getMyBookURL,{
+        withCredentials:true,
+        params:{
+          id: user.id,
+        }
+      }).then(a => a.data !== null? dispatch(setBookSeller(a.data)):setError("there is an incorrect response from server, please try again"))
+      .catch(err => setError(err.message))
+      axios.get(getBookTypeURL,{
+        withCredentials:true
+      }).then(a => a.data !== null? dispatch(setBookTheme(a.data)):setError("there is an incorrect response from server, please try again"))
+      .catch(err => setError(err.message))
+    }
   },[user])
   return(
     <>
@@ -49,7 +55,7 @@ export default function MyLibrary() {
           <Panel index={0} value={link}>
             <>
               <Box>
-                <BookBuilder setError={setError}/>
+                <BookBuilder setError={setError} setRespon={setRespon}/>
               </Box>
             </>
           </Panel>
@@ -66,9 +72,9 @@ export default function MyLibrary() {
           </Panel>
         </Box>
       </Box>
-      <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={error}>
-        <ContainerFeedback severity='error' onClose={a => setError(null)}>
-          {error}
+      <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={(respon)?respon:error}>
+        <ContainerFeedback severity={(respon)?'success':'error'} onClose={a => {setError(null);setRespon(null);}}>
+          {(respon)?respon:error}
         </ContainerFeedback>
       </Snackbar>
     </>

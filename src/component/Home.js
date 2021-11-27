@@ -16,7 +16,7 @@ export default function Home(props) {
     let param = new URLSearchParams(props.location.search);
     if(param){
       let ver = param.get('verify')
-      if(ver===1){setVerify("Please check your email to verify account")}
+      if(ver==='1'){setVerify("Please check your email to verify account")}
     }
   },[])
   return(

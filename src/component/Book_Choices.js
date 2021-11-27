@@ -79,21 +79,21 @@ export default function BookChoice() {
   useEffect(()=>{
     if(buku.length > 0){
       let bookfav = buku.filter(by => by.favorite === true)
-      if(bookfav){dispatch(setBookFav(bookfav))}
+      if(bookfav){dispatch(setBookFav([...favBuku,...bookfav]))}
     }
     if(buku.length > 0) {
       if(buku.length > 10){
         let bookrek = buku.slice(0, 10)
-        if(bookrek){dispatch(setBookRek(bookrek))}
+        if(bookrek){dispatch(setBookRek([...recBuku,...bookrek]))}
       }
       else{
         let bookrek2 = buku.slice(0, buku.length)
-        if(bookrek2){dispatch(setBookRek(bookrek2))}
+        if(bookrek2){dispatch(setBookRek([...recBuku,...bookrek2]))}
       }
     }
     if(buku.length > 0) {
       let bookmy = buku.filter(by => by.status === true)
-      if(bookmy){dispatch(setBookSeller(bookmy))}
+      if(bookmy){dispatch(setBookSeller([...myBuku,...bookmy]))}
     }
   },[buku])
   const handleChange = (a,n) =>{
@@ -117,7 +117,7 @@ export default function BookChoice() {
                   ):(
                     h.data.map((a,i) => {
                       return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image} status={a.status}
-                        publisher={a.publisher} date={a.publishDate} description={a.description} theme={a.theme} data={a.data} favorite={a.favorite}/>)
+                        publisher={a.publisher} date={a.publishDate} description={a.description} theme={a.theme} data={a.file} favorite={a.favorite}/>)
                     })
                   )}
                 </Stack>

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {makeStyles} from '@mui/styles';
 import {createTheme} from '@mui/material/styles';
 import {useSelector, useDispatch} from 'react-redux';
@@ -147,21 +147,25 @@ export default function Profile(props) {
   const dispatch = useDispatch();
   const userProfile = useSelector(profile);
   const isOnline = useSelector(userOnline);
-  const [respon, setRespon] = useState('sa');
+  const [respon, setRespon] = useState();
+
+  const getProf = useCallback((a)=> dispatch(setProf({
+    id: a.id,
+    name: a.name,
+    email:a.email,
+    role:a.role,
+    imageUrl:a.image_url})),[dispatch])
   useEffect(async() => {
     axios.get(verUserURL,{
       withCredentials:true,
-    }).then(a => {if (a.data !== null){
-      dispatch(setProf({
-        id: a.data.id,
-        name: a.data.name,
-        email:a.data.email,
-        role:a.data.role,
-        imageUrl:a.data.image_url}));
+    }).then(a => {if (a.data){
+      getProf(a.data)
       setRespon(true);
       if(window.navigator.onLine){
         if(!isOnline){
-          axios.post(addUserOnlineURL,a.data.id,{
+          var id = new FormData();
+          id.append('id',a.data.id)
+          axios.post(addUserOnlineURL,id,{
             withCredentials:true,
           }).then(a => dispatch(setOnline(true)))
           .catch(err => onerror(err.message))
@@ -176,20 +180,20 @@ export default function Profile(props) {
         }).then(a => dispatch(setOnline(false)))
         .catch(err => onerror(err.message))
       }
+      if(container === "library"){
+        if(a.data.role !== 'SELLER') {
+          history.push("/login")
+        }
+      }
+      else if (container === "user") {
+        if(!['ADMINISTRATIF','MANAGER'].includes(a.data.role)) {
+          history.push("/login")
+        }
+      }
     }
     else {
-      onerror("there is an incorrect response from server, please try again");
-    }}).catch(err => {onerror(err.message);})//history.push("/");})
-    if(container === "library"){
-      if(!userProfile || userProfile.role !== 'SELLER') {
-        history.push("/login")
-      }
-    }
-    else if (container === "user") {
-      if(!['ADMINISTRATIF','MANAGER'].includes(userProfile.role)) {
-        history.push("/login")
-      }
-    }
+      onerror("You`re offline, connect it to internet, and try again");
+    }}).catch(err => {onerror(err.message); if(container){history.push("/login")}})
   },[]);
   const preload = (
     <>

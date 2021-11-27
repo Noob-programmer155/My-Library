@@ -8,51 +8,55 @@ import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import {signUpURL} from './constant/constantDataURL';
-import {getBase64} from './subcomponent/otherComponent';
+import {getBase64, UploadImage} from './subcomponent/otherComponent';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import {useHistory} from 'react-router-dom';
 
 export default function SignUp() {
   const [data, setData]=useState({
     name:'',
-    pass:'',
+    password:'',
     email:'',
+    verPassword:''
   });
+  const [img, setImg] = useState({data:null})
+  const [imgFile, setImgFile] = useState()
+  const [open, setOpen] = useState(false)
   const [error, setError]=useState()
-  const [img, setImg] =useState()
   const history = useHistory();
   const [verPass, setVerPass] = useState();
+  const [preventClick, setPreventClick] = useState(false);
   const handlesignUpURL = () => {
+    setPreventClick(true)
     let user = new FormData()
     user.append('name',data.name)
-    user.append('password',data.pass)
+    user.append('password',data.password)
     user.append('email',data.email)
-    user.append('image',img)
-    axios.post(signUpURL, user, {
+    user.append('image',imgFile)
+    axios.post(signUpURL, user,{
       withCredentials:true,
-      headers:{
-        'Content-Type':'multipart/form-data',
-      },
     }).then(res => {if(res.data !== null) {
       history.push("/?verify=1")
     }})
-    .catch(err => setError(err.message))
+    .catch(err => {setError("Internal Server Error");setPreventClick(false);})
   }
   const handleVerPass= (a) => {
-    if(data.pass && a.target.value===data.pass){
+    if(data.password && a.target.value===data.password){
       setVerPass(false);
     }
     else{
       setVerPass(true);
     }
+    setData({...data, verPassword: a.target.value})
   }
   const handleImage= (a) => {
-    if(a.target.files[0]){
-      getBase64(a.target.files[0],setImg)
+    var files = a.target.files[0];
+    if(files){
+      getBase64(files).then(a => {setImg({...img,data:a});setOpen(true);})
     }
   }
   return(
-    <Box justifyContent='center' alignItems='center' display='flex' sx={{height:'100vh'}}>
+    <Box justifyContent='center' alignItems='center' display='flex' sx={{height:'100vh'}} flexWrap='wrap'>
       {(error)?
         (<Alert variant="filled" severity="error" onClose={() => setError(null)} sx={{alignItems:'center'}}>
             Error:<br/>{error}
@@ -68,33 +72,33 @@ export default function SignUp() {
               <input id='fotouser' type='file' accept="image/*" onChange={handleImage} style={{display:'none'}}/>
               <Button sx={{backgroundColor:'#f2f2f2', borderRadius:'50%', width:(th) => th.spacing(10),
                 height:(th) => th.spacing(10), '&:hover':{backgroundColor:'#d9d9d9'}}} component='span'>{
-                (img)? <Avatar src={img} sx={{width:(th) => th.spacing(10), height:(th) => th.spacing(10)}}/>:<AddPhotoAlternateIcon/>
+                (img.data)? <Avatar src={img.data} sx={{width:(th) => th.spacing(10), height:(th) => th.spacing(10)}}/>:<AddPhotoAlternateIcon/>
               }</Button>
             </label>
           </Box>
           <Stack direction='column' spacing={2} sx={{marginTop:'20px'}}>
-            <TextField label='Username' variant='outlined' value={data.name} onChange={a => setData({...data, name: a.target.value})}
+            <TextField label='Username' variant='outlined' value={data.name} onChange={(a) => setData({...data, name: a.target.value})}
               InputProps={{
                 startAdornment:
                   <InputAdornment position='start'>
                     <Box display='flex'><PersonIcon/></Box>
                   </InputAdornment>
             }}/>
-            <TextField label='Email' variant='outlined' value={data.email} onChange={a => setData({...data, email: a.target.value})}
+            <TextField label='Email' variant='outlined' value={data.email} onChange={(a) => setData({...data, email: a.target.value})}
               InputProps={{
                 startAdornment:
                   <InputAdornment position='start'>
                     <Box display='flex'><AlternateEmailIcon/></Box>
                   </InputAdornment>
             }} type='email'/>
-            <TextField label='Password' variant='outlined' value={data.pass} onChange={a => setData({...data, pass: a.target.value})}
+            <TextField label='Password' variant='outlined' value={data.password} onChange={(a) => setData({...data, password: a.target.value})}
               InputProps={{
                 startAdornment:
                   <InputAdornment position='start'>
                     <Box display='flex'><LockIcon/></Box>
                   </InputAdornment>
             }} type='password'/>
-            <TextField label='Verify Password' variant='outlined' onChange={handleVerPass} error={verPass}
+            <TextField label='Verify Password' variant='outlined' value={data.verPassword} onChange={handleVerPass} error={verPass}
               InputProps={{
                 startAdornment:
                   <InputAdornment position='start'>
@@ -102,11 +106,12 @@ export default function SignUp() {
                   </InputAdornment>
             }} type='password' helperText={verPass? "Incorrect entry":""}/>
             <Box justifyContent='center' alignItems='center' display='flex'>
-              <Button variant='contained' onClick={handlesignUpURL} disabled={verPass || !data.name || !data.email || !data.pass}>SignUp</Button>
+              <Button variant='contained' disabled={preventClick} onClick={handlesignUpURL} disabled={verPass || !data.verPassword || !data.name || !data.email || !data.password}>SignUp</Button>
             </Box>
           </Stack>
         </Paper>
       </Box>
+      <UploadImage open={open} setOpen={setOpen} img={img} setImg={setImg} imgStore={setImgFile}/>
     </Box>
   );
 };

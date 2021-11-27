@@ -5,7 +5,7 @@ import {linkbook, initbooklink} from './funcredux/linkedRes';
 import axios from 'axios'
 import {books, setBooks, bookThemes, favoriteBooks, recommendBooks, myBooks} from './funcredux/book_redux';
 import {Box, TextField, Typography, Stack, IconButton, useMediaQuery} from '@mui/material';
-import {mainBookURL} from './constant/constantDataURL';
+import {mainBookURL,mainBookUserURL} from './constant/constantDataURL';
 import {Search, Container} from './subcomponent/otherComponent'
 import TypeContainer from './Type_book';
 
@@ -22,9 +22,9 @@ export default function MainContainer(props) {
   const dispatch = useDispatch();
   const md = useMediaQuery('(min-width:900px)')
   useEffect(()=>{
-    if(prof.id !== null || prof.id >= 0){
+    if(prof !== null){
       if (prof.role !== 'ANON'){
-        axios.get(mainBookURL,{
+        axios.get(mainBookUserURL,{
           withCredentials:true,
           params: {
             idUs: prof.id,

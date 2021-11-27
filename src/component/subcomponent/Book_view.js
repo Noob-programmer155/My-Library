@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {CardMedia, Card, CardActionArea, Typography, Box, Divider, Skeleton, Backdrop} from '@mui/material';
 import {createTheme} from '@mui/material/styles';
-import {imageBookUrl} from '../constant/constantDataURL';
+import {imageBookURL} from '../constant/constantDataURL';
 import {makeStyles} from '@mui/styles';
 import Book from './Book';
 
@@ -59,7 +59,7 @@ export default function BookView(props) {
           <Card key={key} className={style.root} {...attr}>
             <CardActionArea onClick={a => setOpen(id)}>
               <Box justifyContent='center' alignItems='center' display='flex' width='100%'>
-                <CardMedia image={image} //{`${imageBookUrl}${image}`}
+                <CardMedia image={`${imageBookURL}${image}`}
                   className={style.image}>
                   <Box justifyContent='flex-start' alignItems='center' display='flex' width='100%'>
                     <Typography className={style.id}>{id.split(":")[0]}</Typography>

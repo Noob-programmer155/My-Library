@@ -1,20 +1,20 @@
-import React,{useState,useEffect} from 'react';
+import React,{useState,useEffect, useCallback} from 'react';
 import {profile, setProf} from './funcredux/profile_redux';
 import {useSelector, useDispatch} from 'react-redux';
 import {styled} from '@mui/material/styles';
 import axios from 'axios';
 import {Typography, Stack, Box, Button, Alert, Drawer, Accordion, AccordionSummary, AccordionDetails, Snackbar
-  ,ButtonGroup, IconButton, Paper, Divider, TextField, Avatar, Table, TableRow, TableCell, Link} from '@mui/material';
+  ,ButtonGroup, IconButton, Paper, Divider, TextField, Avatar, Table, TableBody, TableRow, TableCell, Link} from '@mui/material';
 import {useHistory} from 'react-router-dom';
-import {logOutURL, verUserURL, imageUserURL,upgradeUserURL,verifyPasswordURL,modifyUserURL} from './constant/constantDataURL';
+import {logOutURL, verUserURL, imageUserURL,upgradeUserURL,verifyPasswordURL,modifyUserURL,changePasswordURL} from './constant/constantDataURL';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
-import {OnDeleteComponent, PasswordContainer, ContainerFeedback, getBase64} from './subcomponent/otherComponent';
+import {OnDeleteComponent, PasswordContainer, ContainerFeedback, getBase64, UploadImage} from './subcomponent/otherComponent';
 import EditIcon from '@mui/icons-material/Edit';
-
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const AccordionButton = styled(Button)({
   borderRadius:0,
@@ -70,7 +70,7 @@ const CustomTextField = styled(TextField)({
 })
 
 function InfoPanel(props) {
-  const {role, onUpgrade} = props;
+  const {role, onUpgrade, id} = props;
   const color = [{role:'ANON',bg:'#33cccc',fg:'#0066ff'},{role:'USER',bg:'#ffb84d',fg:'#ff6600'}]
   var setColor = (role)?color.find((a)=>a.role===role):null
   const title = [{role:'ANON',title:"Verify Your Email"},{role:'USER',title:"Your Account Needs to be Upgraded"}]
@@ -81,8 +81,8 @@ function InfoPanel(props) {
   var setDesc = (role)?desc.find((a)=>a.role===role):null
   return(
     <>
-      {(role !== ('ANON' || 'USER'))?<></>:
-        <Paper sx={{backgroundColor:(setColor)?setColor.bg:'inherit',
+      {(role)? (['ANON','USER'].includes(role))?
+        <Paper id={id} sx={{backgroundColor:(setColor)?setColor.bg:'inherit',
           color:(setColor)?setColor.fg:'inherit', padding:'10px'}}>
           <Box display='block'>
             <Typography variant='h5' sx={{fontWeight:700}}>{(setTitle)?setTitle.title:''}</Typography>
@@ -92,7 +92,7 @@ function InfoPanel(props) {
                 <Button onClick={() => (onUpgrade)?onUpgrade(true):null}>Click here to upgrade your account</Button>:<></>
             }
           </Box>
-        </Paper>
+        </Paper>:<></>:<></>
       }
     </>
   )
@@ -102,18 +102,24 @@ export default function Setting() {
   const dispatch = useDispatch();
   const prof = useSelector(profile);
   const [open, setOpen] = useState();
+  const [imgOpen, setImgOpen] = useState(false);
   const [error, setError] = useState();
+  const [preventClick, setPreventClick] = useState(false);
   const [upgrade,setUpgrade]=useState();
+  const [img, setImg] = useState({data:null});
+  const [imgFile, setImgFile] = useState();
   const [verify,setVerify]=useState();
-  const [password,setPassword]=useState();
-  const [image,setImage]=useState();
+  const [newPassword, setNewPassword] = useState({
+    oldPassword:'',
+    newPassword:''
+  });
+  const [password, setPassword] = useState();
   const [edit, setEdit] = useState();
+  const [respon, setRespon] = useState();
   const [data, setData] = useState({
-    id: 0,
-    name: prof.name,
-    email: prof.email,
-    role: '',
-    imageUrl: ''
+    name: '',
+    email: '',
+    password: '',
   });
   const handleChange = (ref) => (e) => {
     setData({...data, [ref]:e.target.value})
@@ -124,27 +130,27 @@ export default function Setting() {
     }).then((a) => history.push("/")).catch(err => err.message)
     setOpen(false)
   }
+  const getprof = useCallback((n)=>
+    dispatch(setProf({
+      id: n.id,
+      name: n.name,
+      email:n.email,
+      role:n.role,
+      imageUrl:n.image_url})),[dispatch])
   useEffect(()=>{
     axios.get(verUserURL,{
       withCredentials:true,
     }).then(a => {
-      if (a.data !== null){
-        dispatch(setProf({
-          id: a.data.id,
-          name: a.data.name,
-          email:a.data.email,
-          role:a.data.role,
-          imageUrl:a.data.image_url}));
-        setData({id: a.data.id,
-        name: a.data.name,
-        email:a.data.email,
-        role:a.data.role,
-        imageUrl:a.data.image_url});
+      if (a.data){
+        getprof(a.data);
+        setData({name: a.data.name,
+        email: a.data.email,
+        password: null});
       }
-    }).catch(err => setError(err.message))
+    }).catch(err => {setError(err.message);history.push('/login');})
   },[])
   const defaultVer = (
-    <Paper sx={{width:'30%',maxWidth:'30%', display:{xs:'none', md:'block'}, height:'100vh'}}>
+    <Paper sx={{width:'30%',maxWidth:'30%', display:{xs:'none', md:'block'}, paddingTop:'20px', paddingBottom:'20px'}}>
       <Stack>
         <Box display='flex' alignItems='center'>
           <IconButton sx={{color:'#000000', borderRadius:0, padding:'10px'}} onClick={() => history.push('/')}>
@@ -168,7 +174,7 @@ export default function Setting() {
               sx={{width:'100%'}}
               >
                 <AccordionButton href="#generalInfo">General Info</AccordionButton>
-                <AccordionButton href="#">Upgrade Account</AccordionButton>
+                <AccordionButton href="#upg_acc_container">Upgrade Account</AccordionButton>
             </ButtonGroup>
           </AccordionDetails>
         </Accordion>
@@ -187,7 +193,7 @@ export default function Setting() {
     <>
       <Box sx={{display:{xs:'flex', md:'none'}}} alignItems='center'>
         <IconButton onClick={()=>setOpen(true)}><MenuIcon/></IconButton>
-        <Typography variant='h1' sx={{fontSize:'4vw',marginLeft:'10px'}}>Settings</Typography>
+        <Typography variant='h1' sx={{fontSize:'6vw',marginLeft:'10px'}}>Settings</Typography>
       </Box>
       <Drawer anchor='left' open={open} onClose={() => setOpen(false)}>
         <Stack>
@@ -195,14 +201,16 @@ export default function Setting() {
             <IconButton sx={{borderRadius:'5px'}} onClick={()=>setOpen(false)}><ArrowBackIosNewIcon/></IconButton>
             <Typography variant='h1' sx={{fontSize:'4vw',marginLeft:'5px'}}>Settings</Typography>
           </Box>
+          <MobileButton variant='contained' href="/" onClick={()=>setOpen(false)}>Return Home</MobileButton>
           <MobileButton variant='contained' href="#generalInfo" onClick={()=>setOpen(false)}>General Info</MobileButton>
-          <MobileButton variant='contained' href="#" onClick={()=>setOpen(false)}>Upgrade Account</MobileButton>
+          <MobileButton variant='contained' href="#upg_acc_container" onClick={()=>setOpen(false)}>Upgrade Account</MobileButton>
           <MobileButton variant='contained' onClick={handleLogout}>LogOut</MobileButton>
         </Stack>
       </Drawer>
     </>
   )
   const handleUpgrade = () => {
+    setPreventClick(true);
     var form = new FormData();
     form.append('email',prof.email)
     form.append('pass',password)
@@ -219,84 +227,128 @@ export default function Setting() {
           withCredentials:true,
           headers:{
             'Content-Type':'multipart/form-data',
-          }}).catch(err => setError(err.message))
-        }).catch(err => setError(err.message))
+          }}).then((a) => {setUpgrade(false);setVerify(false);setPreventClick(false);setRespon('Upgrade Account Success !!!, please refresh this page');setPassword('');}).catch(err => {setError(err.message);setUpgrade(false);setVerify(false);})
+        }).catch(err => {setError(err.message);setUpgrade(false);setVerify(false);setPreventClick(false);setPassword('');})
   }
   const handleImage = (e) => {
-    if(e.target.files[0]){
-      getBase64(e.target.files[0],setImage);
+    var files = e.target.files[0];
+    if(files){
+      getBase64(files).then(a => {setImg({...img, data:a});setImgOpen(true);})
     }
   }
   const handleModif = () => {
+    setPreventClick(true);
     var modifyForm = new FormData();
-    modifyForm.append('name',prof.name)
-    modifyForm.append('email',prof.email)
-    modifyForm.append('userModel',data)
+    modifyForm.append('nameOld',prof.name)
+    modifyForm.append('emailOld',prof.email)
+    modifyForm.append('name',(data.name)?data.name:prof.name)
+    modifyForm.append('email',(data.email)?data.email:prof.email)
+    modifyForm.append('image',imgFile)
     axios.put(modifyUserURL,modifyForm,{
+      withCredentials:true,
+    }).then(a => {if(a.data != null){
+        getprof(a.data);
+        setRespon('Modify Account Success !!!, please refresh this page');
+        setPreventClick(false);
+    }}).catch(err => {setError(err.message);setPreventClick(false);})
+  }
+
+  const handleChangePassword = () => {
+    setPreventClick(true)
+    var changePass = new FormData();
+    changePass.append('name',prof.name);
+    changePass.append('email',prof.email);
+    changePass.append('oldPassword',newPassword.oldPassword);
+    changePass.append('newPassword',newPassword.newPassword);
+    axios.post(changePasswordURL, changePass, {
       withCredentials:true,
       headers:{
         'Content-Type':'multipart/form-data',
       }
-    }).catch(err => setError(err.message))
+    }).then(a => {setRespon('Your Password has been Changed');
+      setPreventClick(false);
+      setNewPassword({newPassword:'', oldPassword:''})
+    }).catch(err => {setError('Wrong Password');setPreventClick(false);})
   }
   return (
     <>
       <Stack direction={{xs:'column', md:'row'}} sx={{padding:'10px', display:'flex', flexWrap:{xs:'wrap', md:'nowrap'}}}>
         {defaultVer}
         {mobileVer}
-        <Paper sx={{width:{xs:'100%',md:'70%'}, marginLeft:'5px'}}>
-          <Stack spacing={3} sx={{padding:'5px',maxHeight:'100vh',overflow:'auto'}}>
+        <Paper sx={{width:{xs:'100%',md:'70%'}, marginLeft:'5px', paddingTop:'20px', paddingBottom:'20px'}}>
+          <Stack spacing={3} sx={{padding:'5px'}}>
             <Box id='generalInfo'>
-              <Typography variant='h1' sx={{fontSize:'4vw',marginLeft:'10px',marginBottom:'3px'}}>General Info</Typography>
+              <Typography variant='h1' sx={{fontSize:{xs:'9vw',md:'4vw'},marginLeft:'10px',marginBottom:'3px', textAlign:'center'}}>General Info</Typography>
               <Divider/>
             </Box>
             <Box display='flex' justifyContent='center' alignItems='center' flexWrap='wrap'>
               <label htmlFor='fotouser-setting'>
                 <Avatar component='span' sx={{width:(theme)=>theme.spacing(12),height:(theme)=>theme.spacing(12), marginTop:'20px'}}
-                  src={(image)? image : (prof.imageUrl)? `${imageUserURL}${prof.imageUrl}` : "sGd4TFc/"} alt={prof.name}/>
+                  src={(img.data)? img.data : (prof)? `${imageUserURL}${prof.imageUrl}` : "sGd4TFc/"} alt={(prof)?prof.name:''}/>
               </label>
               <input id='fotouser-setting' type='file' accept="image/*" onChange={handleImage} style={{display:'none'}}/>
               <Typography sx={{width:'100%',textAlign:'center',color:'#bfbfbf'}}>(click avatar to change your image)</Typography>
             </Box>
             <Table>
-            {(prof)?
-                [{title:'Username',data:prof.name, ref:'name',helpText:'(Click Edit Icon to change)'},
-                {title:'Email',data:prof.email, ref:'email',helpText:'(Click Edit Icon to change)'},
-                {title:'Your Role',data:prof.role, ref:'role',helpText:''}].map(a => (
-                  <TableRow>
-                    <TableCell sx={{border:'none'}}><Typography>{a.title}</Typography></TableCell>
-                    {(a.ref !== 'role')?
-                      <TableCell sx={{border:'none'}}><CustomTextField variant='outlined' disabled={edit !== a.title}
-                        size='small' value={a.data} onChange={handleChange(a.ref)} helperText={a.helpText}/>
-                        <IconButton size='small' sx={{borderBottom:'1px dashed skyblue', color:'skyblue', borderRadius:0}} onClick={() => setEdit(a.title)}>
-                          <EditIcon color='inherit'/>
-                        </IconButton>
-                      </TableCell>:
-                      <TableCell sx={{border:'none'}}><Typography>{a.data}</Typography>
-                      </TableCell>
-                    }
-                  </TableRow>
-                )):<></>
-            }
+              <TableBody>
+                {(prof)?
+                    [{title:'Username', data:data.name, ref:'name',helpText:'(Click Edit Icon to change)'},
+                    {title:'Email', data:data.email, ref:'email',helpText:'(Click Edit Icon to change)'},
+                    {title:'Your Role', data: prof.role, ref:'role',helpText:''}].map(a => (
+                      <TableRow key={a.title}>
+                        <TableCell sx={{border:'none'}}><Typography>{a.title}</Typography></TableCell>
+                        {(a.ref !== 'role')?
+                          <TableCell sx={{border:'none'}}><CustomTextField variant='outlined' disabled={edit !== a.title}
+                            size='small' value={a.data} onChange={handleChange(a.ref)} helperText={a.helpText}/>
+                            <IconButton size='small' sx={{borderBottom:'1px dashed skyblue', color:'skyblue', borderRadius:0}} onClick={() => setEdit(a.title)}>
+                              <EditIcon color='inherit'/>
+                            </IconButton>
+                          </TableCell>:
+                          <TableCell sx={{border:'none'}}><Typography>{a.data}</Typography>
+                          </TableCell>
+                        }
+                      </TableRow>
+                    )):<></>
+                }
+              </TableBody>
             </Table>
-            <InfoPanel role={prof.role} onUpgrade={setUpgrade}/>
-            {(image || data.name !== prof.name || data.email !== prof.email)?
-              <Box display='flex'>
-                <Button onClick={handleModif}>Save Changes</Button>
-                <Button onClick={() => {setImage(null);setData({...data, name:prof.name});setData({...data, email:prof.email});}}>Cancel</Button>
-              </Box>:<></>
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography>Change Your Password ? </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack spacing={2}>
+                  <CustomTextField type='text' variant='outlined' size='small' value={newPassword.oldPassword}
+                    onChange={(a)=> setNewPassword({...newPassword, oldPassword:a.target.value})} label='Old Password'/>
+                  <CustomTextField type='password' variant='outlined' size='small' value={newPassword.newPassword}
+                    onChange={(a)=> setNewPassword({...newPassword, newPassword:a.target.value})} label='New Password'/>
+                  <Button disabled={preventClick} onClick={handleChangePassword}>Change Password</Button>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+            {(prof)?
+              <>
+                <InfoPanel id='upg_acc_container' role={prof.role} onUpgrade={setUpgrade}/>
+                {(img.data || data.name !== prof.name || data.email !== prof.email)?
+                  <Box display='flex'>
+                    <Button disabled={preventClick} onClick={handleModif}>Save Changes</Button>
+                    <Button onClick={() => {setData({...data, name:(prof)?prof.name:''});setData({...data, email:(prof)?prof.email:''});setImg({...img, data:null})}}>Cancel</Button>
+                  </Box>:<></>
+                }
+              </>:<></>
             }
           </Stack>
         </Paper>
       </Stack>
+      <UploadImage open={imgOpen} setOpen={setImgOpen} img={img} setImg={setImg} imgStore={setImgFile}/>
       <OnDeleteComponent onDelete={() => setVerify(true)} title='Upgrade Your Account ?'
         content='Are you sure to upgrade your account to become Seller ?'
         onClose={() => setUpgrade(false)} open={upgrade} buttonTitle='Upgrade'/>
       <PasswordContainer isVerify={verify} setVerify={setVerify} isPassword={password} setPassword={setPassword}
-        onDelete={handleUpgrade}/>
-      <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={error}>
-        <ContainerFeedback severity='error' onClose={a => setError(null)}>
-          {error}
+        onDelete={handleUpgrade} buttonTitle='Verify' disabled={preventClick}/>
+      <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={(respon)?respon:error}>
+        <ContainerFeedback severity={(respon)? 'success':'error'} onClose={a => {setError(null);setRespon(null)}}>
+          {(respon)? respon:error}
         </ContainerFeedback>
       </Snackbar>
     </>
