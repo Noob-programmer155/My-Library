@@ -3,6 +3,7 @@ package com.amrTm.backLMS.service;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 
 import javax.mail.MessagingException;
@@ -82,7 +83,7 @@ public class AdminService {
 		User yu = new User();
 		yu.setClientId(null);
 		yu.setEmail(user.getEmail().toLowerCase());
-		if(!image.isEmpty() || image != null) {
+		if(image != null) {
 			yu.setImage_url(FileConfig.saveImageUser(image, new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())));
 		}
 		yu.setName(user.getName());
@@ -128,7 +129,7 @@ public class AdminService {
 	
 	public UserInfoDTO validateUserOAuth(String name, String email, int id, HttpServletResponse res) throws IOException {
 		User user = userRepo.findById((long) id).get();
-		if(user.getName().equals(name) && user.getEmail().equals(email)) {
+		if(user.getName().equals(new String(Base64.getDecoder().decode(name))) && user.getEmail().equals(new String(Base64.getDecoder().decode(email)))) {
 			if(tokenTools.createToken(user.getName(), user.getEmail(), user.getRole(), res)) {
 				UserInfoDTO bg = new UserInfoDTO();
 				bg.setId(user.getId());
@@ -165,11 +166,12 @@ public class AdminService {
 	}
 	
 	@PreAuthorize("hasAuthority('USER')")
-	public boolean modifyUser(String email, String nama) throws IOException {
+	public boolean modifyUser(String email, String nama, HttpServletResponse res) throws IOException {
 		User hg = userRepo.getByNameAndEmail(nama, email);
 		hg.setRole(Role.SELLER);
 		
-		userRepo.save(hg);
+		User us = userRepo.save(hg);
+		tokenTools.createToken(us.getName(), us.getEmail(), us.getRole(), res);
 		return true;
 	}
 	

@@ -3,11 +3,10 @@ package com.amrTm.backLMS.restApi;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,11 +35,13 @@ public class BookRest {
 		return bookServices.getImageBook(path);
 	}
 	
-	@GetMapping(path="/file/{path}")
-	public ResponseEntity getfile(@PathVariable String path) throws IOException {
+	@PostMapping(path="/file/{path}")
+	public String getfile(@PathVariable String path, @RequestParam String idBook) throws IOException {
 		Resource rsc = bookServices.getFileBook(path);
-		return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF)
-				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+rsc.getFilename()+"\"").body(rsc);
+		bookServices.modifyRekomend(idBook);
+		return Base64.encodeBase64String(rsc.getInputStream().readAllBytes());
+//		return ResponseEntity.ok().contentType(MediaType.)
+//				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+rsc.getFilename()+"\"").body(rsc);
 	}
 	
 	@GetMapping("/getMyBook")
@@ -69,12 +70,6 @@ public class BookRest {
 		return "Success";
 	}
 	
-	@PostMapping("/rekomendation")
-	public String rekomended(@RequestParam String idBook) {
-		bookServices.modifyRekomend(idBook);
-		return "Success";
-	}
-	
 	@PostMapping(path="/addTypes",consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public String addType(@RequestParam String type) {
 		bookServices.addType(type);
@@ -83,7 +78,7 @@ public class BookRest {
 	
 	@PutMapping(path="/modifybook/{add}", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public String modifyBook(@RequestParam(value="idb") String id, 
-							  @RequestParam(required=false) int idu,
+							  @RequestParam(required=false) Integer idu,
 							  @RequestParam(required=false) boolean del,
 							  BookDTO book,
 							  @RequestPart(required=false) MultipartFile file,

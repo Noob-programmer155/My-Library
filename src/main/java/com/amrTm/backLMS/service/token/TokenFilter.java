@@ -22,7 +22,7 @@ public class TokenFilter extends OncePerRequestFilter{
 	private TokenTools tokenTools; 
 	
 	List<String> mapping = Arrays.asList("/user/validate","/user/login","/user/signup",
-			"/user/verify-oauth","/book/getbooks","/book/image/*");
+			"/user/verify-oauth","/book/getbooks","/book/image/*","/login/**");
 	private AntPathMatcher pathMatcher = new AntPathMatcher();
 	public TokenFilter(TokenTools tokenTools) {
 		this.tokenTools = tokenTools;

@@ -91,7 +91,10 @@ public class BookServices {
 			book.setDescription(a.getDescription());
 			book.setPublishDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(a.getPublishDate()));
 			book.setPublisher(a.getPublisher());
-			book.setStatus(a.getBookuser().getId() == id);
+			if(a.getBookuser()!=null)
+				book.setStatus(a.getBookuser().getId() == id);
+			else
+				book.setStatus(false);
 			book.setTheme(a.getType());
 			book.setFile(a.getFile());
 			book.setImage(a.getImage());
@@ -148,7 +151,7 @@ public class BookServices {
 		bfs.setType(book.getTheme());
 		bfs.setRekomended(0);
 		bfs.setTitle(book.getTitle());
-		if(!file.isEmpty() || file != null) {
+		if(file != null) {
 			try {
 				bfs.setFile(FileConfig.saveFileBook(file, new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date()),false));
 			} catch (IOException e) {
@@ -156,7 +159,7 @@ public class BookServices {
 				e.printStackTrace();
 			}
 		}
-		if(!image.isEmpty() || image != null) {
+		if(image != null) {
 			try {
 				bfs.setImage(FileConfig.saveImageBook(image,new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())));
 			} catch (IOException e) {
@@ -188,7 +191,7 @@ public class BookServices {
 		bfs.setPublisher(bookModel.getPublisher());
 		bfs.setTitle(bookModel.getTitle());
 		bfs.setType(bookModel.getTheme());
-		if(!file.isEmpty() || file != null) {
+		if(file != null) {
 			try {
 				bfs.setFile(FileConfig.saveFileBook(file, bfs.getFile(),true));
 			} catch (IOException e) {
@@ -196,7 +199,7 @@ public class BookServices {
 				e.printStackTrace();
 			}
 		}
-		if(!image.isEmpty() || image != null) {
+		if(image != null) {
 			try {
 				bfs.setImage(FileConfig.modifyImageBook(image,bfs.getImage()));
 			} catch (IOException e) {
@@ -213,7 +216,7 @@ public class BookServices {
 			User user = userRepo.getById(idUser);
 			Book books = bookRepo.getById(idBook);
 			
-			user.removeFavorite(books);
+			books.removeFavorite(user);
 			
 			userRepo.saveAndFlush(user);
 		}
@@ -221,7 +224,7 @@ public class BookServices {
 			User user = userRepo.getById(idUser);
 			Book books = bookRepo.getById(idBook);
 			
-			books.addFavorite(user);
+			user.addFavorite(books);
 			
 			bookRepo.saveAndFlush(books);
 		}
@@ -239,6 +242,8 @@ public class BookServices {
 		User user = userRepo.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).get();
 		Book book = bookRepo.findById(id).get();
 		if(user.getMyBook().contains(book)) {
+			FileConfig.deleteBooksFile(book.getFile());
+			FileConfig.deleteBooksImage(book.getImage());
 			bookRepo.delete(book);
 		}
 	}

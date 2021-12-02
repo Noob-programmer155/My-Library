@@ -18,12 +18,15 @@ import com.amrTm.backLMS.configuration.FileConfig;
 import com.amrTm.backLMS.entity.Book;
 import com.amrTm.backLMS.entity.Role;
 import com.amrTm.backLMS.entity.User;
+import com.amrTm.backLMS.repository.BookRepo;
 import com.amrTm.backLMS.repository.UserRepo;
 
 @Service
 public class UserServices {
 	@Autowired
 	private UserRepo userRepo;
+	@Autowired
+	private BookRepo bookRepo;
 	
 	private List<Long> userOnline = new ArrayList<>();
 	
@@ -64,7 +67,7 @@ public class UserServices {
 		User user = userRepo.getByNameAndEmail(name, email);
 		user.setName(userModel.getName());
 		user.setEmail(userModel.getEmail().toLowerCase());
-		if(!image.isEmpty() || image != null) {
+		if(image != null) {
 			user.setImage_url(FileConfig.modifyImageUser(image,user.getImage_url()));
 		}
 		User us = userRepo.save(user);
@@ -80,13 +83,15 @@ public class UserServices {
 	@PreAuthorize("hasAuthority('ADMINISTRATIF')")
 	public void deleteUser(String name, String email) {
 		User user = userRepo.getByNameAndEmail(name, email);
-		if(user.getRole().equals(Role.SELLER) || user.getRole().equals(Role.USER)) {
-			for (Book book : user.getMyBook()) {
-				book.setBookuser(null);
+		if(user.getRole().equals(Role.SELLER) || user.getRole().equals(Role.USER) || user.getRole().equals(Role.ANON)) {
+			if(user.getRole().equals(Role.SELLER)) {
+				for (Book book : user.getMyBook()) {
+					FileConfig.deleteBooksFile(book.getFile());
+					FileConfig.deleteBooksImage(book.getImage());
+					bookRepo.delete(book);
+				}
 			}
-			for (Book book : user.getFavorite()) {
-				book.removeFavorite(user);
-			}
+			FileConfig.deleteUserImage(user.getImage_url());
 			userRepo.delete(user);
 		}
 	}
@@ -95,12 +100,7 @@ public class UserServices {
 	public void deleteAdmin(String name, String email) {
 		User user = userRepo.getByNameAndEmail(name, email);
 		if(user.getRole().equals(Role.ADMINISTRATIF)) {
-			for (Book book : user.getMyBook()) {
-				book.setBookuser(null);
-			}
-			for (Book book : user.getFavorite()) {
-				book.removeFavorite(user);
-			}
+			FileConfig.deleteUserImage(user.getImage_url());
 			userRepo.delete(user);
 		}
 	}

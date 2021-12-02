@@ -27,7 +27,8 @@ public class UserOAuth2SuccessHandler implements AuthenticationSuccessHandler{
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
 			Authentication authentication) throws IOException, ServletException {
-		User yu = userRepo.findByEmail((String)authentication.getPrincipal()).get();
+		UserDetail user = (UserDetail)authentication.getPrincipal();
+		User yu = userRepo.findByEmail(user.getUsername()).get();
 		StringBuilder tu = new StringBuilder();
 		tu.append("Access").append("=").append(yu.getId()).append("&")
 		.append("Usr").append("=").append(Base64.getEncoder().encodeToString(yu.getName().getBytes())).append("&")

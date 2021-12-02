@@ -104,8 +104,8 @@ public class UserRest {
 	}
 	
 	@PostMapping(path="/modify/seller", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
-	public String modifySeller(@RequestParam String name, @RequestParam String email) throws IOException {
-		adminService.modifyUser(email, name);
+	public String modifySeller(@RequestParam String name, @RequestParam String email, HttpServletResponse res) throws IOException {
+		adminService.modifyUser(email, name, res);
 		return "Success";
 	}
 	

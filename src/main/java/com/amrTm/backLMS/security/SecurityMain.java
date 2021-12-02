@@ -32,6 +32,12 @@ public class SecurityMain extends WebSecurityConfigurerAdapter{
 	@Autowired
 	private TokenTools tokenTools;
 	
+	@Autowired
+	private UserOAuth2SuccessHandler userOAuth2SuccessHandler;
+	
+	@Autowired
+	private UserOAuth2FailureHandler userOAuth2FailureHandler;
+	
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		auth.userDetailsService(userDetailServ).passwordEncoder(new BCryptPasswordEncoder());
@@ -46,13 +52,14 @@ public class SecurityMain extends WebSecurityConfigurerAdapter{
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 //			.requiresChannel()
-//				.anyRequest().requiresSecure()
+//				.anyRequest().requiresSecure()	
 //			.and()
 			.csrf()
 				.disable()
 			.cors()
 			.and()
 			.formLogin().disable()
+			.httpBasic().disable()
 			.authorizeRequests()
 				.antMatchers("/user/**","/book/**").permitAll()
 				.anyRequest()
@@ -61,10 +68,10 @@ public class SecurityMain extends WebSecurityConfigurerAdapter{
 				.oauth2Login()
 					.userInfoEndpoint()
 						.userService(userOAuth2Service).and()
-						.authorizationEndpoint().baseUri("/user/login/auth")
+					.authorizationEndpoint().baseUri("/login/auth")
 			.and()
-				.successHandler(new UserOAuth2SuccessHandler())
-				.failureHandler(new UserOAuth2FailureHandler());
+				.successHandler(userOAuth2SuccessHandler)
+				.failureHandler(userOAuth2FailureHandler);
 //			.and()
 //				.logout()
 //					.logoutUrl("/user/logout")

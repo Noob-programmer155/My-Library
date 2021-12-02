@@ -101,6 +101,21 @@ public class FileConfig {
 		return newFile;
 	}
 	
+	public static boolean deleteBooksFile(String nameFile) {
+		File newfd = new File(path+"/file/"+nameFile);
+		return newfd.delete();
+	}
+	
+	public static boolean deleteBooksImage(String nameFile) {
+		File newfd = new File(path+"/image/book/"+nameFile);
+		return newfd.delete();
+	}
+	
+	public static boolean deleteUserImage(String nameFile) {
+		File newfd = new File(path+"/image/user/"+nameFile);
+		return newfd.delete();
+	}
+	
 //	private static byte[] getImage(MultipartFile image, int x, int y, int size, String ekstention) throws IOException {
 //		BufferedImage data = ImageIO.read(image.getInputStream());
 //		
