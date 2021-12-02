@@ -10,6 +10,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import {useHistory} from 'react-router-dom';
 import {verUserURL,imageUserURL,addUserOnlineURL,deleteUserOnlineURL} from './constant/constantDataURL';
 import {Typography, Box, IconButton, Avatar, Skeleton, Chip, Divider, Button} from '@mui/material';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 
 const theme = createTheme();
 
@@ -141,7 +142,7 @@ const useStyle = makeStyles({
 });
 
 export default function Profile(props) {
-  const {error, onerror, container} = props;
+  const {error, onerror, container,path} = props;
   const style = useStyle();
   const history = useHistory();
   const dispatch = useDispatch();
@@ -149,17 +150,16 @@ export default function Profile(props) {
   const isOnline = useSelector(userOnline);
   const [respon, setRespon] = useState();
 
-  const getProf = useCallback((a)=> dispatch(setProf({
-    id: a.id,
-    name: a.name,
-    email:a.email,
-    role:a.role,
-    imageUrl:a.image_url})),[dispatch])
-  useEffect(async() => {
+  useEffect(() => {
     axios.get(verUserURL,{
       withCredentials:true,
     }).then(a => {if (a.data){
-      getProf(a.data)
+      dispatch(setProf({...userProfile,
+        id: a.data.id,
+        name: a.data.name,
+        email:a.data.email,
+        role:a.data.role,
+        imageUrl:a.data.image_url}))
       setRespon(true);
       if(window.navigator.onLine){
         if(!isOnline){
@@ -216,7 +216,13 @@ export default function Profile(props) {
         {
           (respon)? (
             <>
-              <Box display='flex' alignItems='center' justifyContent='flex-end' width='100%'>
+              <Box display='flex' alignItems='center' justifyContent='flex-end' width='100%' padding='10px'>
+                {(path)?
+                  <>
+                    <Button sx={{color:'white'}} href={path} startIcon={<ArrowBackIosIcon color='inherit'/>}>Return</Button>
+                    <Box display='flex' sx={{flexGrow:1}}/>
+                  </>:<></>
+                }
                 {
                   (userProfile.role === 'MANAGER' || userProfile.role === 'ADMINISTRATIF')?
                   (<Chip className={style.chip} icon={<PeopleIcon style={{color:'#ffff'}} className={style.chipIcon}/>} label="Users" onClick={() => history.push("/hstdyw-admin")}/>):<></>
@@ -227,7 +233,8 @@ export default function Profile(props) {
                 <IconButton style={{color:'#ffff', marginRight: '5px', marginTop: '10px'}} fontSize='small' onClick={() => history.push("/setting")}><SettingsIcon/></IconButton>
               </Box>
               <Typography className={style.font1} variant='h5' width='100%' textAlign='center'><b>{userProfile.name}</b></Typography>
-              <Avatar className={style.avatar} src={(userProfile.imageUrl)? `${imageUserURL}${userProfile.imageUrl}` :  "sGd4TFc/"} alt={userProfile.name}/>
+              <Avatar className={style.avatar} src={(userProfile.imageUrl)?
+                ((userProfile.imageUrl.substring(0,4) === 'http')?userProfile.imageUrl:`${imageUserURL}${userProfile.imageUrl}`) :  "sGd4TFc/"} alt={userProfile.name}/>
               <Typography className={style.font} variant='h6' width='100%' textAlign='center'>
                 {userProfile.email}<br/>
                 <Divider style={{background:'#ffff'}} light variant='middle'/>

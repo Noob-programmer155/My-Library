@@ -284,10 +284,16 @@ export default function Setting() {
             <Box display='flex' justifyContent='center' alignItems='center' flexWrap='wrap'>
               <label htmlFor='fotouser-setting'>
                 <Avatar component='span' sx={{width:(theme)=>theme.spacing(12),height:(theme)=>theme.spacing(12), marginTop:'20px'}}
-                  src={(img.data)? img.data : (prof)? `${imageUserURL}${prof.imageUrl}` : "sGd4TFc/"} alt={(prof)?prof.name:''}/>
+                  src={(img.data)? img.data : (prof && prof.imageUrl)?
+                    ((prof.imageUrl.substring(0,4)==='http')?prof.imageUrl:`${imageUserURL}${prof.imageUrl}`) : "sGd4TFc/"} alt={(prof)?prof.name:''}/>
               </label>
-              <input id='fotouser-setting' type='file' accept="image/*" onChange={handleImage} style={{display:'none'}}/>
-              <Typography sx={{width:'100%',textAlign:'center',color:'#bfbfbf'}}>(click avatar to change your image)</Typography>
+              <input id='fotouser-setting' type='file' accept="image/*"
+                disabled={(prof && prof.imageUrl)? ((prof.imageUrl.substring(0,4)==='http')?true:false):false} onChange={handleImage} style={{display:'none'}}/>
+              <Typography sx={{width:'100%',textAlign:'center',color:'#bfbfbf'}}>
+                {(prof && prof.imageUrl)?((prof.imageUrl.substring(0,4)==='http')?
+                  '':'(click avatar to change your image)'):'(click avatar to change your image)'
+                }
+              </Typography>
             </Box>
             <Table>
               <TableBody>
@@ -322,7 +328,7 @@ export default function Setting() {
                     onChange={(a)=> setNewPassword({...newPassword, oldPassword:a.target.value})} label='Old Password'/>
                   <CustomTextField type='password' variant='outlined' size='small' value={newPassword.newPassword}
                     onChange={(a)=> setNewPassword({...newPassword, newPassword:a.target.value})} label='New Password'/>
-                  <Button disabled={preventClick} onClick={handleChangePassword}>Change Password</Button>
+                  <Button variant="contained" disabled={preventClick} onClick={handleChangePassword}>Change Password</Button>
                 </Stack>
               </AccordionDetails>
             </Accordion>

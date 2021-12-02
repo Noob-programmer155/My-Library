@@ -6,11 +6,11 @@ import axios from 'axios'
 import {books, setBooks, bookThemes, favoriteBooks, recommendBooks, myBooks} from './funcredux/book_redux';
 import {Box, TextField, Typography, Stack, IconButton, useMediaQuery} from '@mui/material';
 import {mainBookURL,mainBookUserURL} from './constant/constantDataURL';
-import {Search, Container} from './subcomponent/otherComponent'
+import {Search, Container, UploadImage, ModifyBook} from './subcomponent/otherComponent'
 import TypeContainer from './Type_book';
 
 export default function MainContainer(props) {
-  const {onerror} = props;
+  const {onerror,setOpenModify} = props;
   const prof = useSelector(profile);
   var buku = useSelector(books);
   var favBuku = useSelector(favoriteBooks);
@@ -57,14 +57,15 @@ export default function MainContainer(props) {
         {
           (buku)? (
             [recBuku,favBuku,myBuku,buku].map((a,i) => (
-                <Container index={i} ids='btn-Cho-' reverseids='mob-cho-' value={link} data={a}/>
+                <Container index={i} ids='btn-Cho-' reverseids='mob-cho-' value={link} data={a} setOpenModify={setOpenModify}/>
               ))
           ):(<></>)
         }
         {
           (themes)? (
             themes.map((a,i) => (
-              <Container index={initlink+i} ids='panel-main-' reverseids='btn-type-' value={link} data={buku.filter(b => b.theme.indexOf(a) !== -1)}/>
+              <Container index={initlink+i} ids='panel-main-' reverseids='btn-type-' value={link}
+                data={buku.filter(b => b.theme.indexOf(a) !== -1)} setOpenModify={setOpenModify}/>
             ))
           ):(<></>)
         }

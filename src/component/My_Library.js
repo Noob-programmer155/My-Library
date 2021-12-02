@@ -39,7 +39,7 @@ export default function MyLibrary() {
     <>
       <Box display='flex' flexWrap={{xs:'wrap', md:'nowrap'}} sx={{background: '#009999', minHeight:'100vh'}}>
         <Box sx={{width:{xs:'100vw', md:'30vw'}, maxHeight:'100vh'}} justifyContent='center' alignItems='center' display='flex' flexWrap='wrap'>
-          <Profile error={error} onerror={setError} container="library"/>
+          <Profile error={error} onerror={setError} container="library" path='/'/>
           <Tabs variant="fullWidth" value={link} textColor='inherit' indicatorColor="secondary"
             onChange={handleChange} orientation={(med)?'vertical':'horizontal'} sx={{width:'100%',maxWidth:'100%', color:'#ffff', overflow:'auto'}}>
             {

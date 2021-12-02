@@ -21,9 +21,10 @@ const Cell = styled(TableCell)(({theme}) => ({
 }))
 
 export default function UserBuilder(props) {
-  const{type, setError, role} = props;
+  const{type, setError, setRespon, role} = props;
   const[users, setUsers] = useState([]);
-  const[onlineUsers, setOnlineUsers] = useState([1]);
+  const[onlineUsers, setOnlineUsers] = useState([]);
+  const[disabled, setDisabled] = useState(false);
   const[rowsPerPage, setRowsPerPage] = useState(5);
   const[page, setPage] = useState(0);
   const[admin, setAdmin] = useState();
@@ -39,7 +40,7 @@ export default function UserBuilder(props) {
       }).then(a => a.data !== null? setUsers(a.data):setError("there is an incorrect response from server, please try again"))
       .catch(err => setError(err.message))
     }
-    else if (type==='admin') {
+    else if (type==='admin' && role==='MANAGER') {
       axios.get(getAdminURL,{
         withCredentials:true,
       }).then(a => a.data !== null? setUsers(a.data):setError("there is an incorrect response from server, please try again"))
@@ -57,6 +58,7 @@ export default function UserBuilder(props) {
     setPage(0)
   }
   const handleAddAdmin = (name,email) => (e) => {
+    setDisabled(true);
     var form = new FormData();
     form.append('name',name)
     form.append('email',email)
@@ -66,9 +68,11 @@ export default function UserBuilder(props) {
       headers:{
         'Content-Type':'multipart/form-data',
       }
-    }).then().catch(err => setError(err.message))
+    }).then(a=>{setDisabled(false);setRespon('Success to promoted new Admin !!!, please refresh this page');setAdmin(null);
+      setInfo(null);}).catch(err => {setError(err.message);setDisabled(false);setAdmin(null);setInfo(null);})
   }
   const handleDeleteAdmin = (name,email) => (e) => {
+    setDisabled(true);
     var form = new FormData();
     form.append('name',name)
     form.append('email',email)
@@ -78,7 +82,8 @@ export default function UserBuilder(props) {
       headers:{
         'Content-Type':'multipart/form-data',
       }
-    }).then().catch(err => setError(err.message))
+    }).then(a=>{setDisabled(false);setRespon('Success to demoted Admin !!!, please refresh this page');setAdmin(null);
+      setInfo(null);}).catch(err => {setError(err.message);setDisabled(false);setAdmin(null);setInfo(null);})
   }
   return(
     <>
@@ -87,8 +92,8 @@ export default function UserBuilder(props) {
           <Table>
             <TableHead>
               <TableRow>
-                {['ID','Username','Email','Role','Status',''].map(a => (
-                  <Cell align='center'>
+                {['ID','Username','Email','Role','Status',''].map((a,i) => (
+                  <Cell key={i} align='center'>
                     {a}
                   </Cell>
                 ))
@@ -100,8 +105,8 @@ export default function UserBuilder(props) {
                 (users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(a => (
                   <TableRow hover onClick={handleClick(a)}>
                     {
-                      [a.id,a.name,a.email,a.role].map(item =>(
-                        <Cell align='center'>
+                      [a.id,a.name,a.email,a.role].map((item,i) =>(
+                        <Cell key={i} align='center'>
                           {item}
                         </Cell>
                       ))
@@ -118,7 +123,7 @@ export default function UserBuilder(props) {
                         <IconButton onClick={(e) => {e.stopPropagation();setAdmin({name:a.name,email:a.email,type:type});}}><AddBoxIcon color='success'/></IconButton>
                       </Cell>:<></>
                     }
-                    {(type==='admin')?
+                    {(type==='admin'&&role==='MANAGER')?
                       <Cell>
                         <IconButton onClick={(e) => {e.stopPropagation();setAdmin({name:a.name,email:a.email,type:type});}}><RemoveCircleIcon color='error'/></IconButton>
                       </Cell>:<></>
@@ -141,12 +146,13 @@ export default function UserBuilder(props) {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-      <UserInfo data={info} setData={setInfo} setError={setError} type={type}/>
+      <UserInfo data={info} setData={setInfo} setError={setError} type={type} setRespon={setRespon}/>
       <OnDeleteComponent onDelete={admin?(admin.type==='user'?handleAddAdmin(admin.name,admin.email):handleDeleteAdmin(admin.name,admin.email)):null}
         title={admin?(admin.type==='user'?'Add to administration ?':'Remove from administration ?'):null}
         content={admin?(admin.type==='user'?`Are you sure to add ${admin.name} to become administration ?`
           :`Are you sure to remove ${admin.name} from administration ?`):null}
-        onClose={() => setAdmin(null)} open={admin} buttonTitle={admin?(admin.type==='user'?'Add':'Remove'):null}/>
+        onClose={() => setAdmin(null)} open={admin} buttonTitle={admin?(admin.type==='user'?'Add':'Remove'):null}
+        disabled={disabled}/>
     </>
   )
 }

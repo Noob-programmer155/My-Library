@@ -9,7 +9,7 @@ import axios from 'axios';
 import {styled} from '@mui/material/styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {OnDeleteComponent, PasswordContainer} from './otherComponent';
-import {deleteUserURL,deleteAdminURL,verifyPasswordURL} from '../constant/constantDataURL'
+import {deleteUserURL,deleteAdminURL,verifyPasswordURL, imageUserURL} from '../constant/constantDataURL'
 
 const Cell = styled(TableCell)(({theme}) => ({
   [`&.${tableCellClasses.body}`]:{
@@ -25,12 +25,15 @@ const Cell = styled(TableCell)(({theme}) => ({
 }))
 
 export default function UserInfo(props) {
-  const{data, setData, type, setError} = props;
+  const{data, setData, type, setError, setRespon} = props;
+  var onSuccess = "Delete user Success !!!";
+  const[disable, setDisable] = useState(false);
   const[state, setState] = useState();
   const[verify, setVerify] = useState();
   const prof = useSelector(profile);
   const[password, setPassword] = useState();
   const handleDelete = () => {
+    setDisable(true);
     var form = new FormData();
     form.append('email',data.email)
     form.append('pass',password)
@@ -47,7 +50,7 @@ export default function UserInfo(props) {
             name: data.name,
             email: data.email
           }
-        }).catch(err => setError(err.message))
+        }).then(a => {setDisable(false);setData(null);setRespon(onSuccess);}).catch(err => {setError(err.message);setDisable(false);setData(null);})
       }
       else if (type==="admin") {
         axios.delete(deleteAdminURL,{
@@ -56,9 +59,9 @@ export default function UserInfo(props) {
             name: data.name,
             email: data.email
           }
-        }).catch(err => setError(err.message))
+        }).then(a => {setDisable(false);setData(null);setRespon(onSuccess);}).catch(err => {setError(err.message);setDisable(false);setData(null);})
       }
-    }).catch(err => setError(err.message))
+    }).catch(err => {setError(err.message);setDisable(false);setData(null);})
   }
   const handlePass = () => {
     setVerify(true);
@@ -72,7 +75,7 @@ export default function UserInfo(props) {
             <Stack>
               <Box justifyContent='center' alignItems='center' display='flex'>
                 <Avatar sx={{width:(theme) => theme.spacing(11),height:(theme) => theme.spacing(11)}}
-                  src={(data.image_url)?data.image_url:'data:image/jpg;base64,sadgyuasg'} alt={data.name}/>
+                  src={(data.image_url)?((data.image_url.substring(0,4) === 'http')?data.image_url:`${imageUserURL}${data.image_url}`):'data:image/jpg;base64,sadgyuasg'} alt={data.name}/>
               </Box>
               <Table sx={{maxWidth:'100%'}}>
                 <TableBody>
@@ -103,7 +106,7 @@ export default function UserInfo(props) {
         content='Are you sure to delete this user, it cannot be undone after you delete it'
         onClose={() => setState(false)} open={state}/>
       <PasswordContainer isVerify={verify} setVerify={setVerify} isPassword={password} setPassword={setPassword}
-        onDelete={handleDelete}/>
+        onDelete={handleDelete} disabled={disable}/>
     </>
   )
 }

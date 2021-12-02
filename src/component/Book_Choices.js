@@ -1,8 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import axios from 'axios';
 import {useSelector, useDispatch} from 'react-redux';
 import {setBookLink, linkbook, initbooklink} from './funcredux/linkedRes';
-import {favoriteBooks, recommendBooks, myBooks, books, setBooks, setBookFav, setBookRek, setBookSeller} from './funcredux/book_redux';
+import {favoriteBooks, recommendBooks, myBooks, books, setBooks, setBookFav,
+  setBookRek, setBookSeller} from './funcredux/book_redux';
+import {ModifyBook,UploadImage} from './subcomponent/otherComponent';
 import BookView from './subcomponent/Book_view';
 import {Box, Typography, Skeleton, Stack, IconButton, Tabs, Tab, useMediaQuery} from '@mui/material';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
@@ -60,7 +61,8 @@ const useStyle = makeStyles({
   }
 })
 
-export default function BookChoice() {
+export default function BookChoice(props) {
+  const {setOpenModify} = props; 
   const style = useStyle();
   const favBuku = useSelector(favoriteBooks);
   const recBuku = useSelector(recommendBooks);
@@ -68,7 +70,7 @@ export default function BookChoice() {
   const initlink = useSelector(initbooklink);
   const buku = useSelector(books);
   const link = useSelector(linkbook);
-  const sm = useMediaQuery('(min-width:600px)')
+  const sm = useMediaQuery('(min-width:600px)');
   const dispatch = useDispatch();
   var choice = (ds) => {
     return {
@@ -79,21 +81,21 @@ export default function BookChoice() {
   useEffect(()=>{
     if(buku.length > 0){
       let bookfav = buku.filter(by => by.favorite === true)
-      if(bookfav){dispatch(setBookFav([...favBuku,...bookfav]))}
+      if(bookfav){dispatch(setBookFav(bookfav))}
     }
     if(buku.length > 0) {
       if(buku.length > 10){
         let bookrek = buku.slice(0, 10)
-        if(bookrek){dispatch(setBookRek([...recBuku,...bookrek]))}
+        if(bookrek){dispatch(setBookRek(bookrek))}
       }
       else{
         let bookrek2 = buku.slice(0, buku.length)
-        if(bookrek2){dispatch(setBookRek([...recBuku,...bookrek2]))}
+        if(bookrek2){dispatch(setBookRek(bookrek2))}
       }
     }
     if(buku.length > 0) {
       let bookmy = buku.filter(by => by.status === true)
-      if(bookmy){dispatch(setBookSeller([...myBuku,...bookmy]))}
+      if(bookmy){dispatch(setBookSeller(bookmy))}
     }
   },[buku])
   const handleChange = (a,n) =>{
@@ -117,7 +119,8 @@ export default function BookChoice() {
                   ):(
                     h.data.map((a,i) => {
                       return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image} status={a.status}
-                        publisher={a.publisher} date={a.publishDate} description={a.description} theme={a.theme} data={a.file} favorite={a.favorite}/>)
+                        publisher={a.publisher} date={a.publishDate} description={a.description}
+                        theme={a.theme} data={a.file} favorite={a.favorite} setOpenModify={setOpenModify}/>)
                     })
                   )}
                 </Stack>
@@ -130,7 +133,7 @@ export default function BookChoice() {
         {
             [{icon:<StarsIcon fontSize='small'/>,label:'Rekomend Book'}, {icon:<FavoriteIcon fontSize='small'/>,label:'Favorite Book'},
             {icon:<BookIcon fontSize='small'/>,label:'My Book'}, {icon:<LibraryBooksIcon fontSize='small'/>,label:'All Book'}].map((a,i) => {
-              return <Tab sx={{color:'#ffff'}} icon={a.icon} label={a.label} {...choice(i)} value={i}/>
+              return <Tab key={i} sx={{color:'#ffff'}} icon={a.icon} label={a.label} {...choice(i)} value={i}/>
             })
         }
       </Tabs>

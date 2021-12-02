@@ -1,11 +1,13 @@
 //mainURL
 export const mainURL= "http://localhost:8895";
+export const redirectEks = "?redirect_uri=";
 
 //user
 export const verUserURL = mainURL+"/user/get";
 export const signUpURL = mainURL+"/user/signup";
 export const logInURL = mainURL+"/user/login";
-// export const pathOauthURL = mainURL+"/user/login";
+export const pathOauthURL = mainURL+"/login/auth";
+export const pathOauthURLRedirect = redirectEks + "http://localhost:3000/login";
 export const getUsersURL = mainURL+"/user/getalluser";
 export const getAdminURL = mainURL+"/user/getalladmin";
 export const addUserOnlineURL = mainURL+"/user/adduseronline";
@@ -27,9 +29,8 @@ export const valOauthURL = mainURL+"/user/verify-oauth";
 //book
 export const mainBookURL = mainURL+"/book/getbooks";
 export const mainBookUserURL = mainURL+"/book/getBooksUser";
-export const modifyBookURL = mainURL+"/book/modifybook";
+export const modifyBookURL = mainURL+"/book/modifybook/modify";
 export const modifyBookFavURL = mainURL+"/book/modifybook/fav";
-export const modifyBookRekURL = mainURL+"/book/rekomendation";
 export const getMyBookURL = mainURL+"/book/getMyBook";
 export const addBookURL = mainURL+"/book/addbook";
 export const modifBookURL = mainURL+"/book/modifybook";

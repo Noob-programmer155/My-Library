@@ -1,16 +1,16 @@
 import React, {useState, forwardRef} from 'react';
-import {Box, Paper, CardMedia, Typography, Button, Divider, Stack, IconButton
-    , Snackbar, Alert, Chip} from '@mui/material';
+import {Box, Paper, CardMedia, Typography, Divider, Stack, IconButton, Button, Chip, CircularProgress, Alert} from '@mui/material';
 import {makeStyles} from '@mui/styles';
 import axios from 'axios';
 import {createTheme} from '@mui/material/styles';
 import {useDispatch, useSelector} from 'react-redux';
 import {profile} from '../funcredux/profile_redux';
-import {ContainerFeedback, OnDeleteComponent} from './otherComponent';
-import {modifyBookFavURL,modifyBookRekURL, imageBookURL, deleteBookURL,fileBookURL} from '../constant/constantDataURL';
+import {OnDeleteComponent, CustomTextField, UploadFunc} from './otherComponent';
+import {modifyBookFavURL, imageBookURL, deleteBookURL,fileBookURL, modifBookURL,addBookTypeURL} from '../constant/constantDataURL';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import CloseIcon from '@mui/icons-material/Close';
+import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const theme = createTheme();
@@ -48,55 +48,51 @@ const useStyle = makeStyles({
 });
 
 export default function Book(props) {
-  const{id, title, author, image, publisher, date, description, theme, data, isOpen, favorite, status} = props;
+  const{id, title, author, image, publisher, date, description, respon, setRespon, error, setError,
+    theme, data, isOpenFunc, favorite, status, isModifyFunc} = props;
   const colorData = [{back:'#b3ffb3',clr:'#009933'},{back:'#ccf5ff',clr:'#0066ff'},{back:'#ffe0b3',clr:'#ff6600'},
     {back:'#e6ccff',clr:'#c61aff'},{back:'#e6e6ff',clr:'#6600ff'}];
   const [fav, setFav] = useState(favorite);
   const {format} = require('date-fns');
-  const[error, setError] = useState();
+  const[preventClick, setPreventClick] = useState(false)
+  const[preventFav, setPreventFav] = useState(false);
   const[deletes, setDeletes] = useState();
   const prof = useSelector(profile);
   const dispatch = useDispatch();
-  const handleFav = (a) => {
+  const handleFav = async(a) => {
+    setPreventFav(true)
+    var form = new FormData();
+    form.append('idb', id)
+    form.append('idu', (prof)? prof.id:0)
+    form.append('del', fav)
+    axios.put(modifyBookFavURL, form, {
+      withCredentials:true,
+      headers:{
+        'Content-Type':'multipart/form-data',
+      },
+    }).then(a => {setPreventFav(false);})
+    .catch(err=>{setError(err.message);setFav(!fav);setPreventFav(false)})
     setFav(!fav);
-    if(fav){
-      var form = new FormData();
-      form.append('idb', id)
-      form.append('idu', (prof)? prof.id:0)
-      form.append('del', false)
-      axios.put(modifyBookFavURL, form, {
-        withCredentials:true,
-        headers:{
-          'Content-Type':'multipart/form-data',
-        },
-      }).catch(err=>{setError(err.message);setFav(!fav);})
-    }else{
-      var form = new FormData();
-      form.append('idb', id)
-      form.append('idu', (prof)? prof.id:0)
-      form.append('del', true)
-      axios.put(modifyBookFavURL, form, {
-        withCredentials:true,
-        headers:{
-          'Content-Type':'multipart/form-data',
-        },
-      }).catch(err=>{setError(err.message);setFav(!fav);})
-    }
   }
   const handleDownload = (a) => {
-    var file = require('file-saver');
-    file.saveAs(`${fileBookURL}${data}`, `${title}.pdf`);
-    axios.post(modifyBookRekURL,null,{
+    setPreventClick(true)
+    var FileSaver = require('file-saver');
+    var attr = new FormData();
+    attr.append('idBook',id)
+    axios.post(fileBookURL+data, attr,{
       withCredentials:true,
-      params:{
-        idBook: id,
-      }
-    }).catch(err=>setError(err.message))
+    }).then(a => {
+        if(a.data){
+          var eks = "data:application/pdf;base64,";
+          setPreventClick(false);
+          FileSaver.saveAs(`${eks}${a.data}`,`${title}.pdf`);
+        }
+      }).catch(err => {setError(err.message);setPreventClick(false);})
   }
   const style = useStyle();
   return(
     <>
-      <Paper sx={{minWidth:'250px', maxWidth:'90vw', zIndex: (theme) => theme.zIndex.drawer + 2, padding:'10px'}}>
+      <Paper sx={{minWidth:'250px', maxWidth:'90vw', width:'1100px', zIndex: (theme) => theme.zIndex.drawer + 2, padding:'10px'}}>
         <Stack divider={<Divider orientation="vertical" flexItem />} spacing={{xs:0, md:1}} direction={{xs: 'column', md:'row'}} sx={{width:'100%'}}>
           <Box justifyContent='center' alignItems='center' display='flex'>
             <CardMedia image={`${imageBookURL}${image}`}
@@ -105,12 +101,24 @@ export default function Book(props) {
           <Box style={{padding:'5px'}}>
             <Box justifyContent={{md: 'flex-end', xs: 'center'}} width='100%' alignItems='center' display='flex'>
               {(prof && status)?
-                  (
-                    <IconButton onClick={()=> setDeletes(prof.id)} sx={{position: 'relative', top:{md:'-35px', xs:0}, left:{md:'35px', xs:0},
-                      background:'#ffa366', color:'#ff1a1a', marginRight:'10px', '&:hover':{background:'#ff1a1a', color:'#ffff'}}}><DeleteIcon/></IconButton>
+                   (<>
+                      <IconButton onClick={()=> setDeletes(prof.id)} sx={{position: 'relative', top:{md:'-35px', xs:0}, left:{md:'35px', xs:0},
+                        background:'#ffa366', color:'#ff1a1a', marginRight:'10px', '&:hover':{background:'#ff1a1a', color:'#ffff'}}}><DeleteIcon/></IconButton>
+                      <IconButton onClick={()=> isModifyFunc({
+                          id:id,
+                          title:title,
+                          author:author,
+                          publisher: publisher,
+                          description: description,
+                          theme: theme,
+                          image: image,
+                          file: title
+                        })} sx={{position: 'relative', top:{md:'-35px', xs:0}, left:{md:'35px', xs:0},
+                        background:'#ffa366', color:'#ff1a1a', marginRight:'10px', '&:hover':{background:'#ff1a1a', color:'#ffff'}}}><ModeEditIcon/></IconButton>
+                    </>
                   ):(<></>)
               }
-              <IconButton onClick={a => isOpen(null)} sx={{position: 'relative', top:{md:'-35px', xs:0}, left:{md:'35px', xs:0},
+              <IconButton onClick={a => isOpenFunc(null)} sx={{position: 'relative', top:{md:'-35px', xs:0}, left:{md:'35px', xs:0},
                 background:'#ffa366', color:'#ff1a1a', '&:hover':{background:'#ff1a1a', color:'#ffff'}}}><CloseIcon/></IconButton>
             </Box>
             <Box style={{overflow:'auto', marginTop:'10px',marginBottom:'10px'}} sx={{width:'100%', maxWidth:'100%'}}>
@@ -149,36 +157,39 @@ export default function Book(props) {
             </Box>
             <Typography sx={{fontFamily:'Arial',overflow: 'auto' ,fontSize:{xs:'4.5vw', sm:'2vw', md:'1.2vw'}, textAlign:'justify', textIndent: '15px', maxHeight: '150px'}}>{description}</Typography>
             <Box justifyContent='center' alignItems='center' display='flex' sx={{marginTop:'20px'}}>
-              <Button variant='contained' sx={{marginRight:'15px'}} onClick={handleDownload} disabled={(data)? false:true}>Download</Button>
-              <IconButton onClick={handleFav} disabled={(data)? false:true}>{(fav)? <FavoriteIcon sx={{color:'red'}}/> : <FavoriteBorderIcon/>}</IconButton>
+              <Button variant='contained' sx={{marginRight:'15px'}} onClick={handleDownload}
+              disabled={(data&&!preventClick)? false:true}
+              startIcon={(data&&!preventClick)?<></>:<CircularProgress size={25} color="primary"/>}>Download</Button>
+              <IconButton onClick={handleFav} disabled={(data&&!preventFav)? false:true}>{(fav)? <FavoriteIcon sx={{color:'red'}}/> : <FavoriteBorderIcon/>}</IconButton>
             </Box>
           </Box>
         </Stack>
       </Paper>
-      <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={error}>
-        <ContainerFeedback severity='error' onClose={a => setError(null)}>
-          {error}
-        </ContainerFeedback>
-      </Snackbar>
-      <OnDelete open={deletes} idBook={id} onClose={setDeletes} onError={setError}/>
+      <OnDelete open={deletes} idBook={id} onClose={setDeletes} onCloseRoot={isOpenFunc} onError={setError} onRespon={setRespon}/>
     </>
   );
 }
+Book.defaultProps = {
+  isModifyFunc : function () {},
+}
 
 function OnDelete(props) {
-  const{open, idBook, onClose, onError} = props;
+  const{open, idBook, onClose, onError, onRespon, onCloseRoot} = props;
+  const[preventClick, setPreventClick] = useState(false);
   const handleClose = () => {
     onClose(false);
   };
   const handleDelete = () => {
+    setPreventClick(true);
     axios.delete(deleteBookURL,{
       withCredentials:true,
       params:{
         id:idBook,
       }
-    }).then(() => onClose(false)).catch(err => onError(err.message))
+    }).then(() => {onClose(false);onRespon('Delete Book Success, please refresh this page !!!');setPreventClick(false);onCloseRoot(null);})
+    .catch(err => {onError(err.message);onClose(false);setPreventClick(false);onCloseRoot(null);})
   }
   return <OnDeleteComponent onDelete={handleDelete} title='Delete this Book ?'
     content='Are you sure to delete this book, it cannot be undone after you delete it'
-    onClose={handleClose} open={open}/>
+    onClose={handleClose} disabled={preventClick} open={open}/>
 }

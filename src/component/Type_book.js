@@ -27,12 +27,12 @@ export default function TypeContainer(props) {
       let arr = []
       buku.forEach(it => {
         it.theme.forEach(item => {
-          if(themes.findIndex(x => x === item) === -1){
+          if(arr.findIndex(x => x === item) === -1){
             arr.push(item)
           }
         });
       });
-      dispatch(setBookTheme([...themes,...arr].sort()))
+      dispatch(setBookTheme(arr.sort()))
     }
   },[buku]);
   return(
@@ -43,14 +43,14 @@ export default function TypeContainer(props) {
           sx={{maxWidth:'100%', maxHeight:'500px', color:'#ffff'}} {...attr}>
           {
             themes.map((a, i) => {
-              return <Tab label={a} {...props(initstate+i)} value={initstate+i}/>
+              return <Tab key={i} label={a} {...props(initstate+i)} value={initstate+i}/>
             })
           }
         </Tabs>):(
           <Box>
             {
-              [1,2,3,4,5,6,7,8].map(a=> (
-                <Skeleton variant='rectangular' sx={{width:'100%', height:'40px', marginBottom: '3px'}}/>
+              [1,2,3,4,5,6,7,8].map((a,i)=> (
+                <Skeleton key={i} variant='rectangular' sx={{width:'100%', height:'40px', marginBottom: '3px'}}/>
               ))
             }
           </Box>

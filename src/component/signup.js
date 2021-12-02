@@ -55,13 +55,25 @@ export default function SignUp() {
       getBase64(files).then(a => {setImg({...img,data:a});setOpen(true);})
     }
   }
+  const handleKeyDown = (e) => {
+    if(e.keyCode === 13){
+      if(data.name && data.password && data.email && data.verPassword === data.password){
+        handlesignUpURL();
+      }
+      else{
+        setError('please add all field')
+      }
+    }
+  }
   return(
     <Box justifyContent='center' alignItems='center' display='flex' sx={{height:'100vh'}} flexWrap='wrap'>
+      <Box justifyContent='center' alignItems='center' display='flex' width='100%'>
       {(error)?
         (<Alert variant="filled" severity="error" onClose={() => setError(null)} sx={{alignItems:'center'}}>
             Error:<br/>{error}
           </Alert>):(<></>)
       }
+      </Box>
       <Box>
         <Paper elevation={7} sx={{borderRadius:'20px', minWidth:'250px', maxWidth:'100%', padding:'15px'}}>
           <Typography sx={{fontFamily:'Century Gothic', textAlign:'center', fontWeight:800, color: '#1a8cff',
@@ -77,28 +89,28 @@ export default function SignUp() {
             </label>
           </Box>
           <Stack direction='column' spacing={2} sx={{marginTop:'20px'}}>
-            <TextField label='Username' variant='outlined' value={data.name} onChange={(a) => setData({...data, name: a.target.value})}
+            <TextField label='Username' variant='outlined' onKeyDown={handleKeyDown} value={data.name} onChange={(a) => setData({...data, name: a.target.value})}
               InputProps={{
                 startAdornment:
                   <InputAdornment position='start'>
                     <Box display='flex'><PersonIcon/></Box>
                   </InputAdornment>
             }}/>
-            <TextField label='Email' variant='outlined' value={data.email} onChange={(a) => setData({...data, email: a.target.value})}
+            <TextField label='Email' variant='outlined' onKeyDown={handleKeyDown} value={data.email} onChange={(a) => setData({...data, email: a.target.value})}
               InputProps={{
                 startAdornment:
                   <InputAdornment position='start'>
                     <Box display='flex'><AlternateEmailIcon/></Box>
                   </InputAdornment>
             }} type='email'/>
-            <TextField label='Password' variant='outlined' value={data.password} onChange={(a) => setData({...data, password: a.target.value})}
+            <TextField label='Password' variant='outlined' onKeyDown={handleKeyDown} value={data.password} onChange={(a) => setData({...data, password: a.target.value})}
               InputProps={{
                 startAdornment:
                   <InputAdornment position='start'>
                     <Box display='flex'><LockIcon/></Box>
                   </InputAdornment>
             }} type='password'/>
-            <TextField label='Verify Password' variant='outlined' value={data.verPassword} onChange={handleVerPass} error={verPass}
+            <TextField label='Verify Password' onKeyDown={handleKeyDown} variant='outlined' value={data.verPassword} onChange={handleVerPass} error={verPass}
               InputProps={{
                 startAdornment:
                   <InputAdornment position='start'>
@@ -106,7 +118,7 @@ export default function SignUp() {
                   </InputAdornment>
             }} type='password' helperText={verPass? "Incorrect entry":""}/>
             <Box justifyContent='center' alignItems='center' display='flex'>
-              <Button variant='contained' disabled={preventClick} onClick={handlesignUpURL} disabled={verPass || !data.verPassword || !data.name || !data.email || !data.password}>SignUp</Button>
+              <Button variant='contained' onClick={handlesignUpURL} disabled={preventClick || verPass || !data.verPassword || !data.name || !data.email || !data.password}>SignUp</Button>
             </Box>
           </Stack>
         </Paper>
