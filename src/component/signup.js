@@ -23,9 +23,9 @@ export default function SignUp() {
   const [imgFile, setImgFile] = useState()
   const [open, setOpen] = useState(false)
   const [error, setError]=useState()
-  const history = useHistory();
   const [verPass, setVerPass] = useState();
   const [preventClick, setPreventClick] = useState(false);
+  const history = useHistory();
   const handlesignUpURL = () => {
     setPreventClick(true)
     let user = new FormData()
@@ -38,7 +38,7 @@ export default function SignUp() {
     }).then(res => {if(res.data !== null) {
       history.push("/?verify=1")
     }})
-    .catch(err => {setError("Internal Server Error");setPreventClick(false);})
+    .catch(err => {setError(err.message);setPreventClick(false);})
   }
   const handleVerPass= (a) => {
     if(data.password && a.target.value===data.password){

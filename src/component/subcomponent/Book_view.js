@@ -25,6 +25,8 @@ const useStyle = makeStyles({
     },
   },
   id: {
+    paddingTop: '3px',
+    paddingLeft: '5px',
     fontSize: '8px',
     [theme.breakpoints.up('md')]:{
       fontSize: '15px',
@@ -49,11 +51,11 @@ const useStyle = makeStyles({
 });
 
 export default function BookView(props) {
-  const style = useStyle();
   const {id, key, title, author, image, publisher, date, description, status, theme, data, favorite, setOpenModify,  ...attr} = props;
   const[open, setOpen] = useState();
   const[respon, setRespon] = useState()
   const[error, setError] = useState()
+  const style = useStyle();
   return(
     <>
       {

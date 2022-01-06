@@ -143,12 +143,12 @@ const useStyle = makeStyles({
 
 export default function Profile(props) {
   const {error, onerror, container,path} = props;
+  const [respon, setRespon] = useState();
   const style = useStyle();
   const history = useHistory();
   const dispatch = useDispatch();
   const userProfile = useSelector(profile);
   const isOnline = useSelector(userOnline);
-  const [respon, setRespon] = useState();
 
   useEffect(() => {
     axios.get(verUserURL,{
@@ -193,7 +193,7 @@ export default function Profile(props) {
     }
     else {
       onerror("You`re offline, connect it to internet, and try again");
-    }}).catch(err => {onerror(err.message); if(container){history.push("/login")}})
+    }}).catch(err => {if(userProfile){onerror(err.message);} if(container){history.push("/login")}})
   },[]);
   const preload = (
     <>

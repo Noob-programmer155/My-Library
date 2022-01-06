@@ -7,11 +7,8 @@ import {addBookURL} from '../constant/constantDataURL';
 import {Typography, Stack, Paper,Button, TextField,IconButton, Box,useMediaQuery} from '@mui/material'
 
 export default function BookBuilder(props) {
-  const {setError, setRespon} = props;
+  const {setError, setRespon, open, setOpen, imgFile, setImageFile, img, setImg} = props;
   const themes = useSelector(bookThemes);
-  const[imgFile, setImageFile] = useState()
-  const [img, setImg] = useState({data:null})
-  const [open, setOpen] = useState(false)
   const prof = useSelector(profile)
   return(
     <>
@@ -23,7 +20,7 @@ export default function BookBuilder(props) {
           fontWeight:700,
           marginBottom:'50px',
           fontSize:{xs: '10vw', sm: '8vw', md: '3vw'}
-        }}>Modify <span style={{color:'aqua'}}>Your</span> <span style={{color:'#ff944d'}}>Book</span></Typography>
+        }}>Add <span style={{color:'aqua'}}>Your</span> <span style={{color:'#ff944d'}}>Book</span></Typography>
         <Box justifyContent='center' alignItems='center' display='flex' sx={{color:'#ffff', marginLeft:'20px', marginRight:'20px'}}>
           <Typography sx={{backgroundColor:'#9999ff',borderRadius:'20px 20px 0px 0px', padding:'10px',
             fontSize:{xs: '6vw', sm: '4vw', md: '1.5vw'}}}>
@@ -33,8 +30,6 @@ export default function BookBuilder(props) {
           imgView={img} setImgView={setImg} imgCallback={setOpen} url={addBookURL} responText='Adding Book Successfully !!!, please refresh this page'
           spacing={2} sx={{padding:'20px',backgroundColor:'#9999ff',borderRadius:'20px'}}/>
       </Box>
-      <UploadImage open={open} setOpen={setOpen} img={img} setImg={setImg} imgStore={setImageFile} type='square'
-        viewport={{width:150, height:200}}/>
     </>
   )
 }

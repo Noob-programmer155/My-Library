@@ -39,7 +39,7 @@ export default function Login(props) {
     }).then(res => {if(res.data !== null){
       history.push('/');
     }})
-    .catch(err => {setError("Your Credentials Not Valid !!!");setPreventClick(false);});
+    .catch(err => {setError(err.message);setPreventClick(false);});
   }
   const handleKeyDown = (e) => {
     if(e.keyCode === 13){
@@ -89,7 +89,7 @@ export default function Login(props) {
           <Stack direction='column' spacing={1}>
             <Button variant='contained' sx={{background:'#00cc99', width:'100%', textTransform:'capitalize', '&:hover':{background:'#00b359'}}}
               startIcon={<GoogleIcon/>} href={pathOauthURL+"/google"+pathOauthURLRedirect}>Login with Google</Button>
-            <Button variant='contained' sx={{background:'#6666ff', width:'100%', textTransform:'capitalize'}}
+            <Button variant='contained' sx={{background:'#6666ff', width:'100%', textTransform:'capitalize'}} disabled={true}
               startIcon={<FacebookIcon/>} href={pathOauthURL+"/facebook"+pathOauthURLRedirect}>Login with Facebook</Button>
           </Stack>
         </Paper>

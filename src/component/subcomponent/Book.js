@@ -50,13 +50,13 @@ const useStyle = makeStyles({
 export default function Book(props) {
   const{id, title, author, image, publisher, date, description, respon, setRespon, error, setError,
     theme, data, isOpenFunc, favorite, status, isModifyFunc} = props;
-  const colorData = [{back:'#b3ffb3',clr:'#009933'},{back:'#ccf5ff',clr:'#0066ff'},{back:'#ffe0b3',clr:'#ff6600'},
-    {back:'#e6ccff',clr:'#c61aff'},{back:'#e6e6ff',clr:'#6600ff'}];
   const [fav, setFav] = useState(favorite);
-  const {format} = require('date-fns');
   const[preventClick, setPreventClick] = useState(false)
   const[preventFav, setPreventFav] = useState(false);
   const[deletes, setDeletes] = useState();
+  const colorData = [{back:'#b3ffb3',clr:'#009933'},{back:'#ccf5ff',clr:'#0066ff'},{back:'#ffe0b3',clr:'#ff6600'},
+    {back:'#e6ccff',clr:'#c61aff'},{back:'#e6e6ff',clr:'#6600ff'}];
+  const {format} = require('date-fns');
   const prof = useSelector(profile);
   const dispatch = useDispatch();
   const handleFav = async(a) => {
@@ -147,9 +147,9 @@ export default function Book(props) {
                 {
                   (theme)? (
                     theme.map((a,i) => {
-                      var color = (/[A-E]/.exec(a.charAt(0)) !== null)?colorData[0]:(/[F-J]/.exec(a.charAt(0)) !== null)?colorData[1]:
-                        (/[K-O]/.exec(a.charAt(0)) !== null)?colorData[2]:(/[P-T]/.exec(a.charAt(0)) !== null)?colorData[3]:colorData[4]
-                      return <Chip key={i} className={style.chip} style={{background:color.back,color:color.clr}} label={a} size="small"/>
+                      var color = (/[A-E]/.exec(a.name.charAt(0)) !== null)?colorData[0]:(/[F-J]/.exec(a.name.charAt(0)) !== null)?colorData[1]:
+                        (/[K-O]/.exec(a.name.charAt(0)) !== null)?colorData[2]:(/[P-T]/.exec(a.name.charAt(0)) !== null)?colorData[3]:colorData[4]
+                      return <Chip key={i} className={style.chip} style={{background:color.back,color:color.clr}} label={a.name} size="small"/>
                     })
                   ) : (<></>)
                 }
@@ -158,9 +158,9 @@ export default function Book(props) {
             <Typography sx={{fontFamily:'Arial',overflow: 'auto' ,fontSize:{xs:'4.5vw', sm:'2vw', md:'1.2vw'}, textAlign:'justify', textIndent: '15px', maxHeight: '150px'}}>{description}</Typography>
             <Box justifyContent='center' alignItems='center' display='flex' sx={{marginTop:'20px'}}>
               <Button variant='contained' sx={{marginRight:'15px'}} onClick={handleDownload}
-              disabled={(data&&!preventClick)? false:true}
-              startIcon={(data&&!preventClick)?<></>:<CircularProgress size={25} color="primary"/>}>Download</Button>
-              <IconButton onClick={handleFav} disabled={(data&&!preventFav)? false:true}>{(fav)? <FavoriteIcon sx={{color:'red'}}/> : <FavoriteBorderIcon/>}</IconButton>
+              disabled={(prof&&!preventClick)? false:true}
+              startIcon={(!preventClick)?<></>:<CircularProgress size={25} color="primary"/>}>Download</Button>
+              <IconButton onClick={handleFav} disabled={(prof&&!preventFav)? false:true}>{(fav)? <FavoriteIcon sx={{color:'red'}}/> : <FavoriteBorderIcon/>}</IconButton>
             </Box>
           </Box>
         </Stack>

@@ -203,7 +203,10 @@ export default function Setting() {
           </Box>
           <MobileButton variant='contained' href="/" onClick={()=>setOpen(false)}>Return Home</MobileButton>
           <MobileButton variant='contained' href="#generalInfo" onClick={()=>setOpen(false)}>General Info</MobileButton>
-          <MobileButton variant='contained' href="#upg_acc_container" onClick={()=>setOpen(false)}>Upgrade Account</MobileButton>
+          {(prof && prof.role === "USER")?
+            <MobileButton variant='contained' href="#upg_acc_container" onClick={()=>setOpen(false)}>Upgrade Account</MobileButton>:
+            <></>
+          }
           <MobileButton variant='contained' onClick={handleLogout}>LogOut</MobileButton>
         </Stack>
       </Drawer>
@@ -212,18 +215,14 @@ export default function Setting() {
   const handleUpgrade = () => {
     setPreventClick(true);
     var form = new FormData();
-    form.append('email',prof.email)
-    form.append('pass',password)
+    form.append('password',password)
     axios.post(verifyPasswordURL,form,{
       withCredentials:true,
       headers:{
         'Content-Type':'multipart/form-data',
       }
     }).then(a => {
-        var passForm = new FormData();
-        passForm.append('name',prof.name)
-        passForm.append('email',prof.email)
-        axios.post(upgradeUserURL, passForm,{
+        axios.post(upgradeUserURL, null,{
           withCredentials:true,
           headers:{
             'Content-Type':'multipart/form-data',
@@ -239,8 +238,6 @@ export default function Setting() {
   const handleModif = () => {
     setPreventClick(true);
     var modifyForm = new FormData();
-    modifyForm.append('nameOld',prof.name)
-    modifyForm.append('emailOld',prof.email)
     modifyForm.append('name',(data.name)?data.name:prof.name)
     modifyForm.append('email',(data.email)?data.email:prof.email)
     modifyForm.append('image',imgFile)
@@ -256,8 +253,6 @@ export default function Setting() {
   const handleChangePassword = () => {
     setPreventClick(true)
     var changePass = new FormData();
-    changePass.append('name',prof.name);
-    changePass.append('email',prof.email);
     changePass.append('oldPassword',newPassword.oldPassword);
     changePass.append('newPassword',newPassword.newPassword);
     axios.post(changePasswordURL, changePass, {

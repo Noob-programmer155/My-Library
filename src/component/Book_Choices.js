@@ -1,11 +1,13 @@
 import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-import {setBookLink, linkbook, initbooklink} from './funcredux/linkedRes';
-import {favoriteBooks, recommendBooks, myBooks, books, setBooks, setBookFav,
-  setBookRek, setBookSeller} from './funcredux/book_redux';
-import {ModifyBook,UploadImage} from './subcomponent/otherComponent';
+import axios from 'axios';
+import {favoriteBooks, recommendBooks, myBooks, setBookFav, setBookRek, setBookSeller, bookFavPage, myBookPage,
+  setBookFavPage, setMyBookPage, countDataAppearsDefault, setBooks, setAllBookPage, setTrigger} from './funcredux/book_redux';
+import {profile} from './funcredux/profile_redux';
+import {ModifyBook,UploadImage,Container} from './subcomponent/otherComponent';
+import {mainBookURL, getMyBookURL, getRecomendBookURL, getFavoriteBookURL} from './constant/constantDataURL';
 import BookView from './subcomponent/Book_view';
-import {Box, Typography, Skeleton, Stack, IconButton, Tabs, Tab, useMediaQuery} from '@mui/material';
+import {Box, Typography, Button, Tabs, Tab, useMediaQuery} from '@mui/material';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import StarsIcon from '@mui/icons-material/Stars';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -18,10 +20,9 @@ const useStyle = makeStyles({
   root:{
     background: '#009999',
     display: 'none',
-    paddingTop: '10px',
-    marginLeft: '10px',
+    marginTop: '10px',
+    maxWidth:'100%',
     width:'100%',
-    paddingBottom: '20px',
     color:'#ffff',
     [theme.breakpoints.up('md')]:{
       display: 'block',
@@ -36,104 +37,141 @@ const useStyle = makeStyles({
     },
   },
   text: {
-    paddingBottom: '8px',
     color: '#ffff',
+    marginBottom:'10px',
     fontFamily: 'Segoe UI',
   },
-  scroll: {
-    maxWidth:'100%',
-    overflow: 'auto',
-    marginBottom:'8px',
-    marginRight: '10px',
-    '&::-webkit-scrollbar': {
-      backgroundColor: 'rgba(0, 32, 128, 0.3)',
-      paddingTop: '12px',
-      borderRadius: '20px',
-      height: '8px',
-    },
-    '&::-webkit-scrollbar-button':{
-      display: 'none',
-    },
-    '&::-webkit-scrollbar-thumb':{
-      background: '#002080',
-      borderRadius: '20px',
-    },
-  }
 })
 
 export default function BookChoice(props) {
-  const {setOpenModify} = props; 
+  const {onError, setOpenModify} = props;
+  const [page, setPage] = useState(3);
+  const [pageMyBook, setPageMyBook] = useState(1);
+  const [pageFavBook, setPageFavBook] = useState(1);
   const style = useStyle();
   const favBuku = useSelector(favoriteBooks);
   const recBuku = useSelector(recommendBooks);
+  const prof = useSelector(profile);
   const myBuku = useSelector(myBooks);
-  const initlink = useSelector(initbooklink);
-  const buku = useSelector(books);
-  const link = useSelector(linkbook);
+  const initCountDataAppears = useSelector(countDataAppearsDefault);
+  const myBukuAllPage = useSelector(myBookPage);
+  const favBukuAllPage = useSelector(bookFavPage);
   const sm = useMediaQuery('(min-width:600px)');
   const dispatch = useDispatch();
-  var choice = (ds) => {
-    return {
-      id: `mob-cho-${ds}`,
-      'aria-controls': `btn-Cho-${ds}`
-    }
-  }
   useEffect(()=>{
-    if(buku.length > 0){
-      let bookfav = buku.filter(by => by.favorite === true)
-      if(bookfav){dispatch(setBookFav(bookfav))}
+    if(prof){
+      axios.get(getMyBookURL,{
+        withCredentials:true,
+        params:{
+          page: 0,
+          size: initCountDataAppears.book
+        }
+      }).then(item => {dispatch(setBookSeller(item.data.data));dispatch(setMyBookPage(item.data.sizeAllPage));})
+      .catch(err => onError(err.message))
+      axios.get(getFavoriteBookURL,{
+        withCredentials:true,
+        params:{
+          page: 0,
+          size: initCountDataAppears.book
+        }
+      }).then(item => {dispatch(setBookFav(item.data.data));dispatch(setBookFavPage(item.data.sizeAllPage));})
+      .catch(err => onError(err.message))
     }
-    if(buku.length > 0) {
-      if(buku.length > 10){
-        let bookrek = buku.slice(0, 10)
-        if(bookrek){dispatch(setBookRek(bookrek))}
+    axios.get(getRecomendBookURL,{
+      withCredentials:true,
+    }).then(item => {dispatch(setBookRek(item.data));})
+    .catch(err => onError(err.message))
+  },[prof])
+  const handleChangeMyBook = (oldValue,newValue) => {
+    setPageMyBook(newValue);
+    axios.get(getMyBookURL,{
+      withCredentials:true,
+      params:{
+        page: pageMyBook-1,
+        size: initCountDataAppears.book
       }
-      else{
-        let bookrek2 = buku.slice(0, buku.length)
-        if(bookrek2){dispatch(setBookRek(bookrek2))}
+    }).then(item => {dispatch(setBookSeller(item.data.data));})
+    .catch(err => onError(err.message))
+  }
+  const handleChangeFavBook = (oldValue,newValue) => {
+    setPageFavBook(newValue);
+    axios.get(getFavoriteBookURL,{
+      withCredentials:true,
+      params:{
+        page: pageFavBook-1,
+        size: initCountDataAppears.book
       }
-    }
-    if(buku.length > 0) {
-      let bookmy = buku.filter(by => by.status === true)
-      if(bookmy){dispatch(setBookSeller(bookmy))}
-    }
-  },[buku])
-  const handleChange = (a,n) =>{
-    dispatch(setBookLink(n))
+    }).then(item => {dispatch(setBookFav(item.data.data));})
+    .catch(err => onError(err.message))
+  }
+  const handleChangePage = (oldValue,newValue) => {
+    setPage(newValue)
+  }
+  const handleClickTabsBook = (url, isPagination, dataIndex) => (e) => {
+    dispatch(setTrigger(dataIndex))
+    axios.get(url, {
+      withCredentials:true,
+      params: (isPagination)?{
+        page: 0,
+        size: initCountDataAppears.book
+      }:null
+    }).then(item => {
+      if(item.data !== null){
+        if(isPagination){
+          dispatch(setBooks(item.data.data))
+          dispatch(setAllBookPage(item.data.sizeAllPage))
+        }
+        else{
+          dispatch(setBooks(item.data))
+          dispatch(setAllBookPage(1))
+        }
+      }
+    }).catch(err => {
+      if(prof){
+        onError(err.message);
+      }
+      dispatch(setBooks([]));
+      dispatch(setAllBookPage(0));});
   }
   return(
     <>
       <Box className={style.root}>
         {
           [
-            {title:'Recommended Books', data:recBuku},
-            {title:'Favorite Books', data:favBuku},
-            {title:'My Books', data:myBuku}].map(h => (
+            {title:'Recommended Books', data:recBuku, page: 1, handlePage: null, maxPage: 1},
+            {title:'Favorite Books', data:favBuku, page: pageFavBook, handlePage: handleChangeFavBook, maxPage: favBukuAllPage},
+            {title:'My Books', data:myBuku, page: pageMyBook, handlePage: handleChangeMyBook, maxPage: myBukuAllPage}].map((item,i) => (
               <>
-                <Typography className={style.text}>{h.title}</Typography>
-                <Stack direction='row' spacing={1} className={style.scroll}>
-                  {(h.data.length===0)?(
-                    [1,2,3,4,5,6,7,8,9,10].map((a,i) => {
-                      return(<BookView key={i} id={null}/>)
-                    })
-                  ):(
-                    h.data.map((a,i) => {
-                      return(<BookView key={i} id={a.id} title={a.title} author={a.author} image={a.image} status={a.status}
-                        publisher={a.publisher} date={a.publishDate} description={a.description}
-                        theme={a.theme} data={a.file} favorite={a.favorite} setOpenModify={setOpenModify}/>)
-                    })
-                  )}
-                </Stack>
+                <Typography className={style.text}>{item.title}</Typography>
+                <Box>
+                {(item.data.length > 0)?
+                  <Container data={item.data} page={item.page} onPageChange={item.handlePage}
+                    sx={{width:'100%', maxWidth:'100%', maxHeight:'500px', overflow:'auto',marginBottom:'20px'}}
+                    countPage={item.maxPage} setOpenModify={setOpenModify} pattern="row"/>
+                  :(i > 0)?
+                  ((prof)?
+                    <Typography sx={{textAlign:'center',padding:'10px',marginLeft:'30px',marginRight:'30px',
+                      borderRadius:'10px',background:'rgba(0,0,0,.1)'}}>Your "{item.title}" is empty</Typography>
+                  :<Box sx={{padding:'10px',marginLeft:'30px',marginRight:'30px',borderRadius:'10px',background:'rgba(0,0,0,.1)'}}>
+                    <Typography sx={{textAlign:'center'}}>To view "{item.title}", You must login before see inside this</Typography>
+                    <Box display='flex' justifyContent='center' alignItems='center'>
+                      <Button variant='contained' sx={{marginTop:'10px'}} href='/login'>Login</Button>
+                    </Box>
+                  </Box>):<></>
+                }
+                </Box>
               </>
             ))
         }
       </Box>
-      <Tabs variant={(sm)?'fullWidth':'scrollable'} scrollButtons='auto' className={style.mobile} value={(link>=initlink)?3:link} onChange={handleChange}
-        textColor='inherit' indicatorColor="secondary">
+      <Tabs className={style.mobile} variant={(sm)?'fullWidth':'scrollable'} scrollButtons='auto' value={page}
+        onChange={handleChangePage} textColor='inherit' indicatorColor="secondary">
         {
-            [{icon:<StarsIcon fontSize='small'/>,label:'Rekomend Book'}, {icon:<FavoriteIcon fontSize='small'/>,label:'Favorite Book'},
-            {icon:<BookIcon fontSize='small'/>,label:'My Book'}, {icon:<LibraryBooksIcon fontSize='small'/>,label:'All Book'}].map((a,i) => {
-              return <Tab key={i} sx={{color:'#ffff'}} icon={a.icon} label={a.label} {...choice(i)} value={i}/>
+            [{icon:<StarsIcon fontSize='small'/>,label:'Rekomend Book', url: getRecomendBookURL, pagination:false,refData: -2},
+            {icon:<FavoriteIcon fontSize='small'/>,label:'Favorite Book', url: getFavoriteBookURL, pagination:true,refData: -3},
+            {icon:<BookIcon fontSize='small'/>,label:'My Book', url: getMyBookURL, pagination:true, refData: -4},
+            {icon:<LibraryBooksIcon fontSize='small'/>,label:'All Book', url: mainBookURL, pagination:true, refData: -1}].map((a,i) => {
+              return <Tab key={i} sx={{color:'#ffff'}} icon={a.icon} label={a.label} onClick={handleClickTabsBook(a.url,a.pagination,a.refData)}/>
             })
         }
       </Tabs>

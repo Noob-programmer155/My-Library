@@ -26,17 +26,16 @@ const Cell = styled(TableCell)(({theme}) => ({
 
 export default function UserInfo(props) {
   const{data, setData, type, setError, setRespon} = props;
-  var onSuccess = "Delete user Success !!!";
   const[disable, setDisable] = useState(false);
   const[state, setState] = useState();
   const[verify, setVerify] = useState();
-  const prof = useSelector(profile);
   const[password, setPassword] = useState();
+  var onSuccess = "Delete user Success !!!";
+  const prof = useSelector(profile);
   const handleDelete = () => {
     setDisable(true);
     var form = new FormData();
-    form.append('email',data.email)
-    form.append('pass',password)
+    form.append('password',password)
     axios.post(verifyPasswordURL,form,{
       withCredentials:true,
       headers:{
@@ -47,7 +46,6 @@ export default function UserInfo(props) {
         axios.delete(deleteUserURL,{
           withCredentials:true,
           params:{
-            name: data.name,
             email: data.email
           }
         }).then(a => {setDisable(false);setData(null);setRespon(onSuccess);}).catch(err => {setError(err.message);setDisable(false);setData(null);})
@@ -56,7 +54,6 @@ export default function UserInfo(props) {
         axios.delete(deleteAdminURL,{
           withCredentials:true,
           params:{
-            name: data.name,
             email: data.email
           }
         }).then(a => {setDisable(false);setData(null);setRespon(onSuccess);}).catch(err => {setError(err.message);setDisable(false);setData(null);})

@@ -1,55 +1,115 @@
 import React,{useState, useEffect} from 'react';
+import axios from 'axios';
 import {useDispatch, useSelector} from 'react-redux';
-import {setBookTheme, bookThemes, books} from './funcredux/book_redux';
-import {setBookLink, linkbook, initbooklink} from './funcredux/linkedRes';
-import {Stack, Tab, Tabs, Skeleton, Box, useMediaQuery} from '@mui/material';
+import {setBookTheme, setBooks, setAllBookPage, bookThemes, countDataAppearsDefault, setTrigger} from './funcredux/book_redux';
+import {getTypeURL,getBooksByTypeURL,mainBookURL} from './constant/constantDataURL';
+import {Stack, Tab, Tabs, Skeleton, Box, useMediaQuery, IconButton, Button} from '@mui/material';
 import {createTheme} from '@mui/material/styles';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import CollectionsBookmarkIcon from '@mui/icons-material/CollectionsBookmark';
 
 export default function TypeContainer(props) {
-  const {...attr} = props;
+  const {onError, ...attr} = props;
+  const [maxPageType,setMaxPageType] = useState(0);
+  const [page, setPage] = useState(1);
+  const [typeTab, setTypeTab] = useState(0);
   const dispatch = useDispatch();
   const themes = useSelector(bookThemes);
-  const buku = useSelector(books);
-  const link = useSelector(linkbook);
-  const initstate = useSelector(initbooklink);
+  const initCountData = useSelector(countDataAppearsDefault);
   const med = useMediaQuery('(min-width:900px)')
-  var props = (i) => {
-    return{
-      id: `btn-type-${i}`,
-      'aria-controls': `panel-main-${i}`
-    }
-  }
   const handleChange = (a, n) => {
-    dispatch(setBookLink(n))
+    setTypeTab(n)
   }
   useEffect(()=>{
-    if(buku.length > 0) {
-      let arr = []
-      buku.forEach(it => {
-        it.theme.forEach(item => {
-          if(arr.findIndex(x => x === item) === -1){
-            arr.push(item)
-          }
-        });
-      });
-      dispatch(setBookTheme(arr.sort()))
-    }
-  },[buku]);
+    axios.get(getTypeURL,{
+      withCredentials:true,
+      params:{
+        page: 0,
+        size: initCountData.type
+      }
+    }).then(res => {
+      if(res.data != null){
+        dispatch(setBookTheme(res.data.data))
+        setMaxPageType(res.data.sizeAllPage)
+      }
+    }).catch(err => onError(err.message));
+  },[]);
+  const handleClick = (item) => (e) => {
+    dispatch(setTrigger(item))
+    axios.get(getBooksByTypeURL,{
+      withCredentials:true,
+      params:{
+        page: 0,
+        size: initCountData.book,
+        theme: item
+      }
+    }).then(res => {
+      if(res.data != null){
+        dispatch(setAllBookPage(res.data.sizeAllPage));
+        dispatch(setBooks(res.data.data));
+      }
+    }).catch(err => onError(err.message));
+  }
+  const handleClickAll = () => {
+    dispatch(setTrigger(-1))
+    axios.get(mainBookURL,{
+      withCredentials:true,
+      params:{
+        page: 0,
+        size: initCountData.book,
+      }
+    }).then(res => {
+      if(res.data != null){
+        dispatch(setAllBookPage(res.data.sizeAllPage));
+        dispatch(setBooks(res.data.data));
+      }
+    }).catch(err => onError(err.message));
+  }
+  var getType = () => {
+    axios.get(getTypeURL,{
+      withCredentials:true,
+      params:{
+        page: page,
+        size: initCountData.type
+      }
+    }).then(res => dispatch(setBookTheme(res.data.data)))
+    .catch(err => onError(err.message));
+  }
+  const handlePrev = (e) => {
+    setPage(page-1)
+    getType()
+  }
+  const handleNext = (e) => {
+    setPage(page+1)
+    getType()
+  }
   return(
     <>
       {(themes.length !== 0)?
-        (<Tabs variant={(med)?"fullWidth":'scrollable'} scrollButtons="auto" value={(link<initstate)?false:link} textColor='inherit' indicatorColor="secondary"
-          onChange={handleChange} orientation={(med)?'vertical':'horizontal'}
-          sx={{maxWidth:'100%', maxHeight:'500px', color:'#ffff'}} {...attr}>
-          {
-            themes.map((a, i) => {
-              return <Tab key={i} label={a} {...props(initstate+i)} value={initstate+i}/>
-            })
+        (<Box {...attr}>
+          {(page > 1)?
+            <IconButton onClick={handlePrev}>
+              {(med)?<ArrowForwardIosIcon sx={{transform:'rotate(-0.25turn)'}}/>:<ArrowForwardIosIcon sx={{transform:'rotate(0.5turn)'}}/>}
+            </IconButton>:<></>}
+          {(med)?
+            <Button sx={{color:'white',width:'100%'}} startIcon={<CollectionsBookmarkIcon/>} onClick={handleClickAll}>All Books</Button>:<></>
           }
-        </Tabs>):(
-          <Box>
+          <Tabs variant={(med)?"fullWidth":'scrollable'} value={typeTab} textColor='inherit' indicatorColor="secondary"
+            onChange={handleChange} visibleScrollbar={true} orientation={(med)?'vertical':'horizontal'} sx={{maxWidth:'100%', maxHeight:'500px',color:'#ffff'}}>
             {
-              [1,2,3,4,5,6,7,8].map((a,i)=> (
+              themes.map((a, i) => {
+                return <Tab key={i} value={i} label={a.name} onClick={handleClick(a.id)}/>
+              })
+            }
+          </Tabs>
+          {(page < maxPageType)?
+            <IconButton onClick={handleNext}>
+              {(med)?<ArrowForwardIosIcon sx={{transform:'rotate(0.25turn)'}}/>:<ArrowForwardIosIcon/>}
+            </IconButton>:<></>}
+        </Box>):(
+          <Box {...attr}>
+            {
+              [1,2,3,4,5,6,7,8,9,10].map((a,i)=> (
                 <Skeleton key={i} variant='rectangular' sx={{width:'100%', height:'40px', marginBottom: '3px'}}/>
               ))
             }
