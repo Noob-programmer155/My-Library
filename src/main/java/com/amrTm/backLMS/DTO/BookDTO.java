@@ -5,11 +5,11 @@ import java.util.List;
 public class BookDTO {
 	private String id;
 	private String title;
-	private String author;
-	private String publisher;
+	private String newPublisher;
+	private Integer publisher;
 	private String description;
-	private List<String> theme;
-	private int user;
+	private List<Integer> theme;
+	private List<String> newTheme;
 	private boolean favorite;
 	public BookDTO() {
 		super();
@@ -26,17 +26,17 @@ public class BookDTO {
 	public void setTitle(String title) {
 		this.title = title;
 	}
-	public String getAuthor() {
-		return author;
-	}
-	public void setAuthor(String author) {
-		this.author = author;
-	}
-	public String getPublisher() {
+	public Integer getPublisher() {
 		return publisher;
 	}
-	public void setPublisher(String publisher) {
+	public void setPublisher(Integer publisher) {
 		this.publisher = publisher;
+	}
+	public String getNewPublisher() {
+		return newPublisher;
+	}
+	public void setNewPublisher(String newPublisher) {
+		this.newPublisher = newPublisher;
 	}
 	public String getDescription() {
 		return description;
@@ -44,22 +44,22 @@ public class BookDTO {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public List<String> getTheme() {
+	public List<Integer> getTheme() {
 		return theme;
 	}
-	public void setTheme(List<String> theme) {
+	public void setTheme(List<Integer> theme) {
 		this.theme = theme;
+	}
+	public List<String> getNewTheme() {
+		return newTheme;
+	}
+	public void setNewTheme(List<String> newTheme) {
+		this.newTheme = newTheme;
 	}
 	public boolean getFavorite() {
 		return favorite;
 	}
 	public void setFavorite(boolean favorite) {
 		this.favorite = favorite;
-	}
-	public int getUser() {
-		return user;
-	}
-	public void setUser(int user) {
-		this.user = user;
 	}
 }

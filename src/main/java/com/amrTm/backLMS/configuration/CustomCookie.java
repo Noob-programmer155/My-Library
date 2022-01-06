@@ -4,8 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-public class CustomCookie {
-	public enum site{ 
+public class CustomCookie{
+	public enum sameSite{ 
 		LAX, STRICT, NONE}; 
 	private String name;
 	private String value;
@@ -13,7 +13,7 @@ public class CustomCookie {
 	private String domain="";
 	private Long maxAge;
 	private boolean secure=false,httpOnly=false;
-	private site sameSite;
+	private sameSite ss;
 
 	public CustomCookie(String name, String value) {
 		this.name=name;
@@ -38,16 +38,12 @@ public class CustomCookie {
 		}
 		if(maxAge!=null) {
 			tr.append("Expires=");
-			if(maxAge != 0) {
-				tr.append(toUTCString(new Date(new Date().getTime()+(maxAge*1000))));
-			}else {
-				tr.append(toUTCString(new Date(1)));
-			}
+			tr.append(toUTCString(new Date(new Date().getTime()+(maxAge*1000))));
 			tr.append(';');
 		}
 		if (secure) {tr.append("Secure;");}
 		if (httpOnly) {tr.append("HttpOnly;");}
-		switch(sameSite) {
+		switch(ss) {
 			case LAX:
 				tr.append("SameSite=Lax");
 				break;
@@ -62,35 +58,13 @@ public class CustomCookie {
 		}
 		return tr.toString();
 	}
-	
-	public String toUTCString(Date date) {
-        SimpleDateFormat sd = new SimpleDateFormat("EEE, yyyy-MMM-dd HH:mm:ss z");
-        sd.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return sd.format(date);
-    }
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getValue() {
-		return value;
-	}
-
-	public void setValue(String value) {
-		this.value = value;
-	}
 
 	public String getPath() {
 		return path;
 	}
 
 	public void setPath(String path) {
-		this.path = path;
+		this.path=path;
 	}
 
 	public String getDomain() {
@@ -98,23 +72,29 @@ public class CustomCookie {
 	}
 
 	public void setDomain(String domain) {
-		this.domain = domain;
+		this.domain=domain;
 	}
 
-	public Long getMaxAge() {
+	public long getMaxAge() {
 		return maxAge;
 	}
 
-	public void setMaxAge(Long maxAge) {
-		this.maxAge = maxAge;
+	public void setMaxAge(int maxAge) {
+		this.maxAge = (long) maxAge;
 	}
+	
+	public String toUTCString(Date date) {
+        SimpleDateFormat sd = new SimpleDateFormat("EEE, yyyy-MMM-dd HH:mm:ss z");
+        sd.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return sd.format(date);
+    }
 
 	public boolean isSecure() {
 		return secure;
 	}
 
 	public void setSecure(boolean secure) {
-		this.secure = secure;
+		this.secure=secure;
 	}
 
 	public boolean isHttpOnly() {
@@ -125,11 +105,24 @@ public class CustomCookie {
 		this.httpOnly = httpOnly;
 	}
 
-	public site getSameSite() {
-		return sameSite;
+	public sameSite getSameSite() {
+		return ss;
 	}
 
-	public void setSameSite(site sameSite) {
-		this.sameSite = sameSite;
+	public void setSameSite(sameSite sameSite) {
+		this.ss = sameSite;
+	}
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getValue() {
+		return value;
+	}
+	public void setValue(String value) {
+		this.value = value;
 	}
 }

@@ -1,9 +1,11 @@
 package com.amrTm.backLMS.restApi;
 
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.List;
-
+import java.text.SimpleDateFormat;
+import java.util.Base64;
+import java.util.Date;
 import javax.mail.MessagingException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -11,7 +13,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,8 +27,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.amrTm.backLMS.DTO.UserDTO;
 import com.amrTm.backLMS.DTO.UserInfoDTO;
+import com.amrTm.backLMS.DTO.UserResponse;
 import com.amrTm.backLMS.service.AdminService;
-import com.amrTm.backLMS.service.UserServices;
+import com.amrTm.backLMS.service.UserService;
 
 @CrossOrigin
 @RestController
@@ -35,110 +37,144 @@ import com.amrTm.backLMS.service.UserServices;
 public class UserRest {
 	
 	@Autowired
-	private UserServices userServices; 
+	private UserService userServices; 
 	
 	@Autowired
 	private AdminService adminService;
 	
+	//success
 	@GetMapping("/get")
-	public UserInfoDTO getAdmin() {
-		return adminService.getInfoAdmin();
+	public UserInfoDTO getAdmin(HttpServletResponse res) throws IOException {
+		return adminService.getInfoAdmin(res);
 	}
 	
+	//success
 	@GetMapping(path="/image/{path}", produces= {MediaType.IMAGE_JPEG_VALUE,MediaType.IMAGE_PNG_VALUE})
-	public byte[] getImage(@PathVariable String path) throws IOException {
-		return userServices.getImageUser(path);
+	public byte[] getImage(@PathVariable String path, HttpServletResponse res) throws IOException {
+		return userServices.getImageUser(path, res);
 	}
 	
+	//success
 	@GetMapping("/getalluser")
-	public List<UserInfoDTO> getAllUser(){
-		return userServices.getAllUser();
+	public UserResponse getAllUser(@RequestParam Integer page, @RequestParam Integer size, HttpServletResponse res) throws IOException{
+		return userServices.getAllUser(page, size, res);
 	}
 	
+	//success
 	@GetMapping("/getalladmin")
-	public List<UserInfoDTO> getAllAdmin(){
-		return userServices.getAllAdmin();
+	public UserResponse getAllAdmin(@RequestParam Integer page, @RequestParam Integer size, HttpServletResponse res) throws IOException{
+		return userServices.getAllAdmin(page, size, res);
 	}
 	
-	@GetMapping("/getuseronline")
-	public List<Long> getUserOnline(){
-		return userServices.getUserOnline();
+	//success
+	@PostMapping(path="/search", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
+	public UserResponse searchUser(@RequestParam Integer page, @RequestParam Integer size, @RequestParam String words, HttpServletResponse res) throws IOException {
+		return userServices.searchUser(page, size, words, res);
 	}
 	
-	@PostMapping(path="/validate", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
+	@PostMapping(path="/getReport", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
+	public String getReport(@RequestParam String start, @RequestParam String end, HttpServletResponse res) throws IOException {
+		DateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+		try {
+			Date str = format.parse(start);
+			Date ed = format.parse(end);
+			return Base64.getEncoder().encodeToString(adminService.getFileReport(str, ed, res));
+		} catch (ParseException e) {
+			res.sendError(400, "Wrong format date, please use same format");
+			return null;
+		}
+	}
+	
+	//success
+	@PostMapping(path="/verify", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public void validate(@RequestParam(value="tkid") String token, HttpServletResponse res) throws IOException {
 		adminService.validateUser(token, res);
 	}
 	
+	//success
 	@PostMapping(path="/verify-oauth", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
-	public void verifyOAuth(@RequestParam String email, @RequestParam String username, @RequestParam int id, HttpServletResponse res) throws IOException {
+	public void verifyOAuth(@RequestParam String email, @RequestParam String username, @RequestParam Integer id, HttpServletResponse res) throws IOException {
 		adminService.validateUserOAuth(username, email, id, res);
 	}
 	
+	//success
 	@PostMapping(path="/login", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public void login(@RequestParam String email, @RequestParam String password, HttpServletResponse res) throws IOException {
 		adminService.standardLogin(email,password,res);
 	}
 	
+	//success
 	@PostMapping(path="/signup", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public void signUp(UserDTO user, @RequestPart(required=false) MultipartFile image, HttpServletResponse res) throws IOException, MessagingException {
 		adminService.standardSignup(user,res,image);
 	}
 	
+	//success
 	@PostMapping("/logout")
-	public String logout(HttpServletRequest req, HttpServletResponse res) throws ServletException, ParseException {
+	public String logout(HttpServletRequest req, HttpServletResponse res) throws ServletException, ParseException, IOException {
 		adminService.Logout(req,res);
 		return "Success";
 	}
 	
+	//success
 	@PostMapping(path="/password", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
-	public String validatePassword(@RequestParam String email, @RequestParam String pass) {
-		if(adminService.validatePassword(email, pass)) return "Success";
-		throw new BadCredentialsException("Your Password not Match");
+	public String validatePassword(@RequestParam String password, HttpServletResponse res) throws IOException {
+		if(adminService.validatePassword(password, res)) 
+			return "Success";
+		return null;
 	}
 	
+	//success
 	@PostMapping(path="/password/change", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
-	public String changePasswordUser(@RequestParam String email, @RequestParam String name, @RequestParam String oldPassword, @RequestParam String newPassword) {
-		if(adminService.modifyUserPassword(name, email, oldPassword, newPassword)) return "Success";
-		throw new BadCredentialsException("Your Password not Match");
+	public String changePasswordUser(@RequestParam String oldPassword, @RequestParam String newPassword,
+			HttpServletResponse res) throws IOException {
+		if(adminService.modifyUserPassword(oldPassword, newPassword, res)) 
+			return "Success";
+		return null;
 	}
 	
+	//success
 	@PostMapping(path="/modify/seller", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
-	public String modifySeller(@RequestParam String name, @RequestParam String email, HttpServletResponse res) throws IOException {
-		adminService.modifyUser(email, name, res);
+	public String modifySeller(HttpServletResponse res) throws IOException {
+		adminService.promotingUser(res);
 		return "Success";
 	}
 	
+	//success
 	@PostMapping(path="/modify/admin", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
-	public String modifyAdmin(@RequestParam String name, @RequestParam String email, @RequestParam boolean delete) throws IOException {
-		adminService.modifyUserAdmin(email, name, delete);
+	public String modifyAdmin(@RequestParam String email, @RequestParam boolean delete, HttpServletResponse res) throws IOException {
+		adminService.prodemUserAdmin(email, delete, res);
 		return "Success";
 	}
 	
+	//success
 	@PostMapping(path="/adduseronline", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public String addUserOnline(@RequestParam Long id) {
 		userServices.addUserOnline(id);
 		return "Success";
 	}
 	
+	//success
 	@PutMapping(path="/modify", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
-	public UserInfoDTO modifyUser(@RequestParam String nameOld, @RequestParam String emailOld, UserDTO userModel, 
-			@RequestPart(required=false) MultipartFile image) throws IOException {
-		return userServices.modifyUser(nameOld, emailOld, userModel, image);
+	public UserInfoDTO modifyUser(UserDTO userModel, @RequestPart(required=false) MultipartFile image, HttpServletResponse res) throws IOException {
+		return userServices.modifyUser(userModel, image, res);
 	}
 	
+	//success
 	@DeleteMapping("/delete")
-	public String deleteUser(@RequestParam String name, @RequestParam String email) {
-		userServices.deleteUser(name, email);
+	public String deleteUser( @RequestParam String email, HttpServletResponse res) throws IOException {
+		userServices.deleteUser(email, res);
 		return "Success";
 	}
 	
+	//success
 	@DeleteMapping("/delete/admin")
-	public String deleteAdmin(@RequestParam String name, @RequestParam String email) {
-		userServices.deleteAdmin(name, email);
+	public String deleteAdmin(@RequestParam String email, HttpServletResponse res) throws IOException {
+		userServices.deleteAdmin(email, res);
 		return "Success";
 	}
 	
+	//success
 	@DeleteMapping("/delete/useronline")
 	public String deleteUser(@RequestParam Long id) {
 		userServices.deleteUserOnline(id);

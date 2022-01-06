@@ -6,6 +6,7 @@ public class UserInfoDTO {
 	private String email;
 	private String role;
 	private String image_url;
+	private boolean status;
 	public long getId() {
 		return id;
 	}
@@ -35,5 +36,11 @@ public class UserInfoDTO {
 	}
 	public void setImage_url(String image_url) {
 		this.image_url = image_url;
+	}
+	public boolean isStatus() {
+		return status;
+	}
+	public void setStatus(boolean status) {
+		this.status = status;
 	}
 }

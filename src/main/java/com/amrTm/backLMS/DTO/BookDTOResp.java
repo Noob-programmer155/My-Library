@@ -9,7 +9,7 @@ public class BookDTOResp {
 	private String publisher;
 	private String publishDate;
 	private String description;
-	private List<String> theme;
+	private List<TypeDTOResp> theme;
 	private String file;
 	private String image;
 	private boolean favorite;
@@ -50,10 +50,10 @@ public class BookDTOResp {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public List<String> getTheme() {
+	public List<TypeDTOResp> getTheme() {
 		return theme;
 	}
-	public void setTheme(List<String> theme) {
+	public void setTheme(List<TypeDTOResp> theme) {
 		this.theme = theme;
 	}
 	public String getFile() {

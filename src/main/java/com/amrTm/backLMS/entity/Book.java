@@ -2,12 +2,10 @@ package com.amrTm.backLMS.entity;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -26,24 +24,26 @@ public class Book {
 	@Id
 	private String id;
 	private String title;
-	private String author;
-	private String publisher;
 	private Date publishDate;
 	@Column(length=5000000)
 	private String description;
+	// using this variable to get recommended book from the numbers of download
 	private int rekomended;
-	@ElementCollection
-	private List<String> type;
 	@Column(nullable=false)
 	private String file;
 	@Column(nullable=false)
 	private String image;
 	@ManyToOne
 	@JoinTable(name="Book_User", joinColumns= {@JoinColumn(name="Book_Id")}, inverseJoinColumns = {@JoinColumn(name="User_Id")})
-	private User bookuser;
+	private User bookUser;
+	@ManyToOne
+	@JoinTable(name="Book_Publisher", joinColumns= {@JoinColumn(name="Book_Id")}, inverseJoinColumns = {@JoinColumn(name="Publisher_Id")})
+	private Publisher publisherBook;
 	@ManyToMany(cascade= {CascadeType.MERGE})
 	@JoinTable(name="Favorite_Book", joinColumns={@JoinColumn(name="Book_Id")}, inverseJoinColumns={@JoinColumn(name="User_Id")})
-	private Set<User> bookfavorite = new HashSet<>();
+	private Set<User> bookFavorite= new HashSet<>();
+	@ManyToMany(mappedBy="bookType")
+	private Set<TypeBook> books = new HashSet<>();
 	
 	public String getId() {
 		return id;
@@ -57,18 +57,6 @@ public class Book {
 	public void setTitle(String title) {
 		this.title = title;
 	}
-	public String getAuthor() {
-		return author;
-	}
-	public void setAuthor(String author) {
-		this.author = author;
-	}
-	public String getPublisher() {
-		return publisher;
-	}
-	public void setPublisher(String publisher) {
-		this.publisher = publisher;
-	}
 	public Date getPublishDate() {
 		return publishDate;
 	}
@@ -80,12 +68,6 @@ public class Book {
 	}
 	public void setDescription(String description) {
 		this.description = description;
-	}
-	public List<String> getType() {
-		return type;
-	}
-	public void setType(List<String> type) {
-		this.type = type;
 	}
 	public String getFile() {
 		return file;
@@ -100,28 +82,47 @@ public class Book {
 		this.image = image;
 	}
 	public void addFavorite(User user) {
-		if(this.bookfavorite.contains(user)) return ;
-		this.bookfavorite.add(user);
+		if(this.bookFavorite.contains(user)) return ;
+		this.bookFavorite.add(user);
 		user.addFavorite(this);
 	}
 	public void removeFavorite(User user) {
-		if(!this.bookfavorite.contains(user)) return ;
-		this.bookfavorite.remove(user);
+		if(!this.bookFavorite.contains(user)) return ;
+		this.bookFavorite.remove(user);
 		user.removeFavorite(this);
 	}
-	public User getBookuser() {
-		return bookuser;
+	public void addType(TypeBook typeBook) {
+		if(this.books.contains(typeBook)) return ;
+		this.books.add(typeBook);
+		typeBook.addBook(this);
 	}
-	public void setBookuser(User bookuser) {
-		this.bookuser = bookuser;
+	public void removeType(TypeBook typeBook) {
+		if(!this.books.contains(typeBook)) return ;
+		this.books.add(typeBook);
+		typeBook.removeBook(this);
 	}
-	public Set<User> getBookfavorite() {
-		return bookfavorite;
+	public User getBookUser() {
+		return bookUser;
+	}
+	public void setBookUser(User bookuser) {
+		this.bookUser = bookuser;
+	}
+	public Set<User> getBookFavorite() {
+		return bookFavorite;
 	}
 	public int getRekomended() {
 		return rekomended;
 	}
 	public void setRekomended(int rekomended) {
 		this.rekomended = rekomended;
+	}
+	public Publisher getPublisherBook() {
+		return publisherBook;
+	}
+	public void setPublisherBook(Publisher publisherBook) {
+		this.publisherBook = publisherBook;
+	}
+	public Set<TypeBook> getBooks() {
+		return books;
 	}
 }

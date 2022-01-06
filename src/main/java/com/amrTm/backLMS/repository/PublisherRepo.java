@@ -5,10 +5,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
-import com.amrTm.backLMS.entity.TypeBook;
+import com.amrTm.backLMS.entity.Publisher;
 
 @Repository
-public interface TypeBookRepo extends PagingAndSortingRepository<TypeBook,Integer>{
-	public TypeBook findByName(String name);
-	public Page<TypeBook> findAllByNameContains(String name, Pageable page);
+public interface PublisherRepo extends PagingAndSortingRepository<Publisher, Long> {
+	public Page<Publisher> findAllByNameContains(String name, Pageable data);
 }

@@ -1,8 +1,12 @@
 package com.amrTm.backLMS.security;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -18,10 +22,11 @@ import com.amrTm.backLMS.service.UserOAuth2Service;
 import com.amrTm.backLMS.service.token.TokenFilter;
 import com.amrTm.backLMS.service.token.TokenTools;
 
+@Profile("development")
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled=true)
-public class SecurityMain extends WebSecurityConfigurerAdapter{
+public class SecurityMainDev extends WebSecurityConfigurerAdapter{
 	
 	@Autowired
 	private UserDetailService userDetailServ;
@@ -38,6 +43,9 @@ public class SecurityMain extends WebSecurityConfigurerAdapter{
 	@Autowired
 	private UserOAuth2FailureHandler userOAuth2FailureHandler;
 	
+	@Value("${listpathurl}")
+	private List<String> ignoresPath;
+	
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		auth.userDetailsService(userDetailServ).passwordEncoder(new BCryptPasswordEncoder());
@@ -45,7 +53,7 @@ public class SecurityMain extends WebSecurityConfigurerAdapter{
 
 	@Override
 	public void configure(WebSecurity web) throws Exception {
-		web.ignoring().antMatchers("/user/validate","/user/login","/user/login/**","/user/signup","/user/verify-oauth","/book/getbooks","/book/image/*");
+		web.ignoring().antMatchers("/user/verify","/user/login","/user/login/**","/user/signup","/user/verify-oauth");
 	}
 
 	@Override
@@ -79,8 +87,8 @@ public class SecurityMain extends WebSecurityConfigurerAdapter{
 //					.invalidateHttpSession(true)
 //					.deleteCookies("JSESSIONID","JLMS_TOKEN")
 //					.permitAll();
-				
-		http.addFilterBefore( new TokenFilter(tokenTools),UsernamePasswordAuthenticationFilter.class);
+		
+		http.addFilterBefore( new TokenFilter(tokenTools,ignoresPath),UsernamePasswordAuthenticationFilter.class);
 	}
 	
 	@Bean

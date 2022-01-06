@@ -63,22 +63,25 @@ public class MailService {
 	}
 	
 	public UserInfoDTO emailValidation(String token, HttpServletResponse res) throws IOException {
-		String email = new String(Base64.getDecoder().decode(token));
-		if(userRepo.findByEmail(email).isPresent()) {
-			User user = userRepo.findByEmail(email).get();
-			user.setRole(Role.USER);
-			User yt = userRepo.save(user);
-			if (tokenTools.createToken(yt.getName(), yt.getEmail(), yt.getRole(), res)) {
-				UserInfoDTO bg = new UserInfoDTO();
-				bg.setId(yt.getId());
-				bg.setImage_url(yt.getImage_url());
-				bg.setName(yt.getName());
-				bg.setEmail(yt.getEmail());
-				bg.setRole(yt.getRole().toString());
-				return bg;
+		try {
+			String email = new String(Base64.getDecoder().decode(token));
+			if(userRepo.findByEmail(email).isPresent()) {
+				User user = userRepo.findByEmail(email).get();
+				user.setRole(Role.USER);
+				User yt = userRepo.save(user);
+				if (tokenTools.createToken(yt.getName(), yt.getEmail(), yt.getRole(), res)) {
+					UserInfoDTO userInfo = new UserInfoDTO();
+					userInfo.setId(yt.getId());
+					userInfo.setName(yt.getName());
+					userInfo.setEmail(yt.getEmail());
+					return userInfo;
+				}
 			}
-		}
-		res.sendError(500);
+		res.sendError(403, "Your token is invalid");
 		return null;
+		}catch(Exception e) {
+			res.sendError(500, "There`s some error when fetching data");
+			return null;
+		}
 	}
 }

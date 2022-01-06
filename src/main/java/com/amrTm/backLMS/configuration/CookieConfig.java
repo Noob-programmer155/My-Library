@@ -10,10 +10,17 @@ public class CookieConfig {
 		String sw = req.getHeader("Cookie");
 		CustomCookie cc = null;
 		String[] tr = sw.split(";\s");
-		for(String hf:tr) {
-			if(hf.startsWith(cookiename)) {
-				cc = new CustomCookie(hf.split("=")[0],hf.split("=")[1]);
-				break;
+		if(tr.length > 0) {
+			for(String hf:tr) {
+				if(hf.startsWith(cookiename)) {
+					cc = new CustomCookie(hf.split("=")[0],hf.split("=")[1]);
+					break;
+				}
+			}
+		}
+		else {
+			if(sw.startsWith(cookiename)) {
+				cc = new CustomCookie(sw.split("=")[0],sw.split("=")[1]);
 			}
 		}
 		return cc;

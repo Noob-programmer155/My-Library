@@ -4,6 +4,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Base64;
@@ -13,14 +14,12 @@ import java.util.Date;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-
 import com.amrTm.backLMS.configuration.CookieConfig;
 import com.amrTm.backLMS.configuration.CustomCookie;
-import com.amrTm.backLMS.configuration.CustomCookie.site;
+import com.amrTm.backLMS.configuration.CustomCookie.sameSite;
 import com.amrTm.backLMS.entity.Role;
 
 import io.jsonwebtoken.Claims;
@@ -31,7 +30,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 @Service
 public class TokenTools {
 	private final long exp = 86400000;
-	private final String privateApi = "Some Password Secret Api";
 	private PrivateKey secret;
 	private String api;
 	
@@ -41,7 +39,8 @@ public class TokenTools {
 		key.initialize(2048);
 		KeyPair pair = key.generateKeyPair();
 		secret = pair.getPrivate();
-		api = Base64.getEncoder().encodeToString(privateApi.getBytes());
+		PublicKey publicKey = pair.getPublic();
+		api = Base64.getEncoder().encodeToString(publicKey.getEncoded());
 	}
 	
 	private String initToken(String username, String email, String role) {
@@ -66,9 +65,9 @@ public class TokenTools {
 		cookie.setSecure(true);
 //		if using SameSite NONE, secure must to enable
 //		cookie.setSecure(false);
-		cookie.setMaxAge(86400l);
+		cookie.setMaxAge(86400);
 		cookie.setPath("/");
-		cookie.setSameSite(site.NONE);
+		cookie.setSameSite(sameSite.NONE);
 		CookieConfig.buildCookie(res, cookie);
 		return true;
 	}
