@@ -25,6 +25,31 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
+    <style>
+    html{
+      font-size: 4vw;
+    }
+    @media only screen and (min-width: 600px) and (max-width: 900px) {
+      html{
+        font-size: 2.5vw;
+      }
+    }
+    @media only screen and (min-width: 900px) and (max-width: 1200px) {
+      html{
+        font-size: 1.8vw;
+      }
+    }
+    @media only screen and (min-width: 1200px) and (max-width: 1536px) {
+      html{
+        font-size: 1.3vw;
+      }
+    }
+    @media only screen and (min-width: 1536px) {
+      html{
+        font-size: 1vw;
+      }
+    }
+    </style>
     <title>React App</title>
   </head>
   <body>

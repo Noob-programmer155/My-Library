@@ -1,10 +1,10 @@
 import React,{useEffect, useState} from 'react';
 import axios from 'axios';
-import {useHistory} from 'react-router-dom';
-import './css/loadVer.css';
-import {valOauthURL} from './constant/constantDataURL';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import {useHistory} from 'react-router-dom';
+import {valOauthURL} from './../../../constant/constantDataURL';
 import {Box, Typography, Stack} from '@mui/material';
+import './../../../css/loadVer.css';
 
 export default function VerOAuth(props) {
   const [error, setError] = useState();
@@ -13,22 +13,28 @@ export default function VerOAuth(props) {
   useEffect(()=>{
     let param = new URLSearchParams(props.location.search);
     if(param){
-      var acc = param.get('Access');
+      var accessId = param.get('Access');
       var name = param.get('Usr');
       var email = param.get('lk');
       var data = new FormData();
       data.append('email',email);
       data.append('username',name);
-      data.append('id',acc);
+      data.append('id',accessId);
       axios.post(valOauthURL,data,{
         withCredentials:true,
         headers:{
           'Content-Type':'multipart/form-data',
         },
-      }).then(a => {if (a.data !== null){
+      }).then(res => {if (res.data !== null){
         setRespon('Verification Success, redirecting to home page...')
         history.push("/")
-      }}).catch(err => setError(err.message));
+      }}).catch(err => {
+        if(err.response){
+          setError(err.response.data.message)
+        }else {
+          setError(err.message)
+        }
+      });
     }
   },[])
   return(
@@ -39,14 +45,13 @@ export default function VerOAuth(props) {
             <Box class="ball2"/>
             <Box class="ball3"/>
             <Typography sx={{width:'100%', textAlign:'center', color:'#ff6600', textShadow: '1px 1px #ff9933'
-              , fontSize:{xs:'5vw', sm: '2.5vw', md:'2vw'}, fontFamily: 'Candara', fontWeight:600}}>{respon}</Typography>
+              , fontSize:'2rem', fontFamily: 'Candara', fontWeight:600}}>{respon}</Typography>
           </Stack>):(
             <Box sx={{background:'#ff9900', border:'5px solid #ff6600', borderRadius:'20px'}}>
               <Box justifyContent='center' alignItems='center' display='flex'><ErrorOutlineIcon
-                sx={{width:{xs:'15vw', sm:'10vw', md:'5vw'}, height:{xs:'15vw', sm:'10vw', md:'5vw'},
-                  color:'#ff3300', marginTop:'20px'}}/></Box>
-              <Typography sx={{padding:'8px', color:'#ff3300', fontWeight:600,   marginTop:'10px', marginBottom:'20px',
-                fontFamily:'Candara', fontSize:{xs:'5vw', sm: '2.5vw', md:'2vw'}}}>Verification Failed, Please try again</Typography>
+                sx={{width:'5rem', height:'5rem', color:'#ff3300', marginTop:'20px'}}/></Box>
+              <Typography sx={{padding:'8px', color:'#ff3300', fontWeight:600, marginTop:'10px', marginBottom:'20px',
+                fontFamily:'Candara', fontSize:'2rem'}}>Verification Failed, Please try again</Typography>
             </Box>
           )
       }

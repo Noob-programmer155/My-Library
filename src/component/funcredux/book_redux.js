@@ -1,5 +1,4 @@
 import {createSlice} from '@reduxjs/toolkit';
-import gbr from '../other/gambar.png';
 
 export const bookFunc = createSlice({
   name:'book',
@@ -13,7 +12,7 @@ export const bookFunc = createSlice({
     bookFavPage:0,
     myBookPage:0,
     trigger:-1,
-    initCountDataAppears: {type:10,book:10}
+    initCountDataAppears: {type:10,book:15}
   },
   reducers:{
     setBooks: (s, a) => {s.books = a.payload},

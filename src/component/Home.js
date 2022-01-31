@@ -1,18 +1,16 @@
-import React, {useEffect, useState, forwardRef} from 'react';
-import {Box, Snackbar, Alert, Backdrop, Typography} from '@mui/material';
+import React, {useEffect, useState} from 'react';
+import Profile from './subcomponent/Auth/AuthUserComponent/Profile';
+import BookChoice from './subcomponent/HomePage/Book_Choices';
+import TypeContainer from './subcomponent/HomePage/Type_book';
+import MainContainer from './subcomponent/HomePage/Main_Book_Container';
+import {Box, Snackbar, Backdrop, Portal} from '@mui/material';
 import {useSelector} from 'react-redux';
-import axios from 'axios'
 import {bookThemes} from './funcredux/book_redux';
 import {profile} from './funcredux/profile_redux';
-import Profile from './Profile';
-import BookChoice from './Book_Choices';
-import {ModifyBook,UploadImage,ContainerFeedback} from './subcomponent/otherComponent';
+import {ModifyBook,UploadImage,ContainerFeedback} from './subcomponent/utils/otherComponent';
 import {modifyBookURL} from './constant/constantDataURL';
-import TypeContainer from './Type_book';
-import MainContainer from './Main_Book_Container';
 
 export default function Home(props) {
-  const [verify, setVerify] = useState();
   const [error, setError] = useState();
   const [respon, setRespon] = useState();
   const [imgOpen, setImgOpen] = useState()
@@ -25,41 +23,46 @@ export default function Home(props) {
     let param = new URLSearchParams(props.location.search);
     if(param){
       let ver = param.get('verify')
-      if(ver==='1'){setVerify("Please check your email to verify account")}
+      let logout = param.get('logout')
+      if(ver==='1'){setRespon("Please check your email to verify account")}
+      if(logout==='1'){setRespon("Logout Successfully !!!")}
     }
   },[])
   return(
     <>
-      <Box sx={{background: '#009999'}}>
+      <Box sx={{background: '#009999',minHeight: '100vh'}}>
         <Box sx={{display:'flex', flexWrap:{xs:'wrap', md:'nowrap'}}}>
-          <Box width={{xs: '100%', md: '30%'}} maxWidth={{xs: '100%', md: '30%'}} sx={{display:'flex', flexWrap:'wrap', alignItems:'Center', justifyContent:'center'}}>
-            <Profile error={error} onerror={setError}/>
+          <Box width={{xs: '100%', md: '30%'}} maxWidth={{xs: '100vw', md: '30%'}} sx={{display:'flex', flexWrap:'wrap', alignItems:'flex-start', justifyContent:'center',marginTop:'10px'}}>
+            <Profile onerror={setError}/>
           </Box>
-          <Box width={{xs: '100%', md: '70%'}} maxWidth={{xs: '100%', md: '70%'}}>
-            <BookChoice setOpenModify={setOpenModify} onError={setError}/>
+          <Box width={{xs: '100%', md: '70%'}} maxWidth={{xs: '100vw', md: '70%'}}>
+            <BookChoice setOpenModify={setOpenModify} onError={setError} onRespon={setRespon}/>
           </Box>
         </Box>
         <Box sx={{display:'flex', flexWrap:{xs:'wrap', md:'nowrap'}}}>
-          <Box width={{xs: '100%', md: '30%'}} maxWidth={{xs: '100%', md: '30%'}} display={{xs:'none', md:'block'}}>
+          <Box width={{xs: '100%', md: '30%'}} maxWidth={{xs: '100vw', md: '30%'}} display={{xs:'none', md:'block'}}>
             <TypeContainer onError={setError}/>
           </Box>
-          <Box width={{xs: '100%', md: '70%'}} maxWidth={{xs: '100%', md: '70%'}} sx={{paddingRight:'10px'}}>
-            <MainContainer setOpenModify={setOpenModify} onerror={setError}/>
+          <Box width={{xs: '100%', md: '70%'}} maxWidth={{xs: '100vw', md: '70%'}}>
+            <MainContainer setOpenModify={setOpenModify} onError={setError} onRespon={setRespon}/>
           </Box>
         </Box>
       </Box>
-      <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={(error)? error:verify}>
-        <ContainerFeedback severity={(error)? 'error':'info'} onClose={a => (error)? setError(null):setVerify(null)}>
-          {(error)? error:verify}
-        </ContainerFeedback>
-      </Snackbar>
-      <Backdrop sx={{zIndex: (theme) => theme.zIndex.drawer + 2, width:'100vw', overflow:'auto'}} onClick={(e) => {setOpenModify(null);}} open={Boolean(openModify)}>
-        <Box sx={{marginTop:'90px'}}>
+      <Portal>
+        <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={Boolean((respon)?respon:error)} onClose={() => (respon)? setRespon(null):setError(null)} autoHideDuration={4000}
+          sx={{zIndex: (theme) => theme.zIndex.drawer + 5}}>
+          <ContainerFeedback severity={(respon)? 'success':'error'} onClose={() => (respon)? setRespon(null):setError(null)}>
+            {(respon)? respon:error}
+          </ContainerFeedback>
+        </Snackbar>
+      </Portal>
+      <Backdrop sx={{zIndex: (theme) => theme.zIndex.drawer + 2, width:'100%', maxHeight:'100vh', overflow:'auto'}} onClick={() => {setOpenModify(null);}} open={Boolean(openModify)}>
+        <Box display='flex' justifyContent='center' alignItems='center'>
         {(openModify)?
           <ModifyBook onError={setError} onSuccess={setRespon} themes={themes} prof={prof} imgFile={imgFile} labelButton='Modify Book'
             imgView={img} setImgView={setImg} imgCallback={setImgOpen} url={modifyBookURL} responText='Modify Book Successfully !!!, please refresh this page'
-            spacing={2} sx={{padding:'20px',backgroundColor:'#ff6600',borderRadius:'20px'}}
-            onClick={(e)=>e.stopPropagation()} bookData={openModify} onOpenModify={setOpenModify} modify={true}/>
+            spacing={3} sx={{padding:'10px',backgroundColor:'#ff6600',borderRadius:'20px', width:'90%',maxWidth:'1000px'}}
+            onClick={e => e.stopPropagation()} bookData={openModify} onOpenModify={setOpenModify} modify={true}/>
           :<></>
         }
         </Box>

@@ -1,14 +1,13 @@
-import logo from './logo.svg';
 import './App.css';
-import {Switch, BrowserRouter, Route, Redirect} from 'react-router-dom';
+import {Switch, BrowserRouter, Route} from 'react-router-dom';
 import Home from './component/Home';
-import Login from './component/login';
-import SignUp from './component/signup';
-import User from './component/User_Container';
-import MyLibrary from './component/My_Library';
-import VerOAuth from './component/verifyOauth';
-import Settings from './component/Setting';
-import Ver from './component/verify';
+import Login from './component/subcomponent/Auth/AuthPage/login';
+import SignUp from './component/subcomponent/Auth/AuthPage/signup';
+import User from './component/AdminHome';
+import MyLibrary from './component/Library';
+import VerOAuth from './component/subcomponent/Auth/AuthPage/verifyOauth';
+import Settings from './component/subcomponent/Auth/AuthUserComponent/Setting';
+import Ver from './component/subcomponent/Auth/AuthPage/verify';
 
 function App() {
   return(

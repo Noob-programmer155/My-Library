@@ -1,18 +1,15 @@
-import React, {useEffect, useState, useCallback} from 'react';
-import {makeStyles} from '@mui/styles';
-import {createTheme} from '@mui/material/styles';
-import {useSelector, useDispatch} from 'react-redux';
+import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import {profile, setProf, setOnline, userOnline} from './funcredux/profile_redux';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import PeopleIcon from '@mui/icons-material/People';
-import {useHistory} from 'react-router-dom';
-import {verUserURL,imageUserURL,addUserOnlineURL,deleteUserOnlineURL} from './constant/constantDataURL';
-import {Typography, Box, IconButton, Avatar, Skeleton, Chip, Divider, Button} from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-
-const theme = createTheme();
+import {useHistory} from 'react-router-dom';
+import {makeStyles} from '@mui/styles';
+import {useSelector, useDispatch} from 'react-redux';
+import {profile, setProf, setOnline, userOnline} from './../../../funcredux/profile_redux';
+import {Typography, Box, IconButton, Avatar, Skeleton, Chip, Divider, Button} from '@mui/material';
+import {verUserURL,imageUserURL,addUserOnlineURL,deleteUserOnlineURL} from './../../../constant/constantDataURL';
 
 const useStyle = makeStyles({
   root:{
@@ -24,125 +21,90 @@ const useStyle = makeStyles({
     justifyContent:'center',
   },
   avatar: {
-    width: '20vw',
-    height: '20vw',
+    width: '8rem',
+    height: '8rem',
     background: '#006666',
-    marginTop: '30px',
-    marginBottom: '30px',
-    [theme.breakpoints.up('sm')]:{
-      width: '15vw',
-      height: '15vw',
-    },
-    [theme.breakpoints.up('md')]:{
-      width: '6vw',
-      height: '6vw',
-    },
+    marginTop: '20px',
+    marginBottom: '20px',
   },
   chip:{
-    marginTop: '10px',
     color: '#ffff',
     marginRight: '5px',
-    fontSize:'3vw',
-    [theme.breakpoints.up('sm')]:{
-      fontSize:'1.6vw',
-    },
-    [theme.breakpoints.up('md')]:{
-      fontSize:'0.8vw',
-    },
-  },
-  chipIcon: {
-    fontSize:'6vw',
-    [theme.breakpoints.up('sm')]:{
-      fontSize:'2.8vw',
-    },
-    [theme.breakpoints.up('md')]:{
-      fontSize:'1.5vw',
+    fontSize:'1.3rem',
+    borderRadius:'1rem',
+    padding:'.8rem',
+    '& .MuiChip-label':{
+      fontSize:'1rem',
     },
   },
   font: {
     fontFamily: 'Candara',
     color: '#e6e6e6',
     paddingBottom: '20px',
-    fontSize:'5vw',
-    [theme.breakpoints.up('sm')]:{
-      fontSize:'3vw',
-    },
-    [theme.breakpoints.up('md')]:{
-      fontSize:'1.2vw',
-    },
+    fontSize:'1.3rem',
   },
   font1: {
     color: '#ffff',
     marginTop: '20px',
-    fontSize:'6vw',
-    [theme.breakpoints.up('sm')]:{
-      fontSize:'3.8vw',
-    },
-    [theme.breakpoints.up('md')]:{
-      fontSize:'1.5vw',
-    },
+    fontSize:'1.5rem',
   },
   subfont:{
     color: '#cccccc',
-    fontSize:'4.3vw',
-    [theme.breakpoints.up('sm')]:{
-      fontSize:'2.5vw',
-    },
-    [theme.breakpoints.up('md')]:{
-      fontSize:'1vw',
-    },
+    fontSize:'1rem',
   },
   button: {
     background:'rgba(0,0,0,0.2)',
     borderRadius: 0,
     width:'100%',
-    height:'70px',
+    height:'5rem',
+    fontSize:'1.2rem',
     textTransform:'capitalize',
     '&:hover':{
         background:'rgba(0,0,0,0.5)'
     },
   },
+  buttonReturn: {
+    color:'white',
+    fontSize:'1rem',
+    '& .MuiButton-startIcon':{
+      '& > *:first-of-type':{
+        fontSize:'1.3rem',
+      }
+    }
+  },
   skeleton1: {
     width: '15%',
-    height: '20px',
+    height: '2rem',
     borderRadius: '20px',
     marginRight: '10px',
   },
   skeleton2: {
-    width: '20px',
-    height: '20px',
+    width: '2rem',
+    height: '2rem',
     marginRight: '10px',
   },
   skeleton3: {
     marginTop: '20px',
     width: '90%',
-    height: '20px',
+    height: '2rem',
     borderRadius: '20px',
   },
   skeleton4: {
     marginTop: '30px',
     marginBottom: '30px',
-    width: '20vw',
-    height: '20vw',
-    [theme.breakpoints.up('sm')]:{
-      width: '15vw',
-      height: '15vw',
-    },
-    [theme.breakpoints.up('md')]:{
-      width: '6vw',
-      height: '6vw',
-    },
+    width: '8rem',
+    height: '8rem',
   },
   skeleton5: {
     width: '90%',
-    height: '20px',
+    height: '2rem',
     borderRadius: '20px',
     marginBottom: '10px',
   },
 });
 
 export default function Profile(props) {
-  const {error, onerror, container,path} = props;
+  const {onerror, container,path} = props;
   const [respon, setRespon] = useState();
   const style = useStyle();
   const history = useHistory();
@@ -153,47 +115,65 @@ export default function Profile(props) {
   useEffect(() => {
     axios.get(verUserURL,{
       withCredentials:true,
-    }).then(a => {if (a.data){
+    }).then(res => {if (res.data){
       dispatch(setProf({...userProfile,
-        id: a.data.id,
-        name: a.data.name,
-        email:a.data.email,
-        role:a.data.role,
-        imageUrl:a.data.image_url}))
+        id: res.data.id,
+        name: res.data.name,
+        email: res.data.email,
+        role: res.data.role,
+        imageUrl: res.data.image_url}))
       setRespon(true);
       if(window.navigator.onLine){
         if(!isOnline){
           var id = new FormData();
-          id.append('id',a.data.id)
+          id.append('id',res.data.id)
           axios.post(addUserOnlineURL,id,{
             withCredentials:true,
-          }).then(a => dispatch(setOnline(true)))
-          .catch(err => onerror(err.message))
+          }).then(resp => dispatch(setOnline(true)))
+          .catch(err => {
+            if(err.response){
+              onerror(err.response.data.message)
+            }else {
+              onerror(err.message)
+            }
+          })
         }
       }
       else{
         axios.delete(deleteUserOnlineURL,{
           withCredentials:true,
           params:{
-            id: a.data.id,
+            id: res.data.id,
           },
-        }).then(a => dispatch(setOnline(false)))
-        .catch(err => onerror(err.message))
+        }).then(resp => dispatch(setOnline(false)))
+        .catch(err => {
+          if(err.response){
+            onerror(err.response.data.message)
+          }else {
+            onerror(err.message)
+          }
+        })
       }
       if(container === "library"){
-        if(a.data.role !== 'SELLER') {
+        if(res.data.role !== 'SELLER') {
           history.push("/login")
         }
       }
       else if (container === "user") {
-        if(!['ADMINISTRATIF','MANAGER'].includes(a.data.role)) {
+        if(!['ADMINISTRATIF','MANAGER'].includes(res.data.role)) {
           history.push("/login")
         }
       }
     }
     else {
       onerror("You`re offline, connect it to internet, and try again");
-    }}).catch(err => {if(userProfile){onerror(err.message);} if(container){history.push("/login")}})
+    }}).catch(err => {if(userProfile){
+      if(err.response){
+        onerror(err.response.data.message)
+      }else {
+        onerror(err.message)
+      }
+    } if(container){history.push("/login")}})
   },[]);
   const preload = (
     <>
@@ -209,7 +189,7 @@ export default function Profile(props) {
     </>
   );
   const log = (
-    <Button variant='contained' className={style.button} onClick={a => history.push('/login')}>Login / SignUp</Button>
+    <Button variant='contained' className={style.button} onClick={() => history.push('/login')}>Login / SignUp</Button>
   )
   return(
       <>
@@ -219,18 +199,20 @@ export default function Profile(props) {
               <Box display='flex' alignItems='center' justifyContent='flex-end' width='100%' padding='10px'>
                 {(path)?
                   <>
-                    <Button sx={{color:'white'}} href={path} startIcon={<ArrowBackIosIcon color='inherit'/>}>Return</Button>
-                    <Box display='flex' sx={{flexGrow:1}}/>
+                    <Box display='flex' sx={{flexGrow:1}}>
+                    <Button className={style.buttonReturn} href={path}
+                      startIcon={<ArrowBackIosIcon/>}>Return</Button>
+                    </Box>
                   </>:<></>
                 }
                 {
                   (userProfile.role === 'MANAGER' || userProfile.role === 'ADMINISTRATIF')?
-                  (<Chip className={style.chip} icon={<PeopleIcon style={{color:'#ffff'}} className={style.chipIcon}/>} label="Users" onClick={() => history.push("/hstdyw-admin")}/>):<></>
+                  (<Chip className={style.chip} icon={<PeopleIcon style={{color:'#ffff',fontSize:'inherit'}}/>} label="Users" onClick={() => history.push("/hstdyw-admin")}/>):<></>
                 }
                 {(userProfile.role === 'SELLER')?
-                  <Chip className={style.chip} icon={<LocalLibraryIcon style={{color:'#ffff'}} className={style.chipIcon}/>} label="My Library" onClick={() => history.push("/my-library")}/>:<></>
+                  <Chip className={style.chip} icon={<LocalLibraryIcon style={{color:'#ffff',fontSize:'inherit'}}/>} label="My Library" onClick={() => history.push("/my-library")}/>:<></>
                 }
-                <IconButton style={{color:'#ffff', marginRight: '5px', marginTop: '10px'}} fontSize='small' onClick={() => history.push("/setting")}><SettingsIcon/></IconButton>
+                <IconButton style={{color:'#ffff', marginRight: '5px'}} fontSize='small' onClick={() => history.push("/setting")}><SettingsIcon sx={{fontSize:'1.5rem'}}/></IconButton>
               </Box>
               <Typography className={style.font1} variant='h5' width='100%' textAlign='center'><b>{userProfile.name}</b></Typography>
               <Avatar className={style.avatar} src={(userProfile.imageUrl)?

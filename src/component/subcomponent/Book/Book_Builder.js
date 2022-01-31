@@ -1,13 +1,13 @@
-import React, {useState, useCallback} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
-import {profile} from '../funcredux/profile_redux';
-import {Search, getBase64, UploadImage, CustomTextField, UploadFunc, ModifyBook} from './otherComponent';
-import {bookThemes, setBookTheme} from '../funcredux/book_redux';
-import {addBookURL} from '../constant/constantDataURL';
-import {Typography, Stack, Paper,Button, TextField,IconButton, Box,useMediaQuery} from '@mui/material'
+import React from 'react';
+import {profile} from './../../funcredux/profile_redux';
+import {addBookURL} from './../../constant/constantDataURL';
+import {useSelector} from 'react-redux';
+import {bookThemes} from './../../funcredux/book_redux';
+import {ModifyBook} from '../utils/otherComponent';
+import {Typography, Box} from '@mui/material'
 
 export default function BookBuilder(props) {
-  const {setError, setRespon, open, setOpen, imgFile, setImageFile, img, setImg} = props;
+  const {setError, setRespon, setOpen, imgFile, img, setImg} = props;
   const themes = useSelector(bookThemes);
   const prof = useSelector(profile)
   return(
@@ -19,11 +19,11 @@ export default function BookBuilder(props) {
           marginLeft:'30px',
           fontWeight:700,
           marginBottom:'50px',
-          fontSize:{xs: '10vw', sm: '8vw', md: '3vw'}
+          fontSize:'3rem'
         }}>Add <span style={{color:'aqua'}}>Your</span> <span style={{color:'#ff944d'}}>Book</span></Typography>
         <Box justifyContent='center' alignItems='center' display='flex' sx={{color:'#ffff', marginLeft:'20px', marginRight:'20px'}}>
           <Typography sx={{backgroundColor:'#9999ff',borderRadius:'20px 20px 0px 0px', padding:'10px',
-            fontSize:{xs: '6vw', sm: '4vw', md: '1.5vw'}}}>
+            fontSize:'1.5rem'}}>
             Add Your Book</Typography>
         </Box>
         <ModifyBook onError={setError} onSuccess={setRespon} themes={themes} prof={prof} imgFile={imgFile}
