@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,7 +26,7 @@ import com.amrTm.backLMS.DTO.AuthorDTORespFilter;
 import com.amrTm.backLMS.DTO.BookDTO;
 import com.amrTm.backLMS.DTO.BookDTOResp;
 import com.amrTm.backLMS.DTO.BookResponse;
-import com.amrTm.backLMS.DTO.PublisherDTORespFilter;
+import com.amrTm.backLMS.DTO.PublisherDTOResp;
 import com.amrTm.backLMS.DTO.TypeDTOResp;
 import com.amrTm.backLMS.DTO.TypeResponse;
 import com.amrTm.backLMS.service.BookService;
@@ -62,7 +63,7 @@ public class BookRest {
 	}
 	
 	@GetMapping("/publisher")
-	public List<PublisherDTORespFilter> getBookPublisher(@RequestParam String words, HttpServletResponse res) throws IOException{
+	public List<PublisherDTOResp> getBookPublisher(@RequestParam String words, HttpServletResponse res) throws IOException{
 		return bookServices.findAllPublisher(words, res);
 	}
 	
@@ -89,6 +90,11 @@ public class BookRest {
 	@GetMapping("/myBook")
 	public BookResponse getMyBook(@RequestParam Integer page, @RequestParam Integer size, HttpServletResponse res) throws IOException{
 		return bookServices.getMyBook(page, size, res);
+	}
+	
+	@GetMapping("/myBook-one")
+	public BookDTOResp getOneMyBook(String title, String publisher ,HttpServletResponse res) throws IOException{
+		return bookServices.getOneMyBook(title, publisher, res);
 	}
 	
 	@GetMapping("/bookFavorite")
@@ -131,8 +137,13 @@ public class BookRest {
 	
 	@PostMapping(path="/addbook",consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public String addBook(BookDTO books, @RequestPart MultipartFile file, @RequestPart MultipartFile image, HttpServletResponse res) throws IOException {
-		bookServices.addBook(books,file,image,res);
-		return "Success";
+		try {
+			bookServices.addBook(books,file,image,res);
+			return "Success";
+		}catch(OptimisticLockingFailureException e) {
+			res.sendError(409, "Please Try Again");
+			return null;
+		}
 	}
 	
 	@PutMapping(path="/modifybook/{add}", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -143,25 +154,40 @@ public class BookRest {
 							  @RequestPart(required=false) MultipartFile image,
 							  @PathVariable(required=false) String add,
 							  HttpServletResponse res) throws IOException {
-		if(add.equalsIgnoreCase("fav")) {
-			bookServices.modifyBookFav(id, deleteMode, res);
-			return "Success";
-		}
-		else {
-			bookServices.modifyBook(id,book,file,image, res);
-			return "Success";
+		try {
+			if(add.equalsIgnoreCase("fav")) {
+				bookServices.modifyBookFav(id, deleteMode, res);
+				return "Success";
+			}
+			else {
+				bookServices.modifyBook(id,book,file,image, res);
+				return "Success";
+			}
+		}catch(OptimisticLockingFailureException e) {
+			res.sendError(409, "Please Try Again");
+			return null;
 		}
 	}
 	
 	@DeleteMapping("/delete")
 	public String deleteBook(@RequestParam String idBook, HttpServletResponse res) throws IOException {
-		bookServices.deleteBook(idBook, res);
-		return "Success";
+		try {
+			bookServices.deleteBook(idBook, res);
+			return "Success";
+		}catch(OptimisticLockingFailureException e) {
+			res.sendError(409, "Please Try Again");
+			return null;
+		}
 	}
 	
-	@DeleteMapping("/delete/type")
-	public String deleteBookType(@RequestParam Integer typeId, HttpServletResponse res) throws IOException {
-		bookServices.deleteType(typeId, res);
-		return "Success";
-	}
+//	@DeleteMapping("/delete/type")
+//	public String deleteBookType(@RequestParam Integer typeId, HttpServletResponse res) throws IOException {
+//		try {
+//			bookServices.deleteType(typeId, res);
+//			return "Success";
+//		}catch(OptimisticLockingFailureException e) {
+//			res.sendError(409, "Please Try Again");
+//			return null;
+//		}
+//	}
 }

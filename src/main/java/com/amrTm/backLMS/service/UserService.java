@@ -1,10 +1,11 @@
 package com.amrTm.backLMS.service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
@@ -15,10 +16,13 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.amrTm.backLMS.DTO.UserDTO;
@@ -43,7 +47,7 @@ public class UserService {
 	@Autowired
 	private UserReportRepo userReportRepo;
 	
-	private List<Long> userOnline = new ArrayList<>();
+	private Set<Long> userOnline = new HashSet<>();
 	
 	@PreAuthorize("hasAnyAuthority('ANON','USER','SELLER','ADMINISTRATIF','MANAGER')")
 	public byte[] getImageUser(String path, HttpServletResponse res) throws IOException {
@@ -57,70 +61,70 @@ public class UserService {
 		return data;
 	}
 	
-	@PreAuthorize("hasAnyAuthority('ADMINISTRATIF','MANAGER')")
-	public UserResponse getAllUser(int page, int size, HttpServletResponse res) throws IOException{
-		try {
-			Pageable data = PageRequest.of(page, size);
-			Page<User> dataUsers = userRepo.findAllByRoleIn(Arrays.asList(Role.ANON,Role.SELLER,Role.USER), data);
-			List<UserInfoDTO> userInfo = dataUsers.getContent().stream().map(a -> {
-				UserInfoDTO user = new UserInfoDTO();
-				user.setId(a.getId());
-				user.setName(a.getName());
-				user.setEmail(a.getEmail());
-				user.setRole(a.getRole().toString());
-				user.setImage_url(a.getImage_url());
-				user.setStatus(userOnline.contains(a.getId()));
-				return user;
-			}).collect(Collectors.toList());
-			UserResponse dataRespon = new UserResponse();
-			dataRespon.setSizeAllData((int)dataUsers.getTotalElements());
-			dataRespon.setData(userInfo);
-			return dataRespon;
-		}catch(Exception e) {
-			res.sendError(500, "there`s some error when fetching data");
-			return null;
-		}
-	}
+//	@PreAuthorize("hasAnyAuthority('ADMINISTRATIF','MANAGER')")
+//	public UserResponse getAllUser(int page, int size, HttpServletResponse res) throws IOException{
+//		try {
+//			Pageable data = PageRequest.of(page, size, Sort.by("name"));
+//			Page<User> dataUsers = userRepo.findAllByRoleIn(Arrays.asList(Role.ANON,Role.SELLER,Role.USER), data);
+//			List<UserInfoDTO> userInfo = dataUsers.getContent().stream().map(a -> {
+//				UserInfoDTO user = new UserInfoDTO();
+//				user.setId(a.getId());
+//				user.setName(a.getName());
+//				user.setEmail(a.getEmail());
+//				user.setRole(a.getRole().toString());
+//				user.setImage_url(a.getImage_url());
+//				user.setStatus(userOnline.contains(a.getId()));
+//				return user;
+//			}).collect(Collectors.toList());
+//			UserResponse dataRespon = new UserResponse();
+//			dataRespon.setSizeAllData((int)dataUsers.getTotalElements());
+//			dataRespon.setData(userInfo);
+//			return dataRespon;
+//		}catch(Exception e) {
+//			res.sendError(500, "there`s some error when fetching data");
+//			return null;
+//		}
+//	}
+//	
+//	@PreAuthorize("hasAuthority('MANAGER')")
+//	public UserResponse getAllAdmin(int page, int size, HttpServletResponse res) throws IOException{
+//		try {
+//			Pageable data = PageRequest.of(page, size, Sort.by("name"));
+//			Page<User> dataUsers = userRepo.findAllByRoleIn(Arrays.asList(Role.ADMINISTRATIF), data);
+//			List<UserInfoDTO> userInfo = dataUsers.getContent().stream().map(a -> {
+//				UserInfoDTO user = new UserInfoDTO();
+//				user.setId(a.getId());
+//				user.setName(a.getName());
+//				user.setEmail(a.getEmail());
+//				user.setRole(a.getRole().toString());
+//				user.setImage_url(a.getImage_url());
+//				user.setStatus(userOnline.contains(a.getId()));
+//				return user;
+//			}).collect(Collectors.toList());
+//			UserResponse dataRespon = new UserResponse();
+//			dataRespon.setSizeAllData((int)dataUsers.getTotalElements());
+//			dataRespon.setData(userInfo);
+//			return dataRespon;
+//		}catch(Exception e) {
+//			res.sendError(500, "there`s some error when fetching data");
+//			return null;
+//		}
+//	}
 	
-	@PreAuthorize("hasAuthority('MANAGER')")
-	public UserResponse getAllAdmin(int page, int size, HttpServletResponse res) throws IOException{
-		try {
-			Pageable data = PageRequest.of(page, size);
-			Page<User> dataUsers = userRepo.findAllByRoleIn(Arrays.asList(Role.ADMINISTRATIF), data);
-			List<UserInfoDTO> userInfo = dataUsers.getContent().stream().map(a -> {
-				UserInfoDTO user = new UserInfoDTO();
-				user.setId(a.getId());
-				user.setName(a.getName());
-				user.setEmail(a.getEmail());
-				user.setRole(a.getRole().toString());
-				user.setImage_url(a.getImage_url());
-				user.setStatus(userOnline.contains(a.getId()));
-				return user;
-			}).collect(Collectors.toList());
-			UserResponse dataRespon = new UserResponse();
-			dataRespon.setSizeAllData((int)dataUsers.getTotalElements());
-			dataRespon.setData(userInfo);
-			return dataRespon;
-		}catch(Exception e) {
-			res.sendError(500, "there`s some error when fetching data");
-			return null;
-		}
-	}
-	
 	@PreAuthorize("hasAnyAuthority('ADMINISTRATIF','MANAGER')")
-	public UserResponse searchUser(int page, int size, String words, HttpServletResponse res) throws IOException {
+	public UserResponse searchUser(int page, int size, String words, Collection<Role> role, HttpServletResponse res) throws IOException {
 		try {	
 			List<UserInfoDTO> userInfo = null;
-			Pageable data = PageRequest.of(page, size);
-			Page<User> dataUsers = userRepo.findAllByNameLikeOrEmailLike("%"+words+"%", "%"+words+"%", data);
-			userInfo = dataUsers.getContent().stream().map(a -> {
+			Pageable data = PageRequest.of(page, size, Sort.by("name"));
+			Page<User> dataUsers = userRepo.findSearchUser("%"+words+"%", "%"+words+"%", role, data);
+			userInfo = dataUsers.getContent().stream().map(item -> {
 				UserInfoDTO user = new UserInfoDTO();
-				user.setId(a.getId());
-				user.setName(a.getName());
-				user.setEmail(a.getEmail());
-				user.setRole(a.getRole().toString());
-				user.setImage_url(a.getImage_url());
-				user.setStatus(userOnline.contains(a.getId()));
+				user.setId(item.getId());
+				user.setName(item.getName());
+				user.setEmail(item.getEmail());
+				user.setRole(item.getRole().toString());
+				user.setImage_url(item.getImage_url());
+				user.setStatus(userOnline.contains(item.getId()));
 				return user;
 			}).collect(Collectors.toList());
 			UserResponse dataRespon = new UserResponse();
@@ -134,8 +138,9 @@ public class UserService {
 	}
 	
 	@PreAuthorize("hasAnyAuthority('ANON','USER','SELLER','ADMINISTRATIF','MANAGER')")
+	@Transactional(isolation=Isolation.REPEATABLE_READ)
 	public UserInfoDTO modifyUser(UserDTO userModel, MultipartFile image, HttpServletResponse res) throws IOException {
-		UserInfoDTO user1 = null;
+		UserInfoDTO resUser = null;
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			User user = userRepo.findByEmail(auth.getName()).get();
@@ -144,25 +149,26 @@ public class UserService {
 			if(image != null) {
 				user.setImage_url(FileConfig.modifyImageUser(image,user.getImage_url()));
 			}
-			User us = userRepo.save(user);
-			user1 = new UserInfoDTO();
-			user1.setId(us.getId());
-			user1.setName(us.getName());
-			user1.setEmail(us.getEmail());
-			user1.setRole(us.getRole().toString());
-			user1.setImage_url(us.getImage_url());
-			user1.setStatus(true);
-			return user1;
+			User modUser = userRepo.save(user);
+			resUser = new UserInfoDTO();
+			resUser.setId(modUser.getId());
+			resUser.setName(modUser.getName());
+			resUser.setEmail(modUser.getEmail());
+			resUser.setRole(modUser.getRole().toString());
+			resUser.setImage_url(modUser.getImage_url());
+			resUser.setStatus(true);
+			return resUser;
 		}catch(DataIntegrityViolationException e) {
 			res.sendError(400, "We found account with same email, please use another email");
 		}
 		catch(Exception e) {
 			res.sendError(500, "there`s some error when fetching data");
 		}
-		return user1;
+		return resUser;
 	}
 	
-	@PreAuthorize("hasAuthority('ADMINISTRATIF')")
+	@PreAuthorize("hasAnyAuthority('ADMINISTRATIF','MANAGER')")
+	@Transactional(isolation=Isolation.REPEATABLE_READ)
 	public void deleteUser(String email, HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -176,6 +182,9 @@ public class UserService {
 						for (Book book : user.getMyBook()) {
 							FileConfig.deleteBooksFile(book.getFile());
 							FileConfig.deleteBooksImage(book.getImage());
+							book.getTypeBooks().forEach(re -> {
+								re.removeBook(book);
+							});
 							bookRepo.delete(book);
 						}
 					}

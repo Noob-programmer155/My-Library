@@ -27,12 +27,12 @@ public class UserOAuth2SuccessHandler implements AuthenticationSuccessHandler{
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
 			Authentication authentication) throws IOException, ServletException {
-		UserDetail user = (UserDetail)authentication.getPrincipal();
-		User yu = userRepo.findByEmail(user.getUsername()).get();
-		StringBuilder tu = new StringBuilder();
-		tu.append("Access").append("=").append(yu.getId()).append("&")
-		.append("Usr").append("=").append(Base64.getEncoder().encodeToString(yu.getName().getBytes())).append("&")
-		.append("lk").append("=").append(Base64.getEncoder().encodeToString(yu.getEmail().getBytes()));
-		redirect.sendRedirect(request, response, "http://localhost:3000/verify-user?"+tu.toString());
+		UserDetail auth = (UserDetail)authentication.getPrincipal();
+		User user = userRepo.findByEmail(auth.getUsername()).get();
+		StringBuilder sb = new StringBuilder();
+		sb.append("Access").append("=").append(user.getId()).append("&")
+		.append("Usr").append("=").append(Base64.getEncoder().encodeToString(user.getName().getBytes())).append("&")
+		.append("lk").append("=").append(Base64.getEncoder().encodeToString(user.getEmail().getBytes()));
+		redirect.sendRedirect(request, response, "http://localhost:3000/verify-user?"+sb.toString());
 	}
 }

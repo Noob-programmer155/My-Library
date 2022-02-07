@@ -21,42 +21,42 @@ public class CustomCookie{
 	}
 	
 	public String build() {
-		StringBuffer tr = new StringBuffer();
-		tr.append(name);
-		tr.append('=');
-		tr.append(value);
-		tr.append(';');
+		StringBuffer sb = new StringBuffer();
+		sb.append(name);
+		sb.append('=');
+		sb.append(value);
+		sb.append(';');
 		if(!path.isEmpty()) {
-			tr.append("Path=");
-			tr.append(path);
-			tr.append(';');
+			sb.append("Path=");
+			sb.append(path);
+			sb.append(';');
 		}
 		if(!domain.isEmpty()) {
-			tr.append("Domain=");
-			tr.append(domain);
-			tr.append(';');
+			sb.append("Domain=");
+			sb.append(domain);
+			sb.append(';');
 		}
 		if(maxAge!=null) {
-			tr.append("Expires=");
-			tr.append(toUTCString(new Date(new Date().getTime()+(maxAge*1000))));
-			tr.append(';');
+			sb.append("Expires=");
+			sb.append(toUTCString(new Date(new Date().getTime()+(maxAge*1000))));
+			sb.append(';');
 		}
-		if (secure) {tr.append("Secure;");}
-		if (httpOnly) {tr.append("HttpOnly;");}
+		if (secure) {sb.append("Secure;");}
+		if (httpOnly) {sb.append("HttpOnly;");}
 		switch(ss) {
 			case LAX:
-				tr.append("SameSite=Lax");
+				sb.append("SameSite=Lax");
 				break;
 			case STRICT:
-				tr.append("SameSite=Strict");
+				sb.append("SameSite=Strict");
 				break;
 			case NONE:
-				tr.append("SameSite=None");
+				sb.append("SameSite=None");
 				break;
 			default:
-				tr.append("SameSite=Lax");
+				sb.append("SameSite=Lax");
 		}
-		return tr.toString();
+		return sb.toString();
 	}
 
 	public String getPath() {
@@ -84,9 +84,9 @@ public class CustomCookie{
 	}
 	
 	public String toUTCString(Date date) {
-        SimpleDateFormat sd = new SimpleDateFormat("EEE, yyyy-MMM-dd HH:mm:ss z");
-        sd.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return sd.format(date);
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE, yyyy-MMM-dd HH:mm:ss z");
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return sdf.format(date);
     }
 
 	public boolean isSecure() {

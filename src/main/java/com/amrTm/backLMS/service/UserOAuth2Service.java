@@ -38,24 +38,27 @@ public class UserOAuth2Service extends DefaultOAuth2UserService{
 	}
 	
 	private OAuth2User procedUserOAuth(OAuth2UserRequest userRequest, OAuth2User oAuth2User) throws AuthenticationException {
-		UserOAuth users = UserOAuthFactory.getUserOAuth(userRequest.getClientRegistration().getRegistrationId(), oAuth2User.getAttributes());
+		UserOAuth userObject = UserOAuthFactory.getUserOAuth(userRequest.getClientRegistration().getRegistrationId(), oAuth2User.getAttributes());
 		
-		Optional<User> user = userRepo.findByEmail(users.getEmail());
+		Optional<User> user = userRepo.findByEmail(userObject.getEmail());
 		User userOAuth;
 		if(user.isPresent()) {
-			if(user.get().getProvider().equals(Provider.valueOf(userRequest.getClientRegistration().getRegistrationId()))) {
-				userOAuth = updateUser(user.get(), users);
+			if(user.get().getProvider() != null) {
+				if(user.get().getProvider().equals(Provider.valueOf(userRequest.getClientRegistration().getRegistrationId()))) {
+					userOAuth = updateUser(user.get(), userObject);
+				}
+				else {
+					return UserDetail.create(user.get().getEmail(), "", Collections.singletonList(user.get().getRole()), userObject.getAttr());
+				}
 			}
 			else {
-				throw new AuthenticationException("Looks like you're signed up with " +
-						user.get().getProvider() + " account. Please use your " + user.get().getProvider() +
-                        " account to login.");
+				return UserDetail.create(user.get().getEmail(), "", Collections.singletonList(user.get().getRole()), userObject.getAttr());
 			}
 		}
 		else {
-			userOAuth = createUser(users, userRequest.getClientRegistration().getRegistrationId());
+			userOAuth = createUser(userObject, userRequest.getClientRegistration().getRegistrationId());
 		}
-		return UserDetail.create(userOAuth.getEmail(), userOAuth.getPassword(), Collections.singletonList(userOAuth.getRole()), users.getAttr());
+		return UserDetail.create(userOAuth.getEmail(), userOAuth.getPassword(), Collections.singletonList(userOAuth.getRole()), userObject.getAttr());
 	}
 	
 	private User updateUser(User user, UserOAuth updateUser) {

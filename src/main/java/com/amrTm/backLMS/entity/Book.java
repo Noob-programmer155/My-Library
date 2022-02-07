@@ -12,6 +12,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -20,6 +23,10 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 @JsonIdentityInfo(
 		generator = ObjectIdGenerators.PropertyGenerator.class,
 		property = "id")
+@NamedEntityGraph(name="Book.bookFavorite", attributeNodes= {@NamedAttributeNode("bookFavorite")})
+@NamedEntityGraph(name="Book.bookUser", attributeNodes= {@NamedAttributeNode("bookUser")})
+@NamedEntityGraph(name="Book.typeBooks", attributeNodes= {@NamedAttributeNode("typeBooks")})
+@NamedEntityGraph(name="Book.search", attributeNodes= {@NamedAttributeNode("bookUser"),@NamedAttributeNode("publisherBook")})
 public class Book {
 	@Id
 	private String id;
@@ -33,17 +40,19 @@ public class Book {
 	private String file;
 	@Column(nullable=false)
 	private String image;
-	@ManyToOne
+	@ManyToOne(optional = false)
 	@JoinTable(name="Book_User", joinColumns= {@JoinColumn(name="Book_Id")}, inverseJoinColumns = {@JoinColumn(name="User_Id")})
+	@NotNull
 	private User bookUser;
-	@ManyToOne
+	@ManyToOne(optional = false)
 	@JoinTable(name="Book_Publisher", joinColumns= {@JoinColumn(name="Book_Id")}, inverseJoinColumns = {@JoinColumn(name="Publisher_Id")})
+	@NotNull
 	private Publisher publisherBook;
 	@ManyToMany(cascade= {CascadeType.MERGE})
 	@JoinTable(name="Favorite_Book", joinColumns={@JoinColumn(name="Book_Id")}, inverseJoinColumns={@JoinColumn(name="User_Id")})
 	private Set<User> bookFavorite= new HashSet<>();
 	@ManyToMany(mappedBy="bookType")
-	private Set<TypeBook> books = new HashSet<>();
+	private Set<TypeBook> typeBooks = new HashSet<>();
 	
 	public String getId() {
 		return id;
@@ -92,13 +101,13 @@ public class Book {
 		user.removeFavorite(this);
 	}
 	public void addType(TypeBook typeBook) {
-		if(this.books.contains(typeBook)) return ;
-		this.books.add(typeBook);
+		if(this.typeBooks.contains(typeBook)) return ;
+		this.typeBooks.add(typeBook);
 		typeBook.addBook(this);
 	}
 	public void removeType(TypeBook typeBook) {
-		if(!this.books.contains(typeBook)) return ;
-		this.books.add(typeBook);
+		if(!this.typeBooks.contains(typeBook)) return ;
+		this.typeBooks.add(typeBook);
 		typeBook.removeBook(this);
 	}
 	public User getBookUser() {
@@ -122,7 +131,7 @@ public class Book {
 	public void setPublisherBook(Publisher publisherBook) {
 		this.publisherBook = publisherBook;
 	}
-	public Set<TypeBook> getBooks() {
-		return books;
+	public Set<TypeBook> getTypeBooks() {
+		return typeBooks;
 	}
 }

@@ -9,13 +9,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.FontFamily;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -149,84 +147,28 @@ public class FileConfig {
 	private static String[] publisher = {"Publisher ID","Publisher Name"};
 	private static String[][] book = {author,publisher};
 	private static String[] admin = {"Admin ID","Admin Name","Admin Email"};
-	private static String[] header1Book = {"User","","",
-								"Book","","","","","","",
-								"Status","Date Report"};
-	private static String[] header2Book = {"","","",
-								"Book ID","Book Title","Author","","","Publisher","",
-								"",""};
+	private static String[] header1Book = {"User","","","Book","","","","","","","Status","Date Report"};
+	private static String[] header2Book = {"","","","Book ID","Book Title","Author","","","Publisher"};
 	private static String[] header1User = {"User","","","Admin","","","Status","Date Report"};
-	// this color index excesses by 1, because follow this method logic
-	private static int[][] colorLocationIndexBook = {{3,10},{3,5,8,10}};
-	private static int[] colorLocationIndexUser = {3,6};
 	public static byte[] getReportFile(UserReportRepo userReportRepo,  BookReportRepo bookReportRepo, Date start, Date end, HttpServletResponse res) throws IOException {
+		row = 0;
+		cellCountHBook = 0;
+		cellCountHUser = 0;
 		List<BookReport> bookReport = bookReportRepo.findAllByDateReportBetween(start, end);
 		List<UserReport> userReport = userReportRepo.findAllByDateReportBetween(start, end);
 		
 		XSSFWorkbook worksheet = new XSSFWorkbook();
 		
-		XSSFCellStyle cellStyleHeader1 = setCellStyle(worksheet, IndexedColors.WHITE.getIndex(), IndexedColors.GREEN.getIndex(), FillPatternType.SOLID_FOREGROUND,
-				FontFamily.MODERN, 12, true);
-		XSSFCellStyle cellStyleHeader2 = setCellStyle(worksheet, IndexedColors.WHITE.getIndex(), IndexedColors.ORANGE.getIndex(), FillPatternType.SOLID_FOREGROUND,
-				FontFamily.MODERN, 12, true);
-		XSSFCellStyle cellStyleHeader3 = setCellStyle(worksheet, IndexedColors.WHITE.getIndex(), IndexedColors.RED.getIndex(), FillPatternType.SOLID_FOREGROUND,
-				FontFamily.MODERN, 12, true);
-		XSSFCellStyle cellStyleHeader4 = setCellStyle(worksheet, IndexedColors.WHITE.getIndex(), IndexedColors.BLUE.getIndex(), FillPatternType.SOLID_FOREGROUND,
-				FontFamily.MODERN, 12, true);
-		XSSFCellStyle cellStyleHeader5 = setCellStyle(worksheet, IndexedColors.WHITE.getIndex(), IndexedColors.DARK_YELLOW.getIndex(), FillPatternType.SOLID_FOREGROUND,
-				FontFamily.MODERN, 12, true);
-		XSSFCellStyle cellStyleBody1 = setCellStyle(worksheet, IndexedColors.GREEN.getIndex(), IndexedColors.LIGHT_GREEN.getIndex(), FillPatternType.SOLID_FOREGROUND,
-				FontFamily.MODERN, 12, true);
-		XSSFCellStyle cellStyleBody2 = setCellStyle(worksheet, IndexedColors.ORANGE.getIndex(), IndexedColors.LIGHT_ORANGE.getIndex(), FillPatternType.SOLID_FOREGROUND,
-				FontFamily.MODERN, 12, true);
-		XSSFCellStyle cellStyleBody3 = setCellStyle(worksheet, IndexedColors.RED.getIndex(), IndexedColors.TAN.getIndex(), FillPatternType.SOLID_FOREGROUND,
-				FontFamily.MODERN, 12, true);
-		XSSFCellStyle cellStyleBody4 = setCellStyle(worksheet, IndexedColors.BLUE.getIndex(), IndexedColors.AQUA.getIndex(), FillPatternType.SOLID_FOREGROUND,
-				FontFamily.MODERN, 12, true);
-		XSSFCellStyle cellStyleBody5 = setCellStyle(worksheet, IndexedColors.DARK_YELLOW.getIndex(), IndexedColors.LIGHT_YELLOW.getIndex(), FillPatternType.SOLID_FOREGROUND,
-				FontFamily.MODERN, 12, true);
-		
 		XSSFSheet bookSheet = worksheet.createSheet("Book Report");
-		XSSFRow headerRow1Book = bookSheet.createRow(row++);
-		for(String item : header1Book) {
-			XSSFCell cell = headerRow1Book.createCell(cellCountHBook++);
-			if(cellCountHBook <= colorLocationIndexBook[0][0]) {cell.setCellStyle(cellStyleHeader2);}
-			else if(cellCountHBook > colorLocationIndexBook[0][0] && cellCountHBook <= colorLocationIndexBook[0][1]) {cell.setCellStyle(cellStyleHeader1);} 
-			else {cell.setCellStyle(cellStyleHeader4);}
-			cell.setCellValue(item);
-		}
-		
-		cellCountHBook = 0;
-		XSSFRow headerRow2Book = bookSheet.createRow(row++);
-		for(String item : header2Book) {
-			XSSFCell cell = headerRow2Book.createCell(cellCountHBook++);
-			if(cellCountHBook <= colorLocationIndexBook[1][0]) {cell.setCellStyle(cellStyleHeader2);}
-			else if(cellCountHBook > colorLocationIndexBook[1][0] && cellCountHBook <= colorLocationIndexBook[1][1]) {cell.setCellStyle(cellStyleHeader1);}
-			//color per units is different to make reading easier
-			else if(cellCountHBook > colorLocationIndexBook[1][1] && cellCountHBook <= colorLocationIndexBook[1][2]) {cell.setCellStyle(cellStyleHeader3);}
-			else if(cellCountHBook > colorLocationIndexBook[1][2] && cellCountHBook <= colorLocationIndexBook[1][3]) {cell.setCellStyle(cellStyleHeader5);} 
-			else {cell.setCellStyle(cellStyleHeader4);}
-			cell.setCellValue(item);
-		}
-		
-		cellCountHBook = 0;
-		XSSFRow headerRow3Book = bookSheet.createRow(row++);
-		List<String> header3Book = new ArrayList<>();
-		header3Book.add("");header3Book.add("");
-		header3Book.addAll(Arrays.asList(user));
-		header3Book.addAll(Arrays.asList(book[0]));
-		header3Book.addAll(Arrays.asList(book[1]));
-		header3Book.add("");header3Book.add("");
-		header3Book.forEach(item -> {
-			XSSFCell cell = headerRow3Book.createCell(cellCountHBook++);
-			if(cellCountHBook <= colorLocationIndexBook[1][0]) {cell.setCellStyle(cellStyleHeader2);}
-			else if(cellCountHBook > colorLocationIndexBook[1][0] && cellCountHBook <= colorLocationIndexBook[1][1]) {cell.setCellStyle(cellStyleHeader1);}
-			//color per units is different to make reading easier
-			else if(cellCountHBook > colorLocationIndexBook[1][1] && cellCountHBook <= colorLocationIndexBook[1][2]) {cell.setCellStyle(cellStyleHeader3);}
-			else if(cellCountHBook > colorLocationIndexBook[1][2] && cellCountHBook <= colorLocationIndexBook[1][3]) {cell.setCellStyle(cellStyleHeader5);} 
-			else {cell.setCellStyle(cellStyleHeader4);}
-			cell.setCellValue(item);
-		});
+		XSSFFont font1 = bookSheet.getWorkbook().createFont();
+		font1.setBold(true);
+		font1.setFamily(FontFamily.SWISS);
+		font1.setFontHeight(12);
+		XSSFCellStyle style1 = bookSheet.getWorkbook().createCellStyle();
+		style1.setFont(font1);
+		style1.setWrapText(true);
+		style1.setAlignment(HorizontalAlignment.CENTER);
+		style1.setVerticalAlignment(VerticalAlignment.CENTER);
 		
 		// merging cell user units
 		bookSheet.addMergedRegion(new CellRangeAddress(0,1,0,2));
@@ -242,52 +184,59 @@ public class FileConfig {
 		bookSheet.addMergedRegion(new CellRangeAddress(0,2,10,10));
 		bookSheet.addMergedRegion(new CellRangeAddress(0,2,11,11));
 		
-		bookReport.forEach(a -> {
+		XSSFRow headerRow1Book = bookSheet.createRow(row++);
+		for(String item : header1Book) {
+			XSSFCell cell = headerRow1Book.createCell(cellCountHBook++);
+			cell.setCellStyle(style1);
+			cell.setCellValue(item);
+		}
+		
+		cellCountHBook = 0;
+		XSSFRow headerRow2Book = bookSheet.createRow(row++);
+		for(String item : header2Book) {
+			XSSFCell cell = headerRow2Book.createCell(cellCountHBook++);
+			cell.setCellStyle(style1);
+			cell.setCellValue(item);
+		}
+		
+		cellCountHBook = 0;
+		XSSFRow headerRow3Book = bookSheet.createRow(row++);
+		List<String> header3Book = new ArrayList<>();
+		header3Book.addAll(Arrays.asList(user));
+		header3Book.add("");header3Book.add("");
+		header3Book.addAll(Arrays.asList(book[0]));
+		header3Book.addAll(Arrays.asList(book[1]));
+		header3Book.add("");header3Book.add("");
+		header3Book.forEach(item -> {
+			XSSFCell cell = headerRow3Book.createCell(cellCountHBook++);
+			cell.setCellStyle(style1);
+			cell.setCellValue(item);
+		});
+		
+		bookReport.forEach(book -> {
 			XSSFRow body = bookSheet.createRow(row++);
 			int cellCountBBook = 0;
-			for(Object item : Arrays.asList(a.getIdUser(),a.getUsername(),a.getEmail(),a.getIdBook(),a.getTitleBook(),a.getIdAuthor(),a.getNameAuthor(),
-					a.getEmailAuthor(), a.getIdPublisher(), a.getNamePublisher(), a.getStatusReport().toString(), a.getDateReport())) {
+			for(Object item : Arrays.asList(book.getIdUser(),book.getUsername(),book.getEmail(),book.getIdBook(),book.getTitleBook(),book.getIdAuthor(),book.getNameAuthor(),
+					book.getEmailAuthor(), book.getIdPublisher(), book.getNamePublisher(), book.getStatusReport().toString(), book.getDateReport())) {
 				XSSFCell cell = body.createCell(cellCountBBook++);
-				if(cellCountBBook <= colorLocationIndexBook[1][0]) {
-					cell.setCellStyle(cellStyleBody2);
-					if(item.getClass() == String.class) {cell.setCellValue((String)item);}
-					else {cell.setCellValue((Long)item);}
-				}
-				else if(cellCountBBook > colorLocationIndexBook[1][0] && cellCountBBook <= colorLocationIndexBook[1][1]) {
-					cell.setCellStyle(cellStyleBody1);
-					cell.setCellValue((String)item);
-				}
-				//color per units is different to make reading easier
-				else if(cellCountBBook > colorLocationIndexBook[1][1] && cellCountBBook <= colorLocationIndexBook[1][2]) {
-					cell.setCellStyle(cellStyleBody3);
-					if(item.getClass() == String.class) {cell.setCellValue((String)item);}
-					else {cell.setCellValue((Long)item);}
-				}
-				else if(cellCountBBook > colorLocationIndexBook[1][2] && cellCountBBook <= colorLocationIndexBook[1][3]) {
-					cell.setCellStyle(cellStyleBody5);
-					if(item.getClass() == String.class) {cell.setCellValue((String)item);}
-					else {cell.setCellValue((Long)item);}
-				} 
-				else {
-					cell.setCellStyle(cellStyleBody4);
-					if(item.getClass() == String.class) {cell.setCellValue((String)item);}
-					else {cell.setCellValue((Date)item);}
-				}
+				if(item.getClass() == String.class) {cell.setCellValue((String)item);}
+				else if(item.getClass() == Long.class) {cell.setCellValue((Long)item);}
+				else {cell.setCellValue((Date)item);}
 			}
 		});
 		
 		row = 0;
 		XSSFSheet userSheet = worksheet.createSheet("User Report");
+		
+		userSheet.addMergedRegion(new CellRangeAddress(0,0,0,2));
+		userSheet.addMergedRegion(new CellRangeAddress(0,0,3,5));
+		userSheet.addMergedRegion(new CellRangeAddress(0,1,6,6));
+		userSheet.addMergedRegion(new CellRangeAddress(0,1,7,7));
+		
 		XSSFRow headerRow1User = userSheet.createRow(row++);
 		for(String item : header1User) {
 			XSSFCell cell = headerRow1User.createCell(cellCountHUser++);
-			if(cellCountHUser <= colorLocationIndexUser[0]) {
-				cell.setCellStyle(cellStyleHeader4);
-			}
-			else if(cellCountHUser > colorLocationIndexUser[0] && cellCountHUser <= colorLocationIndexUser[1]) {
-				cell.setCellStyle(cellStyleHeader1);
-			}
-			else {cell.setCellStyle(cellStyleHeader2);}
+			cell.setCellStyle(style1);
 			cell.setCellValue(item);
 		}
 		XSSFRow headerRow2User = userSheet.createRow(row++);
@@ -298,39 +247,22 @@ public class FileConfig {
 		header2User.add("");header2User.add("");
 		header2User.forEach(item -> {
 			XSSFCell cell = headerRow2User.createCell(cellCountHUser++);
-			if(cellCountHUser <= colorLocationIndexUser[0]) {
-				cell.setCellStyle(cellStyleHeader4);
-			}
-			else if(cellCountHUser > colorLocationIndexUser[0] && cellCountHUser <= colorLocationIndexUser[1]) {
-				cell.setCellStyle(cellStyleHeader1);
-			}
-			else {cell.setCellStyle(cellStyleHeader2);}
+			cell.setCellStyle(style1);
 			cell.setCellValue(item);
 		});
 		
-		userSheet.addMergedRegion(new CellRangeAddress(0,0,0,2));
-		userSheet.addMergedRegion(new CellRangeAddress(0,0,3,5));
-		
-		userReport.forEach(a -> {
+		userReport.forEach(user -> {
 			XSSFRow body = userSheet.createRow(row++);
 			int cellCountBUser = 0;
-			for(Object item : Arrays.asList(a.getIdUser(),a.getUsername(),a.getEmail(),a.getIdAdmin(),a.getAdminName(),a.getAdminEmail(),
-					a.getStatusReport().toString(), a.getDateReport())) {
+			for(Object item : Arrays.asList(user.getIdUser(),user.getUsername(),user.getEmail(),user.getIdAdmin(),user.getAdminName(),user.getAdminEmail(),
+					user.getStatusReport().toString(), user.getDateReport())) {
 				XSSFCell cell = body.createCell(cellCountBUser++);
-				if(cellCountBUser <= colorLocationIndexUser[0]) {
-					cell.setCellStyle(cellStyleBody4);
+				if(item != null) {
 					if(item.getClass() == String.class) {cell.setCellValue((String)item);}
-					else {cell.setCellValue((Long)item);}
-				}
-				else if(cellCountBUser > colorLocationIndexUser[0] && cellCountBUser <= colorLocationIndexUser[1]) {
-					cell.setCellStyle(cellStyleBody1);
-					if(item.getClass() == String.class) {cell.setCellValue((String)item);}
-					else {cell.setCellValue((Long)item);}
-				}
-				else {
-					cell.setCellStyle(cellStyleBody2);
-					if(item.getClass() == String.class) {cell.setCellValue((String)item);}
+					else if(item.getClass() == Long.class){cell.setCellValue((Long)item);}
 					else {cell.setCellValue((Date)item);}
+				}else {
+					cell.setCellValue("undefined");
 				}
 			}
 		});
@@ -342,24 +274,6 @@ public class FileConfig {
 			res.sendError(500, "Can`t make data report, Server find some error when fetching data");
 		}
 		return data.toByteArray();
-	}
-	
-	private static XSSFCellStyle setCellStyle(XSSFWorkbook worksheet, short fontColor, short bgColor, FillPatternType patternFillBg, FontFamily fontFamily, 
-			double size, boolean bold) {
-		XSSFFont font = new XSSFFont();
-		font.setColor(fontColor);
-		font.setBold(bold);
-		font.setFamily(fontFamily);
-		font.setFontHeight(size);
-		
-		XSSFCellStyle cellStyle = worksheet.createCellStyle();
-		cellStyle.setWrapText(true);
-		cellStyle.setAlignment(HorizontalAlignment.CENTER);
-		cellStyle.setFont(font);
-		cellStyle.setFillPattern(patternFillBg);
-		cellStyle.setFillBackgroundColor(bgColor);
-		
-		return cellStyle;
 	}
 //	private static byte[] getImage(MultipartFile image, int x, int y, int size, String ekstention) throws IOException {
 //		BufferedImage data = ImageIO.read(image.getInputStream());

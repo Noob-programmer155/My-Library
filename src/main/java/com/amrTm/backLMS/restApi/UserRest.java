@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import javax.mail.MessagingException;
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.amrTm.backLMS.DTO.UserDTO;
 import com.amrTm.backLMS.DTO.UserInfoDTO;
 import com.amrTm.backLMS.DTO.UserResponse;
+import com.amrTm.backLMS.entity.Role;
 import com.amrTm.backLMS.service.AdminService;
 import com.amrTm.backLMS.service.UserService;
 
@@ -54,27 +57,32 @@ public class UserRest {
 		return userServices.getImageUser(path, res);
 	}
 	
-	//success
-	@GetMapping("/getalluser")
-	public UserResponse getAllUser(@RequestParam Integer page, @RequestParam Integer size, HttpServletResponse res) throws IOException{
-		return userServices.getAllUser(page, size, res);
-	}
+//	//success
+//	@GetMapping("/getalluser")
+//	public UserResponse getAllUser(@RequestParam Integer page, @RequestParam Integer size, HttpServletResponse res) throws IOException{
+//		return userServices.getAllUser(page, size, res);
+//	}
+//	
+//	//success
+//	@GetMapping("/getalladmin")
+//	public UserResponse getAllAdmin(@RequestParam Integer page, @RequestParam Integer size, HttpServletResponse res) throws IOException{
+//		return userServices.getAllAdmin(page, size, res);
+//	}
 	
 	//success
-	@GetMapping("/getalladmin")
-	public UserResponse getAllAdmin(@RequestParam Integer page, @RequestParam Integer size, HttpServletResponse res) throws IOException{
-		return userServices.getAllAdmin(page, size, res);
-	}
-	
-	//success
-	@PostMapping(path="/search", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
+	@GetMapping("/search")
 	public UserResponse searchUser(@RequestParam Integer page, @RequestParam Integer size, @RequestParam String words, HttpServletResponse res) throws IOException {
-		return userServices.searchUser(page, size, words, res);
+		return userServices.searchUser(page, size, words, Arrays.asList(Role.ANON,Role.SELLER,Role.USER), res);
+	}
+	
+	@GetMapping("/search/manager")
+	public UserResponse searchUserAdmin(@RequestParam Integer page, @RequestParam Integer size, @RequestParam String words, HttpServletResponse res) throws IOException {
+		return userServices.searchUser(page, size, words, Arrays.asList(Role.ADMINISTRATIF), res);
 	}
 	
 	@PostMapping(path="/getReport", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public String getReport(@RequestParam String start, @RequestParam String end, HttpServletResponse res) throws IOException {
-		DateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+		DateFormat format = new SimpleDateFormat("M/d/yyyy");
 		try {
 			Date str = format.parse(start);
 			Date ed = format.parse(end);
@@ -106,7 +114,11 @@ public class UserRest {
 	//success
 	@PostMapping(path="/signup", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public void signUp(UserDTO user, @RequestPart(required=false) MultipartFile image, HttpServletResponse res) throws IOException, MessagingException {
-		adminService.standardSignup(user,res,image);
+		try {
+			adminService.standardSignup(user,res,image);
+		}catch(OptimisticLockingFailureException e) {
+			res.sendError(409, "Please Try Again");
+		}
 	}
 	
 	//success
@@ -121,6 +133,7 @@ public class UserRest {
 	public String validatePassword(@RequestParam String password, HttpServletResponse res) throws IOException {
 		if(adminService.validatePassword(password, res)) 
 			return "Success";
+		res.sendError(400, "Your Password wrong");
 		return null;
 	}
 	
@@ -128,16 +141,26 @@ public class UserRest {
 	@PostMapping(path="/password/change", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public String changePasswordUser(@RequestParam String oldPassword, @RequestParam String newPassword,
 			HttpServletResponse res) throws IOException {
-		if(adminService.modifyUserPassword(oldPassword, newPassword, res)) 
-			return "Success";
-		return null;
+		try {
+			if(adminService.modifyUserPassword(oldPassword, newPassword, res)) 
+				return "Success";
+			return null;
+		}catch(OptimisticLockingFailureException e) {
+			res.sendError(409, "Please Try Again");
+			return null;
+		}
 	}
 	
 	//success
-	@PostMapping(path="/modify/seller", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
+	@PostMapping("/modify/seller")
 	public String modifySeller(HttpServletResponse res) throws IOException {
-		adminService.promotingUser(res);
-		return "Success";
+		try {
+			adminService.promotingUser(res);
+			return "Success";
+		}catch(OptimisticLockingFailureException e) {
+			res.sendError(409, "Please Try Again");
+			return null;
+		}
 	}
 	
 	//success
@@ -157,14 +180,24 @@ public class UserRest {
 	//success
 	@PutMapping(path="/modify", consumes= {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public UserInfoDTO modifyUser(UserDTO userModel, @RequestPart(required=false) MultipartFile image, HttpServletResponse res) throws IOException {
-		return userServices.modifyUser(userModel, image, res);
+		try {
+			return userServices.modifyUser(userModel, image, res);
+		}catch(OptimisticLockingFailureException e) {
+			res.sendError(409, "Please Try Again");
+			return null;
+		}
 	}
 	
 	//success
 	@DeleteMapping("/delete")
-	public String deleteUser( @RequestParam String email, HttpServletResponse res) throws IOException {
-		userServices.deleteUser(email, res);
-		return "Success";
+	public String deleteUser(@RequestParam String email, HttpServletResponse res) throws IOException {
+		try {
+			userServices.deleteUser(email, res);
+			return "Success";
+		}catch(OptimisticLockingFailureException e) {
+			res.sendError(409, "Please Try Again");
+			return null;
+		}
 	}
 	
 	//success
@@ -176,7 +209,7 @@ public class UserRest {
 	
 	//success
 	@DeleteMapping("/delete/useronline")
-	public String deleteUser(@RequestParam Long id) {
+	public String deleteUserOnline(@RequestParam Long id) {
 		userServices.deleteUserOnline(id);
 		return "Success";
 	}

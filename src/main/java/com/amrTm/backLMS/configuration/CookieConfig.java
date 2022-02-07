@@ -7,20 +7,20 @@ import javax.servlet.http.HttpServletResponse;
 
 public class CookieConfig {
 	public static CustomCookie getCustomCookie(HttpServletRequest req, String cookiename) throws ParseException {
-		String sw = req.getHeader("Cookie");
+		String data = req.getHeader("Cookie");
 		CustomCookie cc = null;
-		String[] tr = sw.split(";\s");
-		if(tr.length > 0) {
-			for(String hf:tr) {
-				if(hf.startsWith(cookiename)) {
-					cc = new CustomCookie(hf.split("=")[0],hf.split("=")[1]);
+		String[] datas = data.split(";\s");
+		if(datas.length > 0) {
+			for(String item:datas) {
+				if(item.startsWith(cookiename)) {
+					cc = new CustomCookie(item.split("=")[0],item.split("=")[1]);
 					break;
 				}
 			}
 		}
 		else {
-			if(sw.startsWith(cookiename)) {
-				cc = new CustomCookie(sw.split("=")[0],sw.split("=")[1]);
+			if(data.startsWith(cookiename)) {
+				cc = new CustomCookie(data.split("=")[0],data.split("=")[1]);
 			}
 		}
 		return cc;

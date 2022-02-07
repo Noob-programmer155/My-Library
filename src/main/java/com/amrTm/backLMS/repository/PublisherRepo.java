@@ -1,5 +1,7 @@
 package com.amrTm.backLMS.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -10,4 +12,5 @@ import com.amrTm.backLMS.entity.Publisher;
 @Repository
 public interface PublisherRepo extends PagingAndSortingRepository<Publisher, Long> {
 	public Page<Publisher> findAllByNameContains(String name, Pageable data);
+	public Optional<Publisher> findByName(String name);
 }

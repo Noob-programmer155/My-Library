@@ -9,7 +9,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
@@ -37,16 +36,13 @@ public class TokenFilter extends OncePerRequestFilter{
 				Authentication auth = tokenTools.getAuth(token);
 				SecurityContextHolder.getContext().setAuthentication(auth);
 			}}
-		catch(IllegalArgumentException e) {
+		catch(NullPointerException | IllegalArgumentException | ParseException e) {
 			SecurityContextHolder.clearContext();
-			throw new IllegalArgumentException(e.getMessage());
+			response.sendError(400, e.getMessage());
 		}
 		catch(JwtException e) {
 			SecurityContextHolder.clearContext();
-			throw new JwtException(e.getMessage());
-		} catch (ParseException e) {
-			SecurityContextHolder.clearContext();
-			throw new IllegalArgumentException(e.getMessage());
+			response.sendError(403, e.getMessage());
 		}
 		filterChain.doFilter(request, response);
 	}

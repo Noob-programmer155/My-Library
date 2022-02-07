@@ -55,8 +55,8 @@ public class MailService {
 		ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
 		ve.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 		ve.init();
-		Template hg = ve.getTemplate("templates/mailTemplate.vm");
-		hg.merge(cntx, writer);
+		Template template = ve.getTemplate("templates/mailTemplate.vm");
+		template.merge(cntx, writer);
 		help.setText(writer.toString(), true);
 		javaMailSender.send(msg);
 		return true;
@@ -68,12 +68,12 @@ public class MailService {
 			if(userRepo.findByEmail(email).isPresent()) {
 				User user = userRepo.findByEmail(email).get();
 				user.setRole(Role.USER);
-				User yt = userRepo.save(user);
-				if (tokenTools.createToken(yt.getName(), yt.getEmail(), yt.getRole(), res)) {
+				User validUser = userRepo.save(user);
+				if (tokenTools.createToken(validUser.getName(), validUser.getEmail(), validUser.getRole(), res)) {
 					UserInfoDTO userInfo = new UserInfoDTO();
-					userInfo.setId(yt.getId());
-					userInfo.setName(yt.getName());
-					userInfo.setEmail(yt.getEmail());
+					userInfo.setId(validUser.getId());
+					userInfo.setName(validUser.getName());
+					userInfo.setEmail(validUser.getEmail());
 					return userInfo;
 				}
 			}

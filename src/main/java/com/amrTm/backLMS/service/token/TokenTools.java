@@ -85,9 +85,9 @@ public class TokenTools {
 	
 	public boolean validateToken(String token) {
 		Jws<Claims> claim = Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
-		String api = (String)claim.getBody().get("api");
-		byte[] a = Base64.getDecoder().decode(api);
-		byte[] b = Base64.getDecoder().decode(this.api);
-		return Arrays.equals(a, b);
+		String dataApi = (String)claim.getBody().get("api");
+		byte[] rawApi = Base64.getDecoder().decode(dataApi);
+		byte[] api = Base64.getDecoder().decode(this.api);
+		return Arrays.equals(rawApi, api);
 	}
 }

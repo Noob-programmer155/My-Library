@@ -6,9 +6,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.beans.support.MutableSortDefinition;
+import org.springframework.beans.support.PagedListHolder;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import com.amrTm.backLMS.entity.Book;
@@ -19,8 +19,7 @@ public class BookRepoFilerImpl implements BookRepoFilter{
 	@PersistenceContext
 	private EntityManager entityManager;
 	
-	@SuppressWarnings("unchecked")
-	public Page<Book> FilterBook(String title, Long user, Long publisher, List<Integer> type, Pageable page) {
+	public PagedListHolder<Book> FilterBook(String title, Long user, Long publisher, List<Integer> type, int page, int size) {
 		StringBuilder sb = new StringBuilder();
 		if(title != null) {
 			sb.append("p.title = :title");
@@ -43,12 +42,17 @@ public class BookRepoFilerImpl implements BookRepoFilter{
 			}
 			sb.append(" b.id in (:type)");
 		}
-		Query query = entityManager.createQuery("select DISTINCT p from Book p inner join p.bookUser bu inner join p.publisherBook pb inner join p.books b where "+sb.toString(),Book.class);
+		Query query = entityManager.createQuery("select DISTINCT p from Book p inner join p.bookUser bu inner join p.publisherBook pb inner join p.typeBooks b where "
+			+sb.toString(),Book.class);
 		if(title != null) {query.setParameter("title", title);}
 		if(user != null) {query.setParameter("user", user);}
 		if(publisher != null) {query.setParameter("publisher", publisher);}
 		if(type != null && !type.isEmpty()) {query.setParameter("type", type);}
 		List<Book> dataList = query.getResultList();
-		return new PageImpl<>(dataList, page, dataList.size());
+		PagedListHolder<Book> data = new PagedListHolder<>(dataList);
+		data.setPage(page);
+		data.setPageSize(size);
+		data.setSort(new MutableSortDefinition("title",true,true));
+		return data;
 	}
 }

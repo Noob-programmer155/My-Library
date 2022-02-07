@@ -10,5 +10,6 @@ import com.amrTm.backLMS.entity.TypeBook;
 @Repository
 public interface TypeBookRepo extends PagingAndSortingRepository<TypeBook,Integer>{
 	public TypeBook findByName(String name);
+	public Page<TypeBook> findAllDistinctByBookTypeNotEmpty(Pageable page);
 	public Page<TypeBook> findAllByNameContains(String name, Pageable page);
 }

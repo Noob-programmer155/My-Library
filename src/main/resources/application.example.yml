@@ -1,14 +1,40 @@
 server:
-  port: 8895#  ssl:#    key-store: classpath:static/ssl/keystore.p12#    key-alias: localhost#    key-store-password: amar1234#    enabled: true
-management:  endpoints:    web:      exposure:        include: "*"
-spring:  jpa:    show-sql: true    hibernate:      ddl-auto: create-drop  mail:    host: smtp.gmail.com    username: Amr.java8dev321@gmail.com 
-    password:    port: 465    properties:      mail:
+  port: 8895
+#  ssl:
+#    key-store: classpath:static/ssl/keystore.p12
+#    key-alias: localhost
+#    key-store-password: amar1234
+#    enabled: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+spring:
+  profiles:
+    active: development
+    ## change to production
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 700MB
+  web:
+    resources:
+      static-locations[0]: "file:src/main/resources/static/"
+      static-locations[1]: "classpath:/static/"
+  mail:
+    host: smtp.gmail.com
+    username: email
+    password: password
+    port: 587
+    properties:
+      mail:
         smtp:
           auth: true
           starttls:
             enable: true
-          ssl:
-            enable: true
+#          ssl:
+#            enable: true
         transport:
           protocol: smtp
         debug: true
@@ -17,21 +43,16 @@ spring:  jpa:    show-sql: true    hibernate:      ddl-auto: create-drop  m
       client:
         registration:
           google:
-            client-id: 
-            client-secret: 
+            client-id: <client-id>
+            client-secret: <client-secret>
             scope: 
               - https://www.googleapis.com/auth/userinfo.profile
               - https://www.googleapis.com/auth/userinfo.email
-          github:
-            client-id: 
-            client-secret: 
-            scope:
-              - user:email
-              - read:user
-              - user:follow
           facebook:
-            client-id: 
-            client-secret: 
+            client-id: <client-id>
+            client-secret: <client-secret>
             scope:
               - email
               - public_profile
+listpathurl: /user/verify, /user/login, /user/signup, /user/verify-oauth, /user/delete/useronline, /book/books, /book/alltype, /book/getbooksbytype, /book/searchBook, /book/author, 
+             /book/types, /book/publisher, /book/bookRekommend, /book/filterBookResult, /book/searchBookResult, /book/title, /book/image/*, /login/**

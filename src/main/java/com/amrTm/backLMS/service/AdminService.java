@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.Date;
 
 import javax.mail.MessagingException;
@@ -20,6 +21,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.amrTm.backLMS.DTO.UserDTO;
@@ -62,18 +65,18 @@ public class AdminService {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if(auth != null) {
 			String email = auth.getName();
-			return userRepo.findByEmail(email).map(a -> {
-				UserInfoDTO bg = new UserInfoDTO();
-				bg.setId(a.getId());
-				bg.setImage_url(a.getImage_url());
-				bg.setName(a.getName());
-				bg.setEmail(a.getEmail());
-				bg.setRole(a.getRole().toString());
-				return bg;
+			return userRepo.findByEmail(email).map(user -> {
+				UserInfoDTO uid = new UserInfoDTO();
+				uid.setId(user.getId());
+				uid.setImage_url(user.getImage_url());
+				uid.setName(user.getName());
+				uid.setEmail(user.getEmail());
+				uid.setRole(user.getRole().toString());
+				return uid;
 			}).get();
 		}
 		else {
-			res.sendError(401, "need`s authentication to view this page");
+			res.sendError(403, "need`s authentication to view this page");
 			return null;
 		}}catch(Exception e) {
 			res.sendError(500, "There`s some error when connect to the server, try to connect again");
@@ -86,13 +89,13 @@ public class AdminService {
 			Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username,password));
 			User user = userRepo.findByEmail(auth.getName()).get();
 			if (tokenTools.createToken(user.getName(), user.getEmail().toLowerCase(), user.getRole(), res)) {
-				UserInfoDTO bg = new UserInfoDTO();
-				bg.setId(user.getId());
-				bg.setImage_url(user.getImage_url());
-				bg.setName(user.getName());
-				bg.setEmail(user.getEmail());
-				bg.setRole(user.getRole().toString());
-				return bg;
+				UserInfoDTO uid = new UserInfoDTO();
+				uid.setId(user.getId());
+				uid.setImage_url(user.getImage_url());
+				uid.setName(user.getName());
+				uid.setEmail(user.getEmail());
+				uid.setRole(user.getRole().toString());
+				return uid;
 			}
 			res.sendError(500, "There`s some error when fetching data");
 			return null;
@@ -106,26 +109,27 @@ public class AdminService {
 		}
 	}
 	
-	public void standardSignup(UserDTO user, HttpServletResponse res, MultipartFile image) throws IOException, MessagingException {
+	@Transactional(isolation=Isolation.REPEATABLE_READ)
+	public void standardSignup(UserDTO userModel, HttpServletResponse res, MultipartFile image) throws IOException, MessagingException {
 		try {
-			User us = new User();
-			us.setClientId(null);
-			us.setEmail(user.getEmail().toLowerCase());
+			User user = new User();
+			user.setClientId(null);
+			user.setEmail(userModel.getEmail().toLowerCase());
 			if(image != null) {
-				us.setImage_url(FileConfig.saveImageUser(image, new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())));
+				user.setImage_url(FileConfig.saveImageUser(image, new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())));
 			}
-			us.setName(user.getName());
-			us.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
-			us.setProvider(null);
-			us.setRole(Role.ANON);
-			User userResp = userRepo.save(us);
-			if (mailService.sendEmailValidation(user.getName(), user.getEmail())) {
-				UserInfoDTO bg = new UserInfoDTO();
-				bg.setId(userResp.getId());
-				bg.setImage_url(userResp.getImage_url());
-				bg.setName(userResp.getName());
-				bg.setEmail(userResp.getEmail());
-				bg.setRole(userResp.getRole().toString());
+			user.setName(userModel.getName());
+			user.setPassword(new BCryptPasswordEncoder().encode(userModel.getPassword()));
+			user.setProvider(null);
+			user.setRole(Role.ANON);
+			User userResp = userRepo.save(user);
+			if (mailService.sendEmailValidation(userResp.getName(), userResp.getEmail())) {
+				UserInfoDTO uid = new UserInfoDTO();
+				uid.setId(userResp.getId());
+				uid.setImage_url(userResp.getImage_url());
+				uid.setName(userResp.getName());
+				uid.setEmail(userResp.getEmail());
+				uid.setRole(userResp.getRole().toString());
 				
 				UserReport ur = new UserReport();
 				ur.setIdUser(userResp.getId());
@@ -144,7 +148,7 @@ public class AdminService {
 		}
 	}
 	
-	@PreAuthorize("hasAnyAuthority('ADMINISTRATIF','MANAGER','USER','SELLER')")
+	@PreAuthorize("hasAnyAuthority('ANON','ADMINISTRATIF','MANAGER','USER','SELLER')")
 	public void Logout(HttpServletRequest req, HttpServletResponse res) throws ServletException, ParseException, IOException {
 		try {
 			CustomCookie cookie = CookieConfig.getCustomCookie(req, "JLMS_TOKEN");
@@ -231,6 +235,7 @@ public class AdminService {
 	}
 	
 	@PreAuthorize("hasAnyAuthority('USER','SELLER','ADMINISTRATIF','MANAGER')")
+	@Transactional(isolation=Isolation.REPEATABLE_READ)
 	public boolean modifyUserPassword(String oldPass, String newPass, HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -249,17 +254,18 @@ public class AdminService {
 	}
 	
 	@PreAuthorize("hasAuthority('USER')")
+	@Transactional(isolation=Isolation.REPEATABLE_READ)
 	public boolean promotingUser(HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			User user = userRepo.findByEmail(auth.getName()).get();
 			user.setRole(Role.SELLER);
-			User us = userRepo.save(user);
+			User modUser = userRepo.save(user);
 			
 			UserReport ur = new UserReport();
-			ur.setIdUser(user.getId());
-			ur.setUsername(user.getName());
-			ur.setEmail(user.getEmail());
+			ur.setIdUser(modUser.getId());
+			ur.setUsername(modUser.getName());
+			ur.setEmail(modUser.getEmail());
 			ur.setIdAdmin(null);
 			ur.setAdminName(null);
 			ur.setAdminEmail(null);
@@ -267,7 +273,7 @@ public class AdminService {
 			ur.setDateReport(new Date());
 			userReportRepo.save(ur);
 			
-			tokenTools.createToken(us.getName(), us.getEmail(), us.getRole(), res);
+			tokenTools.createToken(modUser.getName(), modUser.getEmail(), modUser.getRole(), res);
 			return true;
 		}catch(Exception e) {
 			res.sendError(500, "There`s some error when fetching data");
@@ -281,12 +287,12 @@ public class AdminService {
 			User user = userRepo.findByEmail(email).get();
 			if(delete) {
 				user.setRole(Role.USER);
-				User us = userRepo.save(user);
+				User modUser = userRepo.save(user);
 				
 				UserReport ur = new UserReport();
-				ur.setIdUser(us.getId());
-				ur.setUsername(us.getName());
-				ur.setEmail(us.getEmail());
+				ur.setIdUser(modUser.getId());
+				ur.setUsername(modUser.getName());
+				ur.setEmail(modUser.getEmail());
 				ur.setIdAdmin(null);
 				ur.setAdminName(null);
 				ur.setAdminEmail(null);
@@ -296,12 +302,12 @@ public class AdminService {
 			}
 			else {
 				user.setRole(Role.ADMINISTRATIF);
-				User us = userRepo.save(user);
+				User modUser = userRepo.save(user);
 				
 				UserReport ur = new UserReport();
-				ur.setIdUser(us.getId());
-				ur.setUsername(us.getName());
-				ur.setEmail(us.getEmail());
+				ur.setIdUser(modUser.getId());
+				ur.setUsername(modUser.getName());
+				ur.setEmail(modUser.getEmail());
 				ur.setIdAdmin(null);
 				ur.setAdminName(null);
 				ur.setAdminEmail(null);
@@ -318,7 +324,10 @@ public class AdminService {
 	
 	@PreAuthorize("hasAnyAuthority('ADMINISTRATIF','MANAGER')")
 	public byte[] getFileReport(Date start, Date end, HttpServletResponse res) throws IOException {
-		return FileConfig.getReportFile(userReportRepo, bookReportRepo, start, end, res);
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(end);
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		return FileConfig.getReportFile(userReportRepo, bookReportRepo, start, calendar.getTime(), res);
 	}
 //	public void deleteAdmin(String name, String email) {
 //		User user = userRepo.getByNameAndEmail(name, email);

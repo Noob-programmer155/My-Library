@@ -6,7 +6,7 @@ public class BookDTOResp {
 	private String id;
 	private String title;
 	private String author;
-	private String publisher;
+	private PublisherDTOResp publisher;
 	private String publishDate;
 	private String description;
 	private List<TypeDTOResp> theme;
@@ -32,10 +32,10 @@ public class BookDTOResp {
 	public void setAuthor(String author) {
 		this.author = author;
 	}
-	public String getPublisher() {
+	public PublisherDTOResp getPublisher() {
 		return publisher;
 	}
-	public void setPublisher(String publisher) {
+	public void setPublisher(PublisherDTOResp publisher) {
 		this.publisher = publisher;
 	}
 	public String getPublishDate() {

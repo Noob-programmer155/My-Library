@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.support.PagedListHolder;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -23,13 +24,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.amrTm.backLMS.DTO.AuthorDTORespFilter;
 import com.amrTm.backLMS.DTO.BookDTO;
 import com.amrTm.backLMS.DTO.BookDTOResp;
 import com.amrTm.backLMS.DTO.BookResponse;
-import com.amrTm.backLMS.DTO.PublisherDTORespFilter;
+import com.amrTm.backLMS.DTO.PublisherDTOResp;
 import com.amrTm.backLMS.DTO.TypeDTOResp;
 import com.amrTm.backLMS.DTO.TypeResponse;
 import com.amrTm.backLMS.configuration.FileConfig;
@@ -86,7 +89,7 @@ public class BookService {
 	public TypeResponse getAllTheme(int size, int page, HttpServletResponse res) throws IOException{
 		try {
 			Pageable data = PageRequest.of(page, size, Sort.by("name").ascending());
-			Page<TypeBook> typeData = typeBookRepo.findAll(data);
+			Page<TypeBook> typeData = typeBookRepo.findAllDistinctByBookTypeNotEmpty(data);
 			TypeResponse response = new TypeResponse();
 			response.setData(typeData.getContent().stream().map(item -> {
 				TypeDTOResp type = new TypeDTOResp();
@@ -108,6 +111,7 @@ public class BookService {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(auth != null) {
 				try {
+					
 					User user = userRepo.findByEmail(auth.getName()).get();
 					IdUserBT = user.getId();
 				}catch(NoSuchElementException e) {
@@ -117,8 +121,8 @@ public class BookService {
 			else {
 				IdUserBT = -1;
 			}
-			Pageable data = PageRequest.of(page, size, Sort.by("booksName").ascending());
-			Page<Book> bookData = bookRepo.findAllByBooksId(type, data);
+			Pageable data = PageRequest.of(page, size, Sort.by("title"));
+			Page<Book> bookData = bookRepo.findAllByTypeBooksId(type, data);
 			BookResponse response = new BookResponse();
 			response.setData(bookData.getContent().stream().map(item -> {
 				BookDTOResp book = new BookDTOResp();
@@ -127,12 +131,12 @@ public class BookService {
 				book.setFavorite(item.getBookFavorite().stream().anyMatch(usr -> usr.getId() == IdUserBT));
 				book.setDescription(item.getDescription());
 				book.setPublishDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(item.getPublishDate()));
-				book.setPublisher(item.getPublisherBook().getName());
+				book.setPublisher(new PublisherDTOResp(item.getPublisherBook().getId(),item.getPublisherBook().getName()));
 				if(item.getBookUser()!=null)
 					book.setStatus(item.getBookUser().getId() == IdUserBT);
 				else
 					book.setStatus(false);
-				book.setTheme(item.getBooks().stream().map(sa -> {
+				book.setTheme(item.getTypeBooks().stream().map(sa -> {
 					TypeDTOResp typeData = new TypeDTOResp();
 					typeData.setId(sa.getId());
 					typeData.setName(sa.getName());
@@ -157,9 +161,9 @@ public class BookService {
 			bookRepo.findAllByTitleContainsOrBookUserNameContainsOrPublisherBookNameContains(word, word, word, data).getContent().stream()
 					.forEach(a -> {
 						if(dataRes.size() <= 10) {
-							if(a.getTitle().contains(word)) dataRes.add(a.getTitle());
-							if(a.getBookUser().getName().contains(word)) dataRes.add(a.getBookUser().getName());
-							if(a.getPublisherBook().getName().contains(word)) dataRes.add(a.getPublisherBook().getName());
+							if(a.getTitle().contains(word)&&!dataRes.contains(a.getTitle())) dataRes.add(a.getTitle());
+							if(a.getBookUser().getName().contains(word)&&!dataRes.contains(a.getBookUser().getName())) dataRes.add(a.getBookUser().getName());
+							if(a.getPublisherBook().getName().contains(word)&&!dataRes.contains(a.getPublisherBook().getName())) dataRes.add(a.getPublisherBook().getName());
 						}
 					});
 			return dataRes;
@@ -176,11 +180,11 @@ public class BookService {
 			User user = userRepo.findByEmail(auth.getName()).get();
 			Pageable data = PageRequest.of(0, 10);
 			List<String> dataRes = new ArrayList<>();
-			bookRepo.findAllByTitleContainsOrPublisherBookNameContainsAndBookUserId(word, word, user.getId(), data).getContent().stream()
+			bookRepo.findAllBookUser(word, word, user.getId(), data).getContent().stream()
 					.forEach(a -> {
 						if(dataRes.size() <= 10) {
-							if(a.getTitle().contains(word)) dataRes.add(a.getTitle());
-							if(a.getPublisherBook().getName().contains(word)) dataRes.add(a.getPublisherBook().getName());
+							if(a.getTitle().contains(word)&&!dataRes.contains(a.getTitle())) dataRes.add(a.getTitle());
+							if(a.getPublisherBook().getName().contains(word)&&!dataRes.contains(a.getPublisherBook().getName())) dataRes.add(a.getPublisherBook().getName());
 						}
 					});
 			return dataRes;
@@ -217,11 +221,11 @@ public class BookService {
 		}
 	}
 	
-	public List<PublisherDTORespFilter> findAllPublisher(String words, HttpServletResponse res) throws IOException{
+	public List<PublisherDTOResp> findAllPublisher(String words, HttpServletResponse res) throws IOException{
 		try {
 			Pageable data = PageRequest.of(0, 10);
 			return publisherRepo.findAllByNameContains(words, data).getContent().stream().map(a -> {
-				PublisherDTORespFilter publisher = new PublisherDTORespFilter();
+				PublisherDTOResp publisher = new PublisherDTOResp();
 				publisher.setId(a.getId());
 				publisher.setName(a.getName());
 				return publisher;
@@ -255,12 +259,12 @@ public class BookService {
 				book.setFavorite(a.getBookFavorite().stream().anyMatch(g -> g.getId() == IdUserBR));
 				book.setDescription(a.getDescription());
 				book.setPublishDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(a.getPublishDate()));
-				book.setPublisher(a.getPublisherBook().getName());
+				book.setPublisher(new PublisherDTOResp(a.getPublisherBook().getId(),a.getPublisherBook().getName()));
 				if(a.getBookUser()!=null)
 					book.setStatus(a.getBookUser().getId() == IdUserBR);
 				else
 					book.setStatus(false);
-				book.setTheme(a.getBooks().stream().map(sa -> {
+				book.setTheme(a.getTypeBooks().stream().map(sa -> {
 					TypeDTOResp typeData = new TypeDTOResp();
 					typeData.setId(sa.getId());
 					typeData.setName(sa.getName());
@@ -282,7 +286,7 @@ public class BookService {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(auth != null) {
 				User user = userRepo.findByEmail(auth.getName()).get();
-				Pageable data = PageRequest.of(page, size);
+				Pageable data = PageRequest.of(page, size, Sort.by("title"));
 				Page<Book> dataBook = bookRepo.findAllByBookFavoriteId(user.getId(), data);
 				List<BookDTOResp> bookResponseData = dataBook.getContent().stream().map(a -> {
 					BookDTOResp book = new BookDTOResp();
@@ -291,12 +295,12 @@ public class BookService {
 					book.setFavorite(true);
 					book.setDescription(a.getDescription());
 					book.setPublishDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(a.getPublishDate()));
-					book.setPublisher(a.getPublisherBook().getName());
+					book.setPublisher(new PublisherDTOResp(a.getPublisherBook().getId(),a.getPublisherBook().getName()));
 					if(a.getBookUser()!=null)
 						book.setStatus(a.getBookUser().getId() == user.getId());
 					else
 						book.setStatus(false);
-					book.setTheme(a.getBooks().stream().map(sa -> {
+					book.setTheme(a.getTypeBooks().stream().map(sa -> {
 						TypeDTOResp typeData = new TypeDTOResp();
 						typeData.setId(sa.getId());
 						typeData.setName(sa.getName());
@@ -318,13 +322,13 @@ public class BookService {
 		}
 	}
 	
-	@PreAuthorize("hasAnyAuthority('USER','SELLER','ADMINISTRATIF','MANAGER')")
+	@PreAuthorize("hasAuthority('SELLER')")
 	public BookResponse getMyBook(int page, int size, HttpServletResponse res) throws IOException {
 		try {	
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(auth != null) {
 				User user = userRepo.findByEmail(auth.getName()).get();
-				Pageable data = PageRequest.of(page, size);
+				Pageable data = PageRequest.of(page, size, Sort.by("title"));
 				Page<Book> dataBook = bookRepo.findAllByBookUserId(user.getId(), data);
 				List<BookDTOResp> bookResponseData = dataBook.getContent().stream().map(a -> {
 					BookDTOResp book = new BookDTOResp();
@@ -333,9 +337,9 @@ public class BookService {
 					book.setFavorite(a.getBookFavorite().stream().anyMatch(userItem -> userItem.getId() == user.getId()));
 					book.setDescription(a.getDescription());
 					book.setPublishDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(a.getPublishDate()));
-					book.setPublisher(a.getPublisherBook().getName());
+					book.setPublisher(new PublisherDTOResp(a.getPublisherBook().getId(),a.getPublisherBook().getName()));
 					book.setStatus(true);
-					book.setTheme(a.getBooks().stream().map(sa -> {
+					book.setTheme(a.getTypeBooks().stream().map(sa -> {
 						TypeDTOResp typeData = new TypeDTOResp();
 						typeData.setId(sa.getId());
 						typeData.setName(sa.getName());
@@ -349,6 +353,44 @@ public class BookService {
 				response.setData(bookResponseData);
 				response.setSizeAllPage(dataBook.getTotalPages());
 				return response;
+			}
+			return null;
+		}catch(Exception e) {
+			res.sendError(500, "There`s some error when fetching data");
+			return null;
+		}
+	}
+
+	@PreAuthorize("hasAuthority('SELLER')")
+	public BookDTOResp getOneMyBook(String title, String publisher, HttpServletResponse res) throws IOException {
+		try {
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			if(auth != null) {
+				User user = userRepo.findByEmail(auth.getName()).get();
+				try {
+					BookDTOResp dataBook = bookRepo.findOneByBookUserIdAndTitleAndPublisherBookName(user.getId(), title, publisher).map(item -> {
+						BookDTOResp resBook = new BookDTOResp();
+						resBook.setId(item.getId());
+						resBook.setAuthor(item.getBookUser().getName());
+						resBook.setFavorite(item.getBookFavorite().stream().anyMatch(g -> g.getId() == IdUserAB));
+						resBook.setDescription(item.getDescription());
+						resBook.setPublishDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(item.getPublishDate()));
+						resBook.setPublisher(new PublisherDTOResp(item.getPublisherBook().getId(),item.getPublisherBook().getName()));
+						resBook.setStatus(true);
+						resBook.setTheme(item.getTypeBooks().stream().map(sa -> {
+							TypeDTOResp typeData = new TypeDTOResp();
+							typeData.setId(sa.getId());
+							typeData.setName(sa.getName());
+							return typeData;}).collect(Collectors.toList()));
+						resBook.setFile(item.getFile());
+						resBook.setImage(item.getImage());
+						resBook.setTitle(item.getTitle());
+						return resBook;
+					}).get();
+					return dataBook;
+				}catch(NoSuchElementException e) {
+					res.sendError(400, "Data Not Found !!!");
+				}
 			}
 			return null;
 		}catch(Exception e) {
@@ -372,7 +414,7 @@ public class BookService {
 			else {
 				IdUserAB = -1;
 			}
-			Pageable data = PageRequest.of(page, size);
+			Pageable data = PageRequest.of(page, size, Sort.by("title"));
 			Page<Book> dataBook = bookRepo.findAll(data);
 			List<BookDTOResp> bookResponseData = dataBook.getContent().stream().map(a -> {
 				BookDTOResp book = new BookDTOResp();
@@ -381,12 +423,12 @@ public class BookService {
 				book.setFavorite(a.getBookFavorite().stream().anyMatch(g -> g.getId() == IdUserAB));
 				book.setDescription(a.getDescription());
 				book.setPublishDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(a.getPublishDate()));
-				book.setPublisher(a.getPublisherBook().getName());
+				book.setPublisher(new PublisherDTOResp(a.getPublisherBook().getId(),a.getPublisherBook().getName()));
 				if(a.getBookUser()!=null)
 					book.setStatus(a.getBookUser().getId() == IdUserAB);
 				else
 					book.setStatus(false);
-				book.setTheme(a.getBooks().stream().map(sa -> {
+				book.setTheme(a.getTypeBooks().stream().map(sa -> {
 					TypeDTOResp typeData = new TypeDTOResp();
 					typeData.setId(sa.getId());
 					typeData.setName(sa.getName());
@@ -408,7 +450,7 @@ public class BookService {
 	
 	private long IdUserBF = -1;
 	public BookResponse getBookFilter(int page, int size, String title, Long idUser, Long idPublisher, List<Integer> idTypes, HttpServletResponse res) throws IOException{
-//		try {
+		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(auth != null) {
 				try {
@@ -421,21 +463,20 @@ public class BookService {
 			else {
 				IdUserBF = -1;
 			}
-			Pageable data = PageRequest.of(page, size);
-			Page<Book> dataBook = bookRepoFilerImpl.FilterBook(title, idUser, idPublisher, idTypes, data);
-			List<BookDTOResp> bookResponseData = dataBook.getContent().stream().map(a -> {
+			PagedListHolder<Book> dataBook = bookRepoFilerImpl.FilterBook(title, idUser, idPublisher, idTypes, page, size);
+			List<BookDTOResp> bookResponseData = dataBook.getPageList().stream().map(a -> {
 				BookDTOResp book = new BookDTOResp();
 				book.setId(a.getId());
 				book.setAuthor(a.getBookUser().getName());
 				book.setFavorite(a.getBookFavorite().stream().anyMatch(g -> g.getId() == IdUserBF));
 				book.setDescription(a.getDescription());
 				book.setPublishDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(a.getPublishDate()));
-				book.setPublisher(a.getPublisherBook().getName());
+				book.setPublisher(new PublisherDTOResp(a.getPublisherBook().getId(),a.getPublisherBook().getName()));
 				if(a.getBookUser()!=null)
 					book.setStatus(a.getBookUser().getId() == IdUserBF);
 				else
 					book.setStatus(false);
-				book.setTheme(a.getBooks().stream().map(sa -> {
+				book.setTheme(a.getTypeBooks().stream().map(sa -> {
 					TypeDTOResp typeData = new TypeDTOResp();
 					typeData.setId(sa.getId());
 					typeData.setName(sa.getName());
@@ -447,12 +488,12 @@ public class BookService {
 			}).collect(Collectors.toList());
 			BookResponse response = new BookResponse();
 			response.setData(bookResponseData);
-			response.setSizeAllPage(dataBook.getTotalPages());
+			response.setSizeAllPage(dataBook.getPageCount());
 			return response;
-//		}catch(Exception e) {
-//			res.sendError(500, "There`s some error when fetching data");
-//			return null;
-//		}
+		}catch(Exception e) {
+			res.sendError(500, "There`s some error when fetching data");
+			return null;
+		}
 	}
 	
 	private long IdUserBS = -1;
@@ -470,7 +511,7 @@ public class BookService {
 			else {
 				IdUserBS = -1;
 			}
-			Pageable data = PageRequest.of(page, size);
+			Pageable data = PageRequest.of(page, size, Sort.by("title"));
 			Page<Book> dataBook = bookRepo.findAllByTitleContainsOrBookUserNameContainsOrPublisherBookNameContains(exampleWords, exampleWords, exampleWords, data);
 			List<BookDTOResp> bookResponseData = dataBook.getContent().stream().map(a -> {
 				BookDTOResp book = new BookDTOResp();
@@ -479,12 +520,12 @@ public class BookService {
 				book.setFavorite(a.getBookFavorite().stream().anyMatch(g -> g.getId() == IdUserBS));
 				book.setDescription(a.getDescription());
 				book.setPublishDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(a.getPublishDate()));
-				book.setPublisher(a.getPublisherBook().getName());
+				book.setPublisher(new PublisherDTOResp(a.getPublisherBook().getId(),a.getPublisherBook().getName()));
 				if(a.getBookUser()!=null)
 					book.setStatus(a.getBookUser().getId() == IdUserBS);
 				else
 					book.setStatus(false);
-				book.setTheme(a.getBooks().stream().map(sa -> {
+				book.setTheme(a.getTypeBooks().stream().map(sa -> {
 					TypeDTOResp typeData = new TypeDTOResp();
 					typeData.setId(sa.getId());
 					typeData.setName(sa.getName());
@@ -509,8 +550,8 @@ public class BookService {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			User user = userRepo.findByEmail(auth.getName()).get();
-			Pageable data = PageRequest.of(page, size);
-			Page<Book> dataBook = bookRepo.findAllByTitleContainsOrPublisherBookNameContainsAndBookUserId(exampleWords, exampleWords, user.getId(), data);
+			Pageable data = PageRequest.of(page, size, Sort.by("title"));
+			Page<Book> dataBook = bookRepo.findAllBookUser(exampleWords, exampleWords, user.getId(), data);
 			List<BookDTOResp> bookResponseData = dataBook.getContent().stream().map(a -> {
 				BookDTOResp book = new BookDTOResp();
 				book.setId(a.getId());
@@ -518,9 +559,9 @@ public class BookService {
 				book.setFavorite(a.getBookFavorite().stream().anyMatch(userItem -> userItem.getId() == user.getId()));
 				book.setDescription(a.getDescription());
 				book.setPublishDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(a.getPublishDate()));
-				book.setPublisher(a.getPublisherBook().getName());
+				book.setPublisher(new PublisherDTOResp(a.getPublisherBook().getId(),a.getPublisherBook().getName()));
 				book.setStatus(true);
-				book.setTheme(a.getBooks().stream().map(sa -> {
+				book.setTheme(a.getTypeBooks().stream().map(sa -> {
 					TypeDTOResp typeData = new TypeDTOResp();
 					typeData.setId(sa.getId());
 					typeData.setName(sa.getName());
@@ -556,6 +597,7 @@ public class BookService {
 	}
 	
 	@PreAuthorize("hasAuthority('SELLER')")
+	@Transactional(isolation=Isolation.REPEATABLE_READ)
 	public void addBook(BookDTO book, MultipartFile file, MultipartFile image, HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -642,7 +684,9 @@ public class BookService {
 		}
 	}
 	
+	private Publisher publisherModify = null;
 	@PreAuthorize("hasAuthority('SELLER')")
+	@Transactional(isolation=Isolation.REPEATABLE_READ)
 	public void modifyBook(String id, BookDTO bookModel, MultipartFile file, MultipartFile image, HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -659,26 +703,25 @@ public class BookService {
 					bfs.setImage(FileConfig.modifyImageBook(image,bfs.getImage()));
 				}
 				
-				Publisher publisher = null;
 				if(bookModel.getPublisher() != null) {
-					publisher = publisherRepo.findById((long)bookModel.getPublisher()).get();
+					publisherModify = publisherRepo.findById((long)bookModel.getPublisher()).get();
 				}
 				else {
 					if(bookModel.getNewPublisher() != null) {
-						Publisher pub = new Publisher();
+						publisherRepo.findByName(bookModel.getNewPublisher()).ifPresentOrElse(a -> publisherModify = a, () -> {Publisher pub = new Publisher();
 						pub.setName(bookModel.getNewPublisher());
-						publisher = publisherRepo.save(pub);
+						publisherModify = publisherRepo.save(pub);});
 					}
 					else {
 						throw new IOException("Request Attribut not permitted !!!");
 					}
 				}
-				bfs.setPublisherBook(publisher);
-				publisher.getBooks().add(bfs);
+				bfs.setPublisherBook(publisherModify);
+				publisherModify.getBooks().add(bfs);
 				
 				Book bookModify = bookRepo.save(bfs);
 				
-				bookModify.getBooks().forEach(data -> {
+				bookModify.getTypeBooks().forEach(data -> {
 					data.removeBook(bookModify);
 					typeBookRepo.save(data);
 				});
@@ -710,6 +753,7 @@ public class BookService {
 	}
 	
 	@PreAuthorize("hasAnyAuthority('USER','SELLER','ADMINISTRATIF','MANAGER')")
+	@Transactional(isolation=Isolation.REPEATABLE_READ)
 	public void modifyBookFav(String idBook, boolean delete, HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -729,6 +773,7 @@ public class BookService {
 	}
 	
 	@PreAuthorize("hasAnyAuthority('USER','SELLER','ADMINISTRATIF','MANAGER')")
+	@Transactional(isolation=Isolation.REPEATABLE_READ)
 	public void modifyRekomend(String idBook, HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -759,6 +804,7 @@ public class BookService {
 	}
 	
 	@PreAuthorize("hasAuthority('SELLER')")
+	@Transactional(isolation=Isolation.REPEATABLE_READ)
 	public void deleteBook(String id, HttpServletResponse res) throws IOException {
 		try {
 			User user = userRepo.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).get();
@@ -774,7 +820,7 @@ public class BookService {
 				
 				FileConfig.deleteBooksFile(book.getFile());
 				FileConfig.deleteBooksImage(book.getImage());
-				book.getBooks().forEach(re -> {
+				book.getTypeBooks().forEach(re -> {
 					re.removeBook(book);
 				});
 				bookRepo.delete(book);
@@ -804,32 +850,33 @@ public class BookService {
 		}
 	}
 	
-	@PreAuthorize("hasAnyAuthority('ADMINISTRATIF','MANAGER')")
-	public void deleteType(Integer type, HttpServletResponse res) throws IOException {
-		try {
-			User user = userRepo.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).get();
-			TypeBook tb = typeBookRepo.findById(type).get();
-			String nameTb = tb.getName();
-			typeBookRepo.delete(tb);
-			
-			BookReport br = new BookReport();
-			br.setIdBook(String.valueOf(type));
-			br.setTitleBook(nameTb);
-			br.setIdAuthor(null);
-			br.setNameAuthor("");
-			br.setEmailAuthor("");
-			br.setIdPublisher(null);
-			br.setNamePublisher("");
-			br.setIdUser(user.getId());
-			br.setUsername(user.getName());
-			br.setEmail(user.getEmail());
-			br.setStatusReport(StatusReport.DELETE_TYPE);
-			br.setDateReport(new Date());
-			bookReportRepo.save(br);
-		}catch(Exception e) {
-			res.sendError(500, "There`s some error when fetching data");
-		}
-	}
+//	@PreAuthorize("hasAnyAuthority('ADMINISTRATIF','MANAGER')")
+//	@Transactional(isolation=Isolation.REPEATABLE_READ)
+//	public void deleteType(Integer type, HttpServletResponse res) throws IOException {
+//		try {
+//			User user = userRepo.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).get();
+//			TypeBook tb = typeBookRepo.findById(type).get();
+//			String nameTb = tb.getName();
+//			typeBookRepo.delete(tb);
+//			
+//			BookReport br = new BookReport();
+//			br.setIdBook(String.valueOf(type));
+//			br.setTitleBook(nameTb);
+//			br.setIdAuthor(null);
+//			br.setNameAuthor("");
+//			br.setEmailAuthor("");
+//			br.setIdPublisher(null);
+//			br.setNamePublisher("");
+//			br.setIdUser(user.getId());
+//			br.setUsername(user.getName());
+//			br.setEmail(user.getEmail());
+//			br.setStatusReport(StatusReport.DELETE_TYPE);
+//			br.setDateReport(new Date());
+//			bookReportRepo.save(br);
+//		}catch(Exception e) {
+//			res.sendError(500, "There`s some error when fetching data");
+//		}
+//	}
 	
 //	@PreAuthorize("hasAnyAuthority('ADMINISTRATIF','MANAGER')")
 //	public void deletePublisher(Integer name) {
