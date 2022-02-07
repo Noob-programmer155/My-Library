@@ -1,44 +1,48 @@
-import React, {useEffect, useState, forwardRef} from 'react';
-import {Box, Snackbar, Alert} from '@mui/material';
-import Profile from './Profile';
-import BookChoice from './Book_Choices';
-import TypeContainer from './Type_book';
-import MainContainer from './Main_Book_Container'
-
-const Container = forwardRef(function Container(props, ref) {
-  return <Alert elevation={5} ref={ref} variant='filled' {...props}/>
-})
+import React, {useEffect, useState} from 'react';
+import Profile from './subcomponent/Auth/AuthUserComponent/Profile';
+import BookChoice from './subcomponent/HomePage/Book_Choices';
+import TypeContainer from './subcomponent/HomePage/Type_book';
+import MainContainer from './subcomponent/HomePage/Main_Book_Container';
+import {Box,Snackbar} from '@mui/material';
+import {ContainerFeedback} from './subcomponent/utils/otherComponent';
 
 export default function Home(props) {
-  const [verify, setVerify] = useState();
+  const [respon, setRespon] = useState();
   useEffect(()=>{
     let param = new URLSearchParams(props.location.search);
     if(param){
       let ver = param.get('verify')
-      if(ver){setVerify(ver)}
+      let logout = param.get('logout')
+      if(ver==='1'){setRespon("Please check your email to verify account")}
+      if(logout==='1'){setRespon("Logout Successfully !!!")}
     }
   },[])
   return(
-    <Box sx={{background: '#009999'}}>
-      <Box sx={{display: {xs: 'block', md: 'flex'}, flexWrap:'wrap', maxWidth:'100vw'}}>
-        <Box width={{xs: '100%', md: '30%'}} sx={{display:'flex', flexWrap:'wrap', alignItems:'Center', justifyContent:'center'}}>
-          <Profile/>
+    <>
+      <Box sx={{background: '#009999',minHeight: '100vh'}}>
+        <Box sx={{display:'flex', flexWrap:{xs:'wrap', md:'nowrap'}}}>
+          <Box width={{xs: '100%', md: '30%'}} maxWidth={{xs: '100vw', md: '30%'}} sx={{display:'flex', flexWrap:'wrap', alignItems:'flex-start', justifyContent:'center',marginTop:'10px'}}>
+            <Profile/>
+          </Box>
+          <Box width={{xs: '100%', md: '70%'}} maxWidth={{xs: '100vw', md: '70%'}}>
+            <BookChoice/>
+          </Box>
         </Box>
-        <Box width={{xs: '100%', md: '69%'}}>
-          <BookChoice/>
-        </Box>
-        <Box width={{xs: '100%', md: '30%'}} display={{xs:'none', md:'block'}}>
-          <TypeContainer/>
-        </Box>
-        <Box width={{xs: '100%', md: '69%'}}>
-          <MainContainer/>
+        <Box sx={{display:'flex', flexWrap:{xs:'wrap', md:'nowrap'}, padding:'10px'}}>
+          <Box width={{xs: '100%', md: '30%'}} maxWidth={{xs: '100vw', md: '30%'}} display={{xs:'none', md:'block'}}>
+            <TypeContainer/>
+          </Box>
+          <Box width={{xs: '100%', md: '70%'}} maxWidth={{xs: '100vw', md: '70%'}}>
+            <MainContainer/>
+          </Box>
         </Box>
       </Box>
-      <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={verify}>
-        <Container severity='info' onClose={a => setVerify(null)}>
-          Please check your email to verify account
-        </Container>
+      <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={Boolean(respon)} onClose={() => setRespon(null)}
+        autoHideDuration={4000} sx={{zIndex: (theme) => theme.zIndex.drawer + 5}}>
+        <ContainerFeedback severity='error' onClose={() => setRespon(null)}>
+          {respon}
+        </ContainerFeedback>
       </Snackbar>
-    </Box>
+    </>
   );
 }
