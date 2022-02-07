@@ -50,7 +50,7 @@ const useStyle = makeStyles({
 });
 
 export default function Book(props) {
-  const{id, book, setRespon, setError, isOpenFunc, isModifyFunc} = props;
+  const{id, book, setRespon, setError, isOpenFunc} = props;
   const prof = useSelector(profile);
   const favBook = useSelector(favoriteBooks);
   const recBook = useSelector(recommendBooks);
@@ -151,7 +151,7 @@ export default function Book(props) {
         }
         setPreventClick(false);})
   }
-  const funDesc = () => {
+  const funDesc = React.useCallback(() => {
     var list1 = data.description.replace(/-=>/g,"<br/><ol><li class='li'>");
     var list2 = list1.replace(/<=-/g,"</li></ol>");
     var list3 = list2.replace(/_,_/g,"</li><li class='li'>");
@@ -163,8 +163,12 @@ export default function Book(props) {
     newDesc.className = 'p';
     newDesc.innerHTML= list7;
     document.getElementById(id).appendChild(newDesc);
-  }
+  },[data])
   const style = useStyle();
+  const getURIParam = () =>{
+    return encodeURI(`id=${data.id}&title=${data.title}&publisher=${JSON.stringify(data.publisher)}
+      &description=${data.description}&theme=${JSON.stringify(data.theme)}&image=${data.image}&file=${data.title}`)
+  }
   return(
     <>
       <Paper sx={{minWidth:'250px', maxWidth:'1200px', overflow:(med)?'visible':'auto', maxHeight:(med)?'100vh':'95vh', zIndex: (theme) => theme.zIndex.drawer + 2, padding:'10px'}}
@@ -180,19 +184,11 @@ export default function Book(props) {
                    (<>
                       <IconButton className={style.iconButtonBookDefault} onClick={() => setDeletes(prof.id)} sx={{position: 'relative', top:{md:'-1.6rem', xs:0}, left:{md:'1.6rem', xs:0},
                         background:'#ffa366', color:'#ff1a1a', marginRight:'10px', '&:hover':{background:'#ff1a1a', color:'#ffff'}}}><DeleteIcon sx={{fontSize:'inherit'}}/></IconButton>
-                      <IconButton className={style.iconButtonBookDefault} onClick={() => isModifyFunc({
-                          id:data.id,
-                          title:data.title,
-                          author:data.author,
-                          publisher: data.publisher,
-                          description: data.description,
-                          theme: data.theme,
-                          image: data.image,
-                          file: data.title
-                        })} sx={{position: 'relative', top:{md:'-1.6rem', xs:0}, left:{md:'1.6rem', xs:0},
-                        background:'#ffa366', color:'#e65c00', marginRight:'10px', '&:hover':{background:'#e65c00', color:'#ffff'}}}><ModeEditIcon sx={{fontSize:'inherit'}}/></IconButton>
+                      <IconButton className={style.iconButtonBookDefault} href={`/my-library?${getURIParam()}`}
+                       sx={{position: 'relative', top:{md:'-1.6rem', xs:0}, left:{md:'1.6rem', xs:0}, background:'#ffa366', color:'#e65c00',
+                       marginRight:'10px', '&:hover':{background:'#e65c00', color:'#ffff'}}}><ModeEditIcon sx={{fontSize:'inherit'}}/></IconButton>
                     </>
-                  ):(<></>)
+                  ):null
               }
               <IconButton className={style.iconButtonBookDefault} onClick={e => {isOpenFunc(null);document.body.style='overflow-y:auto;touch-action:auto;';}} sx={{position: 'relative', top:{md:'-1.6rem', xs:0}, left:{md:'1.6rem', xs:0},
                 background:'#ff1a1a', color:'white', '&:hover':{background:'#e60000', color:'#ffff'}}}><CloseIcon sx={{fontSize:'inherit'}}/></IconButton>
@@ -229,7 +225,7 @@ export default function Book(props) {
                         (/[K-O]/.exec(item.name.charAt(0)) !== null)?colorData[2]:(/[P-T]/.exec(item.name.charAt(0)) !== null)?colorData[3]:colorData[4]
                       return <Chip key={'chipBook'+i} className={style.chip} style={{background:color.back,color:color.clr}} label={item.name}/>
                     })
-                  ) : (<></>)
+                  ) : null
                 }
               </Stack>
             </Box>
@@ -237,7 +233,7 @@ export default function Book(props) {
               <Box justifyContent='center' alignItems='center' display='flex' sx={{marginTop:'20px'}}>
               <Button variant='contained' className={style.buttonDownload} onClick={handleDownload}
               disabled={(prof&&prof.role!=='ANON'&&!preventClick)? false:true}
-              startIcon={(!preventClick)?<></>:<CircularProgress size='1rem' color="primary"/>}>Download</Button>
+              startIcon={(!preventClick)?null:<CircularProgress size='1rem' color="primary"/>}>Download</Button>
               <IconButton className={style.buttonFavorite} onClick={handleFav} disabled={(prof&&prof.role!=='ANON'&&!preventFav)? false:true}>
                 {(data.favorite)? <FavoriteIcon sx={{color:'red',fontSize:'inherit'}}/> : <FavoriteBorderIcon sx={{fontSize:'inherit'}}/>}</IconButton>
             </Box>

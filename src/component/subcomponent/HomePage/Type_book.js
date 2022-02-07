@@ -5,8 +5,9 @@ import axios from 'axios';
 import {createTheme} from '@mui/material/styles';
 import {makeStyles} from '@mui/styles';
 import {useDispatch, useSelector} from 'react-redux';
+import {ContainerFeedback} from '../utils/otherComponent';
 import {getTypeURL,getBooksByTypeURL,mainBookURL} from './../../constant/constantDataURL';
-import {Tab, Tabs, Skeleton, Box, useMediaQuery, Button, Typography} from '@mui/material';
+import {Tab, Tabs, Skeleton, Box, useMediaQuery, Button, Typography, Snackbar} from '@mui/material';
 import {bookThemes, countDataAppearsDefault, trigger, setBookTheme, setBooks, setAllBookPage, setTrigger} from './../../funcredux/book_redux';
 
 const theme = createTheme();
@@ -34,14 +35,15 @@ const useStyle = makeStyles({
   },
 })
 export default function TypeContainer(props) {
-  const {onError, ...attr} = props;
+  const {...attr} = props;
+  const [error, setError] = useState();
   const [maxPageType,setMaxPageType] = useState(0);
   const [page, setPage] = useState(1);
-  const [typeTab, setTypeTab] = useState(0);
   const dispatch = useDispatch();
   const themes = useSelector(bookThemes);
   const triggerMainConMobile = useSelector(trigger);
   const initCountData = useSelector(countDataAppearsDefault);
+  const [typeTab, setTypeTab] = useState(false);
   const med = useMediaQuery('(min-width:900px)')
   const style = useStyle();
   const handleChange = (a, n) => {
@@ -61,9 +63,9 @@ export default function TypeContainer(props) {
       }
     }).catch(err => {
       if(err.response){
-        onError(err.response.data.message)
+        setError(err.response.data.message)
       }else {
-        onError(err.message)
+        setError(err.message)
       }
     });
   },[]);
@@ -83,9 +85,9 @@ export default function TypeContainer(props) {
       }
     }).catch(err => {
       if(err.response){
-        onError(err.response.data.message)
+        setError(err.response.data.message)
       }else {
-        onError(err.message)
+        setError(err.message)
       }
     });
   }
@@ -104,9 +106,9 @@ export default function TypeContainer(props) {
       }
     }).catch(err => {
       if(err.response){
-        onError(err.response.data.message)
+        setError(err.response.data.message)
       }else {
-        onError(err.message)
+        setError(err.message)
       }
     });
   }
@@ -120,41 +122,41 @@ export default function TypeContainer(props) {
     }).then(res => dispatch(setBookTheme(res.data.data)))
     .catch(err => {
       if(err.response){
-        onError(err.response.data.message)
+        setError(err.response.data.message)
       }else {
-        onError(err.message)
+        setError(err.message)
       }
     });
   }
   const handlePrev = (e) => {
     setPage(page-1)
     getType(page-1)
+    setTypeTab(false)
   }
   const handleNext = (e) => {
     setPage(page+1)
     getType(page+1)
+    setTypeTab(false)
   }
   return(
     <>
       {(themes.length !== 0)?
         (<Box {...attr}>
           <Button className={style.buttonPage} onClick={handlePrev} disabled={page <= 1}>
-            {(med)?<ArrowForwardIcon sx={{fontSize:'inherit',transform:'rotate(-0.25turn)'}}/>:<Typography sx={{fontSize:'.6rem'}}>Prev Page</Typography>}
+            {(med)?<ArrowForwardIcon sx={{fontSize:'inherit',transform:'rotate(-0.25turn)'}}/>:<Typography sx={{fontSize:'.7rem'}}>Prev Page</Typography>}
           </Button>
           {(med)?
             <Button className={style.button} sx={{color:'white',width:'100%'}} startIcon={<CollectionsBookmarkIcon/>} size='medium'
-              onClick={handleClickAll}>All Books</Button>:<></>
+              onClick={handleClickAll}>All Books</Button>:null
           }
           <Tabs id='tabs-type-book' variant={(med)?"fullWidth":'scrollable'} value={(triggerMainConMobile < 0)?false:typeTab} textColor='inherit' indicatorColor="secondary"
-            onChange={handleChange} visibleScrollbar={true} orientation={(med)?'vertical':'horizontal'} sx={{maxWidth:'100%',overflow:'auto',color:'#ffff'}}>
-            {
-              themes.map((item, i) => {
-                return <Tab className={style.tab} key={i} value={page*initCountData.book+i} label={item.name} onClick={handleClick(item.id)}/>
-              })
-            }
+            onChange={handleChange} allowScrollButtonsMobile={true} visibleScrollbar={true} orientation={(med)?'vertical':'horizontal'} sx={{maxWidth:'100%',overflow:'auto',color:'#ffff'}}>
+            {themes.map((item, i) => {
+              return <Tab className={style.tab} key={i} value={page*initCountData.book+i} label={item.name} onClick={handleClick(item.id)}/>
+            })}
           </Tabs>
           <Button className={style.buttonPage} onClick={handleNext} disabled={page >= maxPageType}>
-            {(med)?<ArrowForwardIcon sx={{fontSize:'inherit',transform:'rotate(0.25turn)'}}/>:<Typography sx={{fontSize:'.6rem'}}>Next Page</Typography>}
+            {(med)?<ArrowForwardIcon sx={{fontSize:'inherit',transform:'rotate(0.25turn)'}}/>:<Typography sx={{fontSize:'.7rem'}}>Next Page</Typography>}
           </Button>
         </Box>):(
           <Box {...attr}>
@@ -166,6 +168,12 @@ export default function TypeContainer(props) {
           </Box>
         )
       }
+      <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={Boolean(error)} onClose={() => setError(null)}
+        autoHideDuration={4000} sx={{zIndex: (theme) => theme.zIndex.drawer + 5}}>
+        <ContainerFeedback severity='error' onClose={() => setError(null)}>
+          {error}
+        </ContainerFeedback>
+      </Snackbar>
     </>
   );
 }

@@ -3,7 +3,7 @@ import Profile from './subcomponent/Auth/AuthUserComponent/Profile';
 import UserBuilder from './subcomponent/User/User_Builder';
 import {useSelector} from 'react-redux';
 import {profile} from './funcredux/profile_redux';
-import {searchUserURL, searchUserAdminURL, getUsersURL, getAdminURL} from './constant/constantDataURL';
+import {searchUserURL, searchUserAdminURL} from './constant/constantDataURL';
 import {Box, Tabs, Tab, useMediaQuery, Snackbar} from '@mui/material';
 import {ContainerFeedback} from './subcomponent/utils/otherComponent';
 
@@ -20,7 +20,7 @@ export default function UserContainer() {
     <>
       <Box justifyContent='center' display='flex' flexWrap='wrap' sx={{background: '#009999', minHeight:'100vh'}}>
         <Box sx={{width:{xs:'100%', md:'30%'}}} justifyContent='center' alignItems='flex-start' display='flex' flexWrap='wrap'>
-          <Profile onerror={setError} container="user" path='/'/>
+          <Profile container="user" path='/'/>
           <Tabs variant="fullWidth" value={link} textColor='inherit' indicatorColor="secondary"
             onChange={handleChange} orientation={(med)?'vertical':'horizontal'} sx={{width:'100%',maxWidth:'100%', color:'#ffff', overflow:'auto'}}>
             {
@@ -35,10 +35,10 @@ export default function UserContainer() {
           {(prof && (prof.role === 'ADMINISTRATIF' || prof.role === 'MANAGER'))?
             <>
               <Panel index={0} value={link}>
-                <UserBuilder type='user' setError={setError} setRespon={setRespon} role={prof.role} urlMainData={getUsersURL} urlSearch={searchUserURL}/>
+                <UserBuilder type='user' setError={setError} setRespon={setRespon} role={prof.role} urlMainData={searchUserURL}/>
               </Panel>
               <Panel index={1} value={link}>
-                <UserBuilder type='admin' setError={setError} setRespon={setRespon} role={prof.role} urlMainData={getAdminURL} urlSearch={searchUserAdminURL}/>
+                <UserBuilder type='admin' setError={setError} setRespon={setRespon} role={prof.role} urlMainData={searchUserAdminURL}/>
               </Panel>
             </>:<></>
           }

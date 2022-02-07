@@ -8,8 +8,8 @@ import {profile} from './../../funcredux/profile_redux';
 import {makeStyles} from '@mui/styles';
 import {createTheme} from '@mui/material/styles';
 import {useSelector, useDispatch} from 'react-redux';
-import {Container} from '../utils/otherComponent';
-import {Box, Typography, Button, Tabs, Tab, useMediaQuery} from '@mui/material';
+import {Container, ContainerFeedback} from '../utils/otherComponent';
+import {Box, Typography, Button, Tabs, Tab, useMediaQuery, Snackbar} from '@mui/material';
 import {mainBookURL, getMyBookURL, getRecomendBookURL, getFavoriteBookURL} from './../../constant/constantDataURL';
 import {favoriteBooks, recommendBooks, myBooks, trigger, setBookFav, setBookRek, setBookSeller, bookFavPage, myBookPage,
   setBookFavPage, setMyBookPage, countDataAppearsDefault, setBooks, setAllBookPage, setTrigger} from './../../funcredux/book_redux';
@@ -32,9 +32,6 @@ const useStyle = makeStyles({
     width:'100%',
     display:'flex',
     justifyContent:'center',
-    [theme.breakpoints.up('md')]:{
-      display: 'none',
-    },
   },
   text: {
     color: '#ffff',
@@ -49,21 +46,23 @@ const useStyle = makeStyles({
   }
 })
 
-export default function BookChoice(props) {
-  const {onError, onRespon, setOpenModify} = props;
+export default function BookChoice() {
+  const [respon, setRespon] = useState();
+  const [error, setError] = useState();
   const [page, setPage] = useState(3);
   const [pageMyBook, setPageMyBook] = useState(1);
   const [pageFavBook, setPageFavBook] = useState(1);
   const style = useStyle();
   const favBuku = useSelector(favoriteBooks);
   const recBuku = useSelector(recommendBooks);
-  const prof = useSelector(profile);
   const myBuku = useSelector(myBooks);
+  const prof = useSelector(profile);
   const initCountDataAppears = useSelector(countDataAppearsDefault);
   const myBukuAllPage = useSelector(myBookPage);
   const favBukuAllPage = useSelector(bookFavPage);
   const triggerMainConMobile = useSelector(trigger);
   const sm = useMediaQuery('(min-width:600px)');
+  const md = useMediaQuery('(min-width:900px)');
   const dispatch = useDispatch();
   useEffect(()=>{
     if(prof && prof.role !== 'ANON'){
@@ -78,12 +77,14 @@ export default function BookChoice(props) {
         dispatch(setBookSeller(res.data.data));
         dispatch(setMyBookPage(res.data.sizeAllPage));
       }else{
-        onRespon("Book is empty")
+        setRespon("My Book is empty")
       }}).catch(err => {
         if(err.response){
-          onError(err.response.data.message)
+          if(err.response.data.status !== 403){
+            setError(err.response.data.message)
+          }
         }else {
-          onError(err.message)
+          setError(err.message)
         }
       })
       axios.get(getFavoriteBookURL,{
@@ -97,12 +98,12 @@ export default function BookChoice(props) {
           dispatch(setBookFav(res.data.data));
           dispatch(setBookFavPage(res.data.sizeAllPage));
         }else{
-          onRespon("Book is empty")
+          setRespon("Favorite Book is empty")
         }}).catch(err => {
         if(err.response){
-          onError(err.response.data.message)
+          setError(err.response.data.message)
         }else {
-          onError(err.message)
+          setError(err.message)
         }
       })
     }
@@ -112,14 +113,14 @@ export default function BookChoice(props) {
       if(res.data && res.data.length > 0){
         dispatch(setBookRek(res.data));
       }else{
-        onRespon("Book is empty")
+        setRespon("Recommended Book is empty")
       }
     })
     .catch(err => {
       if(err.response){
-        onError(err.response.data.message)
+        setError(err.response.data.message)
       }else {
-        onError(err.message)
+        setError(err.message)
       }
     })
   },[prof])
@@ -136,14 +137,14 @@ export default function BookChoice(props) {
         dispatch(setBookSeller(res.data.data));
         dispatch(setMyBookPage(res.data.sizeAllPage));
       }else{
-        onRespon("Book is empty")
+        setRespon("My Book is empty")
       }
     })
     .catch(err => {
       if(err.response){
-        onError(err.response.data.message)
+        setError(err.response.data.message)
       }else {
-        onError(err.message)
+        setError(err.message)
       }
     })
   }
@@ -160,14 +161,14 @@ export default function BookChoice(props) {
         dispatch(setBookFav(res.data.data));
         dispatch(setBookFavPage(res.data.sizeAllPage));
       }else{
-        onRespon("Book is empty")
+        setRespon("Favorite Book is empty")
       }
     })
     .catch(err => {
       if(err.response){
-        onError(err.response.data.message)
+        setError(err.response.data.message)
       }else {
-        onError(err.message)
+        setError(err.message)
       }
     })
   }
@@ -188,7 +189,18 @@ export default function BookChoice(props) {
           dispatch(setBooks(res.data.data))
           dispatch(setAllBookPage(res.data.sizeAllPage))
         }else{
-          onRespon("Book is empty")
+          switch (dataIndex) {
+            case -2:
+              setRespon("Recommended Book is empty");
+              break;
+            case -3:
+              setRespon("Favorite Book is empty");
+              break;
+            case -4:
+              setRespon("My Book is empty");
+              break;
+            default: setRespon("Book is empty");
+          }
         }
       }
       else{
@@ -196,29 +208,40 @@ export default function BookChoice(props) {
           dispatch(setBooks(res.data))
           dispatch(setAllBookPage(1))
         }else{
-          onRespon("Book is empty")
+          switch (dataIndex) {
+            case -2:
+              setRespon("Recommended Book is empty");
+              break;
+            case -3:
+              setRespon("Favorite Book is empty");
+              break;
+            case -4:
+              setRespon("My Book is empty");
+              break;
+            default: setRespon("Book is empty");
+          }
         }
       }
     }).catch(err => {
       if(err.response){
-        onError(err.response.data.message)
+        setError(err.response.data.message)
       }else {
-        onError(err.message)
+        setError(err.message)
       }
       dispatch(setBooks([]));
       dispatch(setAllBookPage(0));});
   }
-  const containerBook = (item,i) => (
-    <Box key={"choice"+i}>
+  const containerBook = (item,index) => {
+    return <Box key={"choice"+index}>
       <Typography className={style.text}>{item.title}</Typography>
       <Box>
-      {(i <= 0)?
+      {(index <= 0)?
         <Container id={'book-choice-'+item.title} data={item.data} page={item.page} onPageChange={item.handlePage} itemSpacing={2}
-          sx={{width:'100%', overflow:'auto',marginBottom:'20px'}} countPage={item.maxPage} setOpenModify={setOpenModify}
+          sx={{width:'100%', overflow:'auto',marginBottom:'20px'}} countPage={item.maxPage}
           pattern="row" sizeLoadingData={10}/>:
         (prof)?
         <Container id={'book-choice2-'+item.title} data={item.data} page={item.page} onPageChange={item.handlePage} itemSpacing={2}
-          sx={{width:'100%', overflow:'auto',marginBottom:'20px'}} countPage={item.maxPage} setOpenModify={setOpenModify}
+          sx={{width:'100%', overflow:'auto',marginBottom:'20px'}} countPage={item.maxPage}
           pattern="row" sizeLoadingData={initCountDataAppears.book}/>:
         <Box sx={{padding:'10px',marginLeft:'30px',marginRight:'30px',borderRadius:'10px',background:'rgba(0,0,0,.1)',
           fontSize:'1rem'}}>
@@ -230,56 +253,62 @@ export default function BookChoice(props) {
       }
       </Box>
     </Box>
-  )
+  }
+  const callbackContainer = React.useCallback((item,index)=> containerBook(item,index),[prof])
   return(
     <>
       <Box className={style.root}>
-        {
-          [
-            {title:'Recommended Books', data:recBuku, page: 1, handlePage: null, maxPage: 1},
-            {title:'Favorite Books', data:favBuku, page: pageFavBook, handlePage: handleChangeFavBook, maxPage: favBukuAllPage},
-            {title:'My Books', data:myBuku, page: pageMyBook, handlePage: handleChangeMyBook, maxPage: myBukuAllPage}].map((item,i) => {
-              if(prof){
-                if(item.title === 'My Books' && (prof.role === 'ADMINISTRATIF' || prof.role === 'MANAGER' || prof.role === 'USER')){
-                  return null
-                }
-                else if (prof.role === 'ANON' && (item.title === 'My Books' || item.title === 'Favorite Books')) {
-                  return(<Typography sx={{textAlign:'center',padding:'10px',marginLeft:'30px',marginRight:'30px', marginTop:'15px',
-                  borderRadius:'10px',background:'rgba(0,0,0,.1)',fontSize:'1rem'}}>Please Verify Your Email</Typography>)
-                }
-                else{return containerBook(item,i)}
+        {[{title:'Recommended Books', data:recBuku, page: 1, handlePage: null, maxPage: 1},
+          {title:'Favorite Books', data:favBuku, page: pageFavBook, handlePage: handleChangeFavBook, maxPage: favBukuAllPage},
+          {title:'My Books', data:myBuku, page: pageMyBook, handlePage: handleChangeMyBook, maxPage: myBukuAllPage}].map((item,i) => {
+            if(prof){
+              if(item.title === 'My Books' && (prof.role === 'ADMINISTRATIF' || prof.role === 'MANAGER' || prof.role === 'USER')){
+                return null
               }
-              else{return containerBook(item,i)}
-            })
-        }
+              else if (prof.role === 'ANON' && (item.title === 'My Books' || item.title === 'Favorite Books')) {
+                return(<Typography sx={{textAlign:'center',padding:'10px',marginLeft:'30px',marginRight:'30px', marginTop:'15px',
+                borderRadius:'10px',background:'rgba(0,0,0,.1)',fontSize:'1rem'}}>Please Verify Your Email</Typography>)
+              }
+              else{return callbackContainer(item,i)}
+            }
+            else{return callbackContainer(item,i)}
+          })}
       </Box>
-      <Tabs className={style.mobile} variant={(sm)?'fullWidth':'scrollable'} scrollButtons='auto' value={(triggerMainConMobile > 0)?false:page}
-        onChange={handleChangePage} textColor='inherit' indicatorColor="secondary">
-        {
-            [{icon:<StarsIcon className={style.tabs}/>,label:'Rekomend Book', url: getRecomendBookURL, pagination:false,refData: -2},
-            {icon:<FavoriteIcon className={style.tabs}/>,label:'Favorite Book', url: getFavoriteBookURL, pagination:true,refData: -3},
-            {icon:<BookIcon className={style.tabs}/>,label:'My Book', url: getMyBookURL, pagination:true, refData: -4},
-            {icon:<LibraryBooksIcon className={style.tabs}/>,label:'All Book', url: mainBookURL, pagination:true, refData: -1}].map((item,i) => {
-              if(prof){
-                if(prof.role === 'ANON' && (item.label === 'Favorite Book' || item.label === 'My Book')){
-                  return <Tab key={i} className={style.tabs} disabled icon={item.icon} label={item.label}/>
+      {(md)?null:
+        <Tabs className={style.mobile} variant={(sm)?'fullWidth':'scrollable'} scrollButtons='auto' value={(triggerMainConMobile > 0)?3:page}
+          onChange={handleChangePage} textColor='inherit' indicatorColor="secondary">
+          {
+              [{icon:<StarsIcon className={style.tabs}/>,label:'Rekomend Book', url: getRecomendBookURL, pagination:false,refData: -2},
+              {icon:<FavoriteIcon className={style.tabs}/>,label:'Favorite Book', url: getFavoriteBookURL, pagination:true,refData: -3},
+              {icon:<BookIcon className={style.tabs}/>,label:'My Book', url: getMyBookURL, pagination:true, refData: -4},
+              {icon:<LibraryBooksIcon className={style.tabs}/>,label:'All Book', url: mainBookURL, pagination:true, refData: -1}].map((item,i) => {
+                if(prof){
+                  if(prof.role === 'ANON' && (item.label === 'Favorite Book' || item.label === 'My Book')){
+                    return <Tab key={i} className={style.tabs} disabled icon={item.icon} label={item.label}/>
+                  }
+                  else if (item.label === 'My Book' && (prof.role === 'ADMINISTRATIF' || prof.role === 'MANAGER' || prof.role === 'USER')) {
+                    return <Tab key={i} className={style.tabs} disabled icon={item.icon} label={item.label}/>
+                  }
+                  else {
+                    return <Tab key={i} className={style.tabs} icon={item.icon} label={item.label} onClick={handleClickTabsBook(item.url,item.pagination,item.refData)}/>
+                  }
+                }else {
+                  if(item.label === 'Favorite Book' || item.label === 'My Book'){
+                    return <Tab key={i} className={style.tabs} disabled icon={item.icon} label={item.label}/>
+                  }else{
+                    return <Tab key={i} className={style.tabs} icon={item.icon} label={item.label} onClick={handleClickTabsBook(item.url,item.pagination,item.refData)}/>
+                  }
                 }
-                else if (item.label === 'My Book' && (prof.role === 'ADMINISTRATIF' || prof.role === 'MANAGER' || prof.role === 'USER')) {
-                  return <Tab key={i} className={style.tabs} disabled icon={item.icon} label={item.label}/>
-                }
-                else {
-                  return <Tab key={i} className={style.tabs} icon={item.icon} label={item.label} onClick={handleClickTabsBook(item.url,item.pagination,item.refData)}/>
-                }
-              }else {
-                if(item.label === 'Favorite Book' || item.label === 'My Book'){
-                  return <Tab key={i} className={style.tabs} disabled icon={item.icon} label={item.label}/>
-                }else{
-                  return <Tab key={i} className={style.tabs} icon={item.icon} label={item.label} onClick={handleClickTabsBook(item.url,item.pagination,item.refData)}/>
-                }
-              }
-            })
-        }
-      </Tabs>
+              })
+          }
+        </Tabs>
+      }
+      <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={Boolean((respon)?respon:error)} onClose={() => (respon)?setRespon(null):setError(null)}
+        autoHideDuration={4000} sx={{zIndex: (theme) => theme.zIndex.drawer + 5}}>
+        <ContainerFeedback severity='error' onClose={() => (respon)?setRespon(null):setError(null)}>
+          {(respon)?respon:error}
+        </ContainerFeedback>
+      </Snackbar>
     </>
   );
 }

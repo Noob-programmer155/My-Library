@@ -3,50 +3,75 @@ import axios from 'axios';
 import Profile from './subcomponent/Auth/AuthUserComponent/Profile';
 import BookBuilder from './subcomponent/Book/Book_Builder';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import {useSelector, useDispatch} from 'react-redux';
+import {useSelector} from 'react-redux';
+import {useHistory} from 'react-router-dom';
 import {profile} from './funcredux/profile_redux';
-import {myBooks, setBookSeller, countDataAppearsDefault, myBookPage, setMyBookPage, trigger, setTrigger} from './funcredux/book_redux';
-import {getMyBookURL,modifyBookURL,searchMyBookSuggestionURL,searchMyBookURL} from './constant/constantDataURL';
-import {Box, Tabs, Tab, useMediaQuery, Snackbar, Backdrop, Portal} from '@mui/material';
-import {Container, Search, ContainerFeedback, ModifyBook, UploadImage} from './subcomponent/utils/otherComponent';
+import {countDataAppearsDefault} from './funcredux/book_redux';
+import {searchMyBookSuggestionURL,searchMyBookURL} from './constant/constantDataURL';
+import {Box, Tabs, Tab, useMediaQuery, Snackbar} from '@mui/material';
+import Portal from '@mui/material/Portal';
+import {Container, ContainerFeedback, Search} from './subcomponent/utils/otherComponent';
 
-export default function MyLibrary() {
+export default function MyLibrary(props) {
   const [error, setError]=useState();
   const [respon, setRespon]=useState();
   const [link, setLink] = useState(1);
-  const [imgFile, setImageFile] = useState()
-  const [img, setImg] = useState({data:null})
-  const [open, setOpen] = useState(false)
-  const [openModify, setOpenModify] = useState();
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [bookData, setBookData] = useState();
+  const history = useHistory();
+  const [bookDataAllPage, setBookDataAllPage] = useState(1);
+  const [bookDataSuggestion, setBookDataSuggestion] = useState([]);
 
   const user = useSelector(profile);
-  const myBuku = useSelector(myBooks);
-  const triggerBook = useSelector(trigger);
-  const myBukuAllPage = useSelector(myBookPage);
   const initSizeData = useSelector(countDataAppearsDefault);
-  const dispatch = useDispatch();
   const med = useMediaQuery('(min-width:900px)');
+
+  useEffect(()=>{
+    if(user) {
+      if(user.role === "SELLER"){
+        axios.get(searchMyBookURL,{
+          withCredentials:true,
+          params:{
+            words: "",
+            page:0,
+            size:initSizeData.book
+          }
+        }).then(res => {
+          if(res.data && res.data.data.length > 0){
+            setBookData(res.data.data);
+            setBookDataAllPage(res.data.sizeAllPage);
+          }else{setRespon("Book is Empty")}})
+          .catch(err => {
+            if(err.response){
+              setError(err.response.data.message)
+            }else {
+              setError(err.message)
+            }
+          })
+      }else {
+        history.push("/login")
+      }
+    }
+  },[user])
+
   const handleChange = (e,n) => {
     setLink(n)
   }
   const handlePage = (e,n) => {
-    var url = getMyBookURL;
-    if(triggerBook === -7){
-      url = searchMyBookURL;
-    }
-    axios.get(url,{
+    axios.get(searchMyBookURL,{
       withCredentials:true,
       params:{
-        words: (triggerBook === -7)? search:null,
+        words: search,
         page: n-1,
         size: initSizeData.book,
       }
     }).then(res => {
       if(res.data && res.data.data.length > 0){
-        dispatch(setBookSeller(res.data.data));
-        dispatch(setMyBookPage(res.data.sizeAllPage));
+        setBookData(res.data.data);
+        setBookDataAllPage(res.data.sizeAllPage);
       }else{
         setRespon("Book is Empty")
       }
@@ -60,18 +85,19 @@ export default function MyLibrary() {
     setPage(n);
   }
   const handleAll = (e) => {
-    dispatch(setTrigger(-8));
-    axios.get(getMyBookURL,{
+    setPage(1)
+    axios.get(searchMyBookURL,{
       withCredentials:true,
       params:{
-        page: page-1,
+        words: "",
+        page: 0,
         size: initSizeData.book,
       }
     }).then(res => {
       if(res.data && res.data.data.length > 0){
-        dispatch(setBookSeller(res.data.data));
-        dispatch(setMyBookPage(res.data.sizeAllPage));
-      }else{setError("Book is Empty")}
+        setBookData(res.data.data);
+        setBookDataAllPage(res.data.sizeAllPage);
+      }else{setRespon("Book is Empty")}
     }).catch(err => {
       if(err.response){
         setError(err.response.data.message)
@@ -80,34 +106,65 @@ export default function MyLibrary() {
       }
     })
   }
-  useEffect(()=>{
-    dispatch(setTrigger(-8));
-    if(user) {
-      axios.get(getMyBookURL,{
-        withCredentials:true,
-        params:{
-          page:0,
-          size:initSizeData.book
-        }
-      }).then(res => {
-        if(res.data && res.data.data.length > 0){
-          dispatch(setBookSeller(res.data.data));
-          dispatch(setMyBookPage(res.data.sizeAllPage));
-        }else{setError("Book is Empty")}})
-      .catch(err => {
+  const handleClickSearch = () => {
+    setPage(1);
+    setOpen(false);
+    axios(searchMyBookURL, {
+      method:'get',
+      withCredentials:true,
+      params: {
+        words: search,
+        page: 0,
+        size: initSizeData.book,
+      },
+    }).then(res => {
+      if(res.data != null){
+          setBookData(res.data.data);
+          setBookDataAllPage(res.data.sizeAllPage);
+      }}).catch(err => {
         if(err.response){
           setError(err.response.data.message)
         }else {
           setError(err.message)
         }
-      })
+    })
+  }
+  let timeout = null
+  const handleInputValueSearch = async(e) => {
+    setSearch(e.target.value);
+    clearTimeout(timeout);
+    setLoading(true);
+    if(!open){
+      setOpen(true);
     }
-  },[user])
+    timeout = setTimeout(function () {
+      inputValueSearch(e);
+    }, 1000);
+  }
+  const inputValueSearch = (e) => {
+    axios.get(searchMyBookSuggestionURL, {
+      withCredentials:true,
+      params: {
+        words: e.target.value,
+      },
+    }).then(res => {
+      if(res.data !== null){
+        setBookDataSuggestion(res.data);
+      }
+    })
+    .catch(err => {
+      if(err.response){
+        setError(err.response.data.message);
+      }else {
+        setError(err.message);
+      }setOpen(false)});
+      setLoading(false);
+  }
   return(
     <>
       <Box display='flex' flexWrap={{xs:'wrap', md:'nowrap'}} sx={{background: '#009999', minHeight:'100vh',paddingTop: '10px'}}>
         <Box sx={{width:{xs:'100%', md:'40%',lg:'30%'}, maxHeight:'100vh'}} justifyContent='center' alignItems='flex-start' display='flex' flexWrap='wrap'>
-          <Profile onerror={setError} container="library" path='/'/>
+          <Profile container="library" path='/'/>
           <Tabs variant="fullWidth" value={link} textColor='inherit' indicatorColor="secondary"
             onChange={handleChange} orientation={(med)?'vertical':'horizontal'} sx={{width:'100%',maxWidth:'100%', color:'#ffff', overflow:'auto'}}>
             {
@@ -122,21 +179,23 @@ export default function MyLibrary() {
         <Box sx={{width:{xs:'100%', md:'60%',lg:'70%'}}}>
           <Panel index={0} value={link}>
             <>
-              <Box>
-                <BookBuilder setError={setError} setRespon={setRespon} setOpen={setOpen} imgFile={imgFile} img={img} setImg={setImg}/>
+              <Box sx={{margin:'10px'}}>
+                <BookBuilder mainProps={props} onLinkMainTab={setLink}/>
               </Box>
             </>
           </Panel>
           <Panel index={1} value={link}>
-            <Box width='100%' sx={{marginTop:'20px'}}>
-              <Search url={searchMyBookURL} triggerPage={setPage} triggerDataIndex={-7} value={search} setValue={setSearch}
-                callback={result => dispatch(setBookSeller(result))} count={result => dispatch(setMyBookPage(result))} isPagination={true} sx={{color:"white"}}
-                urlSuggestion={searchMyBookSuggestionURL} onError={setError} btnDeleteProps={{color:'white'}} filterIcon={<DashboardIcon  sx={{fontSize: 'inherit'}}/>}
-                onFilter={handleAll} sxRoot={{paddingLeft:'10px',paddingBottom:'30px'}}/>
-              <Box paddingLeft='10px'>
-              <Container id='user-book-cont' data={myBuku} page={page} onPageChange={handlePage} itemSpacing={1}
-                sx={{width:'100%', maxWidth:'100%', overflow:'auto',marginBottom:'20px'}} countPage={myBukuAllPage}
-                setOpenModify={setOpenModify} sizeLoadingData={initSizeData.book}/>
+            <Box width='100%' sx={{margin:'10px'}}>
+              <Search id="search-main-book-library" onChange={handleInputValueSearch} value={search}
+                onCloseMenu={() => {setOpen(false);setBookDataSuggestion([])}} onClickItemSearch={(item) => setSearch(item)}
+                data={bookDataSuggestion} loading={loading} sx={{color:'white',width:'15rem'}} menuOpen={open}
+                onMenuOpen={setOpen} onDelete={() => setSearch('')} onClickSearch={handleClickSearch}
+                deleteButtonStyle={{color:'white'}} placeholder='Search...' filterIcon={<DashboardIcon sx={{fontSize:'inherit'}}/>}
+                onFilter={handleAll}/>
+              <Box paddingTop='20px'>
+                <Container id='user-book-cont' data={bookData} page={page} onPageChange={handlePage} itemSpacing={1}
+                  sx={{width:'100%', maxWidth:'100%', overflow:'auto',marginBottom:'20px'}} countPage={bookDataAllPage}
+                  sizeLoadingData={initSizeData.book}/>
               </Box>
             </Box>
           </Panel>
@@ -150,19 +209,6 @@ export default function MyLibrary() {
           </ContainerFeedback>
         </Snackbar>
       </Portal>
-      <Backdrop sx={{zIndex: (theme) => theme.zIndex.drawer + 2, width:'100vw', overflow:'auto'}} onClick={() => {setOpenModify(null);}} open={Boolean(openModify)}>
-        <Box sx={{marginTop:'20px',padding:'10px'}}>
-        {(openModify)?
-          <ModifyBook onError={setError} onSuccess={setRespon} prof={user} imgFile={imgFile} labelButton='Modify Book'
-            imgView={img} setImgView={setImg} imgCallback={setOpen} url={modifyBookURL} responText='Modify Book Successfully !!!, please refresh this page'
-            spacing={2} sx={{padding:'20px',backgroundColor:'#ff6600',borderRadius:'20px'}} bookData={openModify} onOpenModify={setOpenModify}
-            modify={true}/>
-          :<></>
-        }
-        </Box>
-      </Backdrop>
-      <UploadImage open={open} setOpen={setOpen} img={img} setImg={setImg} imgStore={setImageFile} type='square'
-        viewport={{width:150, height:200}}/>
     </>
   );
 };

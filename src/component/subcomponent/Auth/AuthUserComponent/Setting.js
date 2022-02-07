@@ -339,7 +339,7 @@ export default function Setting() {
             </Box>
             <Box display='flex' justifyContent='center' alignItems='center' flexWrap='wrap'>
               <label htmlFor='fotouser-setting'>
-                <Avatar component='span' sx={{width:'7rem',height:'7rem', marginTop:'20px'}}
+                <Avatar component='span' sx={{width:'7rem',height:'7rem', fontSize:'3.2rem', marginTop:'20px'}}
                   src={(img.data)? img.data : (prof && prof.imageUrl)?
                     ((prof.imageUrl.substring(0,4)==='http')?prof.imageUrl:`${imageUserURL}${prof.imageUrl}`) : "sGd4TFc/"} alt={(prof)?prof.name:''}/>
               </label>
@@ -417,7 +417,7 @@ export default function Setting() {
           </Stack>
         </Paper>
       </Stack>
-      <UploadImage open={imgOpen} setOpen={setImgOpen} img={img} setImg={setImg} imgStore={setImgFile}/>
+      <UploadImage id='user-upload-img' open={imgOpen} setOpen={setImgOpen} img={img} setImg={setImg} imgStore={setImgFile}/>
       <OnDeleteComponent onDelete={() => setVerify(true)} title='Upgrade Your Account ?'
         content='Are you sure to upgrade your account to become Seller ?'
         onClose={() => setUpgrade(false)} open={upgrade} buttonTitle='Upgrade'/>

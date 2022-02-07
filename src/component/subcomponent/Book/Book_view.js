@@ -44,20 +44,18 @@ const useStyle = makeStyles({
 });
 
 export default function BookView(props) {
-  const {id, book, keys, onOpenModify, index,...attr} = props;
+  const {id, book, keys, index,...attr} = props;
   const[open, setOpen] = React.useState(false);
   const[error, setError] = React.useState();
   const[respon, setRespon] = React.useState();
   const style = useStyle();
-  const OpenMenu = () => {
-    return React.useCallback(()=> {
+  const openMenu = React.useCallback((e)=> {
       if(!open){
         setOpen(true);document.body.style='overflow-y:hidden;touch-action:none;';
       }else{
         setOpen(false);document.body.style='overflow-y:auto;touch-action:auto;';
       }
     },[open])
-  }
   return(
     <>
       {
@@ -65,7 +63,7 @@ export default function BookView(props) {
           <>
             <Card className={style.root} {...attr}>
               <CardActionArea sx={{height:'100%',display:'flex',justifyContent:'center',alignItems:'flex-start',flexWrap:'wrap'}}
-                onClick={OpenMenu()}>
+                onClick={openMenu}>
                 <Box justifyContent='center' alignItems='flex-start' display='flex' width='100%'>
                   <CardMedia image={`${imageBookURL}${book.image}`} className={style.image}>
                     <Box justifyContent='flex-start' alignItems='center' display='flex'>
@@ -88,9 +86,8 @@ export default function BookView(props) {
               </ContainerFeedback>
             </Snackbar>
             <Backdrop sx={{zIndex: (theme) => theme.zIndex.drawer + 1, width:'100vw', height:'100vh'}} open={Boolean(open)}
-              onClick={OpenMenu()}>
-              <Book id={id+keys} book={book} isOpenFunc={setOpen} setRespon={setRespon} setError={setError}
-                isModifyFunc={onOpenModify}/>
+              onClick={openMenu}>
+              <Book id={id+keys} book={book} isOpenFunc={setOpen} setRespon={setRespon} setError={setError}/>
             </Backdrop>
           </>
         ):(

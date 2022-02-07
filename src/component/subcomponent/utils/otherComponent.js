@@ -1,18 +1,18 @@
 import React, {forwardRef, useState, useEffect} from 'react';
 import axios from 'axios';
-import SearchIcon from '@mui/icons-material/Search';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import BookView from '../Book/Book_view';
 import WarningIcon from '@mui/icons-material/Warning';
 import CloseIcon from '@mui/icons-material/Close';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import SearchIcon from '@mui/icons-material/Search';
 import Croppie from 'croppie';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 import {styled,createTheme} from '@mui/material/styles';
-import {setTrigger, countDataAppearsDefault} from './../../funcredux/book_redux';
-import {Alert, useMediaQuery, Box, TextField, IconButton, Button, Stack, Card, CardMedia, CardActionArea, Typography, Pagination, Menu, Snackbar,
+import {countDataAppearsDefault} from './../../funcredux/book_redux';
+import {Alert, useMediaQuery, Box, TextField, IconButton, Button, Stack, Card, CardMedia, CardActionArea, Typography, Pagination, Menu,
   MenuItem, Dialog, DialogActions, DialogContent,DialogContentText, DialogTitle, Backdrop, Chip, CircularProgress, InputAdornment} from '@mui/material';
 import {imageBookURL,searchPublisherBookURL,searchThemeBookURL} from './../../constant/constantDataURL';
 
@@ -51,164 +51,69 @@ export const CustomTextField = styled(TextField)({
     },
   },
 })
-
-export function Search (props) {
-  const{url, isPageSizeResult, initSizeAllData, value, setValue, callback, onFilter, count, startCountPage, urlSuggestion, isPagination, triggerPage, triggerDataIndex, onError, sxRoot,
-    isSuggestionSearch, isSuggestionDataList, onClickItemSuggestion, btnDeleteProps, btnSearchProps, btnFilterProps, filterIcon, ...attr} = props
-  const[openMenu, setOpenMenu] = useState(false);
-  const[menuFocus, setMenuFocus] = useState(false);
-  const searchField = React.useRef(null);
-  const[loading, setLoading] = useState(false);
-  const[dataSuggestions, setDataSuggestions] = useState([""]);
-  const dispatch = useDispatch();
-  const initStateSize = useSelector(countDataAppearsDefault);
-  const handleClick = (e) => {
-    if(url){
-      triggerPage(startCountPage);
-      dispatch(setTrigger(triggerDataIndex))
-      var param = {words: value};
-      if(isPagination){
-        param = {...param, page: 0, size: (initSizeAllData)?initSizeAllData:initStateSize.book};
-      }
-      axios(url, {
-        method:'get',
-        withCredentials:true,
-        params: param,
-      }).then(res => {
-        if(res.data != null){
-          if(isPagination){
-            if(isPageSizeResult){
-              count(res.data.sizeAllPage);
-            }else{count(res.data.sizeAllData);}
-            callback(res.data.data);
-          }
-          else{callback(res.data)}
-        }}).catch(err => {
-          if(err.response){
-            onError(err.response.data.message)
-          }else {
-            onError(err.message)
-          }
-        })
-    }
-    else {
-      callback(value)
-    }
-  }
-  const handleInputValue = React.useCallback((e) => {
-    if(isSuggestionDataList){
-      setValue({id: null, name: e.target.value});
-    }else{setValue(e.target.value);}
-    if(e.target.value === "") {
-      if(count){
-        count(startCountPage);
-      }
-      setOpenMenu(false);
-    }
-    else{
-      if(!openMenu){
-        setOpenMenu(true);
-      }
-      if(urlSuggestion !== null){
-        setLoading(true);
-        axios.get(urlSuggestion, {
-          withCredentials:true,
-          params: {
-            words: e.target.value,
-          },
-        }).then(res => {setDataSuggestions(res.data);setLoading(false);})
-        .catch(err => {
-          if(err.response){
-            onError(err.response.data.message)
-          }else {
-            onError(err.message)
-          }
-          setLoading(false);});
-      }
-    }
-  },[value])
-  const handleKeyDown = (e) =>{
-    if(e.keyCode === 13){handleClick();setOpenMenu(false);}
-    else if(e.keyCode === 9 || e.keyCode === 40) {
-      if(!menuFocus){
-        setMenuFocus(true)
+export function Search(props) {
+  const {id, loading, onClickSearch, onClickItemSearch, onDelete, data, labelData, onCloseMenu, deleteButtonStyle,
+    onFilter, menuOpen, onMenuOpen, filterIcon, searchIcon, btnSearchStyle, btnFilterStyle, ...attr} = props;
+  const [focus, setFocus] = useState(false);
+  const field = React.useRef();
+  const handleOnKeyDown = (e) => {
+    if(e.keyCode === 13){
+      onClickSearch();
+      setFocus(false);
+      onCloseMenu();
+    }else if (e.keyCode === 40 || e.keyCode === 9) {
+      if(!focus){
+        setFocus(true);
       }
     }
   }
   return(
     <>
-      <Box display='flex' justifyContent='flex-start' alignItems='center' sx={{...sxRoot}}>
-        <CustomTextField
-          value={(isSuggestionDataList)?value.name:value}
-          placeholder= 'Search...'
-          ref={searchField}
-          InputLabelProps={{style:{fontSize: '1rem',}}}
-          InputProps={{
-            style:{
-              fontSize: '1rem',
-            },
-            endAdornment:(
-              <InputAdornment position='end'>
-                <IconButton sx={{...btnDeleteProps, padding:'0px', opacity: (isSuggestionDataList)?((value.name === "")? 0:1):((value === "")? 0:1),
-                  fontSize:'1.3rem'}} disabled={(isSuggestionDataList)?((value.name === "")? true:false):((value === "")? true:false)}
-                  onClick={() => (isSuggestionDataList)? setValue({id:null, name: ""}):setValue("")}>
-                    <CloseIcon sx={{fontSize:'inherit'}}/></IconButton>
-              </InputAdornment>
-            ),
-          }}
-          onChange={handleInputValue}
-          onKeyDown={handleKeyDown}
-          {...attr}
-          />
-        {(isSuggestionSearch)?
-          <Menu
-            id='Menu-item-search'
-            open={openMenu}
-            autoFocus={menuFocus}
-            disableAutoFocus={!menuFocus}
-            anchorEl={searchField.current}
-            PaperProps={{style:{width:(searchField && searchField.current)?searchField.current.offsetWidth:'inherit',
-            maxHeight:'30vh',overflow:'auto'}}}
-            onClose={() => {setOpenMenu(false);setMenuFocus(false);}}
-            >
-          {(!loading)?((dataSuggestions.length > 0)? dataSuggestions.map((item,i) => <MenuItem key={i}
-          sx={{fontSize:'1rem'}} onClick={(e) => {
-            if(onClickItemSuggestion){onClickItemSuggestion(item)}
-            else {setValue(item);}
-            setOpenMenu(false);setMenuFocus(false);}}>
-            {(isSuggestionDataList)?item.name:item}</MenuItem>):<MenuItem sx={{fontSize:'1rem'}}>No Data</MenuItem>):
-            <MenuItem sx={{fontSize:'1rem'}}><CircularProgress size='1rem' sx={{marginRight:'15px'}}/>Loading</MenuItem>}
-          </Menu>:<></>
-        }
-        <IconButton onClick={handleClick} sx={{fontSize:'1.5rem',color:'#ffff', background:'#004d4d',
-          marginLeft:'7px', '&:hover':{background:'#004d4d'}, padding:'.5rem', ...btnSearchProps }}><SearchIcon sx={{fontSize:'inherit'}}/></IconButton>
-        <IconButton onClick={() => onFilter(true)} sx={{fontSize:'1.5rem', color:'#ffff',
-          background:'#004d4d', marginLeft:'7px', '&:hover':{background:'#004d4d'}, padding:'.5rem', ...btnFilterProps}}>{filterIcon}</IconButton>
-      </Box>
+      <CustomTextField
+        ref={field}
+        autoComplete='off'
+        onKeyDown={handleOnKeyDown}
+        InputProps={{
+          endAdornment:(
+            <InputAdornment position='end'>
+              <IconButton onClick={onDelete} sx={{...deleteButtonStyle,opacity:(attr['value']!=="")?1:0}}><CloseIcon size='1rem'/></IconButton>
+            </InputAdornment>
+          )
+        }}
+        {...attr}
+      />
+      <Menu
+        id={'Menu'+attr['id']}
+        autoFocus={focus}
+        disableAutoFocus={!focus}
+        anchorEl={(field.current)?field.current:null}
+        sx={{'.MuiMenu-paper':{width:(field.current)?field.current.offsetWidth:null,maxHeight:'30vh', overflow:'auto'}}}
+        open={menuOpen}
+        onClose={onCloseMenu}
+      >
+        {(loading)?<MenuItem key={"Menu-Search-loading"+attr['id']}><CircularProgress size='1rem'/>  Loading</MenuItem>:
+          ((data && data.length > 0)?data.map((item, i)=>{
+            return <MenuItem key={"Menu-Search"+attr['id']+i}
+              onClick={()=>{onClickItemSearch(item);setFocus(false);onCloseMenu()}}>{(labelData)?item[labelData]:item}</MenuItem>
+        }):<MenuItem key={"Menu-Search-nodata"+attr['id']}>No Data</MenuItem>)}
+      </Menu>
+      <IconButton onClick={onClickSearch} sx={{fontSize:'1.5rem',color:'#ffff', background:'#004d4d',
+        marginLeft:'7px', '&:hover':{background:'#004d4d'}, padding:'.5rem', ...btnSearchStyle}}>{searchIcon}</IconButton>
+      <IconButton onClick={onFilter} sx={{fontSize:'1.5rem', color:'#ffff',
+        background:'#004d4d', marginLeft:'7px', '&:hover':{background:'#004d4d'}, padding:'.5rem', ...btnFilterStyle}}>{filterIcon}</IconButton>
     </>
   )
 }
-Search.defaultProps = {
-  url: null,
-  onFilter: function () {},
-  triggerPage: function () {},
-  triggerDataIndex: -1,
-  callback: function () {},
-  isPagination:false,
-  isPageSizeResult:true,
-  count: function () {},
-  startCountPage: 1,
-  value: '',
-  setValue: function () {},
-  urlSuggestion:null,
-  isSuggestionSearch: true,
-  isSuggestionDataList: false,
-  onClickItemSuggestion: null,
-  filterIcon: <FilterAltIcon sx={{fontSize: 'inherit'}}/>,
+Search.defaultProps={
+  loading:false,
+  filterIcon:<FilterAltIcon sx={{fontSize: 'inherit'}}/>,
+  searchIcon:<SearchIcon sx={{fontSize:'inherit'}}/>,
+  onClickSearch: function () {},
+  onCloseMenu: function () {},
+  menuOpen: false,
 }
-
-export const Container = React.memo(function (props) {
-  const {id, sizeLoadingData, setOpenModify, data, page, onPageChange, countPage, pattern, itemSpacing, sxRoot, ...attr} = props;
+export function Container(props) {
+  const {id, sizeLoadingData, data, page, onPageChange, countPage, pattern, itemSpacing, sxRoot, ...attr} = props;
   const character = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   var keys = '';
   for(var ind = 0;ind < 5;ind++){
@@ -220,37 +125,34 @@ export const Container = React.memo(function (props) {
   for(var s = 0; s < sizeLoadingData; s++){
     clone.push(<BookView key={"loading"+s} book={null} sx={{marginBottom:'.5rem', marginRight:'.5rem'}}/>)
   }
+  const comp = React.useCallback(()=>{
+    return ((data.length > 0)?
+        (data.map((data,i) =>
+            <BookView key={"wider"+keys+i} keys={keys} id={id+i} book={data} index={(page-1)*initStateSize.book+(i+1)}
+              sx={{margin: (theme) => theme.spacing(itemSpacing)}}/>)
+        ):(<>{clone}</>))
+  },[data])
   return(
     <Box display='flex' justifyContent='center' alignItems='center' flexWrap='wrap' sx={{width:'100%',...sxRoot}}>
       {(pattern === 'wider')?
         <>
           <Box display='flex' justifyContent='center' alignItems='center' flexWrap='wrap' {...attr}>
-            {(data.length > 0)?
-              (data.map((data,i) =>
-                  <BookView key={"wider"+keys+i} keys={keys} id={id+i} book={data} index={(page-1)*initStateSize.book+(i+1)}
-                    onOpenModify={setOpenModify} sx={{margin: (theme) => theme.spacing(itemSpacing)}}/>)
-              ):(<>{clone}</>)
-            }
+            {comp()}
           </Box>
           <Pagination size={(md)? 'medium':'small'} sx={{'& .MuiPagination-ul':{'& .MuiPaginationItem-root':{color:'#bfbfbf',padding:'.4rem',fontSize:'1rem'}
             ,'& .Mui-selected':{color:'white'}}}} count={countPage} page={page} onChange={onPageChange} color="primary"/>
         </>:
         <>
-          <Stack display='flex' justifyContent='flex-start' alignItems='center' direction={pattern} spacing={itemSpacing} {...attr}>
-            {(data.length > 0)?
-              (data.map((data,i) =>
-                  <BookView key={"pattern"+keys+i} keys={keys} id={id+i} book={data} index={(page-1)*initStateSize.book+(i+1)}
-                    onOpenModify={setOpenModify}/>)
-              ):(<>{clone}</>)
-            }
-          </Stack>
+          <Box display='flex' justifyContent='flex-start' alignItems='center' direction={pattern} {...attr}>
+            {comp()}
+          </Box>
           <Pagination size={(md)? 'medium':'small'} sx={{'& .MuiPagination-ul':{'& .MuiPaginationItem-root':{color:'#bfbfbf',padding:'.4rem',fontSize:'1rem'}
             ,'& .Mui-selected':{color:'white'}}}} count={countPage} page={page} onChange={onPageChange} color="primary"/>
         </>
       }
     </Box>
   );
-})
+}
 Container.defaultProps = {
   pattern: 'wider',
   data:[],
@@ -304,7 +206,7 @@ PasswordContainer.defaultProps = {
 }
 
 export function UploadImage(props) {
-  const {open,setOpen,img, setImg, imgStore, type, viewport, boundary} = props
+  const {id, open,setOpen,img, setImg, imgStore, type, viewport, boundary} = props
   const [image, setImage] = useState();
   const handleSetImage = () => {
     if(image){
@@ -322,7 +224,7 @@ export function UploadImage(props) {
       }
     }
     else{
-      setImage(new Croppie(document.getElementById('imageChange1'),{
+      setImage(new Croppie(document.getElementById(id),{
         boundary:{
           width: boundary.width,
           height: boundary.height,
@@ -339,7 +241,7 @@ export function UploadImage(props) {
     <Backdrop open={Boolean(open)} sx={{zIndex:(theme)=> theme.zIndex.drawer + 9}}>
       <Stack>
         <Box>
-          <Box id='imageChange1'></Box>
+          <Box id={id}></Box>
         </Box>
         <Stack sx={{marginTop:'20px'}}direction='row' spacing={2} justifyContent='center' alignItems='center'>
           <Button variant='contained' sx={{fontSize:'1rem'}} onClick={handleSetImage}>Set Image</Button>
@@ -397,7 +299,7 @@ export function getBase64(file) {
 }
 
 export function UploadFunc(props) {
-  const {setImage, image, imageInit, setError, fileInit, setFileInit, file, setFile, isImg, imgCallback, sx} = props
+  const {id, setImage, image, imageInit, setImgInit, setError, fileInit, setFileInit, file, setFile, isImg, imgCallback, sx} = props
   const onDrop = (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -413,7 +315,7 @@ export function UploadFunc(props) {
   const onImg = (e) => {
     var files = e.target.files[0];
     if(files) {
-      getBase64(files).then(res => {setImage({...image, data: res});imgCallback(true);}).catch(err => setError(err.message));
+      getBase64(files).then(res => {setImgInit(null);setImage({...image, data: res});imgCallback(true);}).catch(err => setError(err.message));
     }
   }
   const onFile = (e) => {
@@ -435,7 +337,7 @@ export function UploadFunc(props) {
         ):(
           <Card sx={{background:'transparent'}}>
             <Box component='div' onDrop={onDrop} onDragOver={onDrag} onDragEnter={onDrag}>
-              <label htmlFor='file-book-modify'>
+              <label htmlFor={'file-book-modify'+id}>
                 <CardActionArea component='span'>
                   <Box justifyContent='center' alignItems='center' display='flex' flexWrap='wrap' sx={{...sx}}>
                     <FileUploadIcon sx={{color:'#ffff'}}/>
@@ -449,7 +351,7 @@ export function UploadFunc(props) {
                 </CardActionArea>
               </label>
             </Box>
-            <input id='file-book-modify'
+            <input id={'file-book-modify'+id}
                 type='file'
                 onChange={onFile}
                 accept='.pdf'
@@ -459,10 +361,10 @@ export function UploadFunc(props) {
       }
     </>
   )
-  const uploadImage = (
+  const uploadImage = React.useCallback(() => (
     <Card sx={{background:'transparent'}}>
-      <label htmlFor='gambar-book-modify'>
-        <CardActionArea component='span'>
+      <label htmlFor={'gambar-book-modify'+id}>
+        <CardActionArea component='span' onClick={e => e.stopPropagation()}>
           <CardMedia image={(image && image.data)?image.data: ((imageInit)?`${imageBookURL}${imageInit}`:null)}>
             <Box display='flex' justifyContent='center' alignItems='center' flexWrap='wrap' sx={{backgroundColor:((image && image.data) || imageInit)?'rgba(0,0,0,.5)':'rgba(0,0,0,0)',height:'6rem',...sx}}>
               <AddPhotoAlternateIcon sx={{color:'#ffff'}}/>
@@ -472,18 +374,18 @@ export function UploadFunc(props) {
           </CardMedia>
         </CardActionArea>
       </label>
-      <input id='gambar-book-modify'
+      <input id={'gambar-book-modify'+id}
           type='file'
           onChange={onImg}
           accept='image/*'
           style={{display:'none'}}/>
     </Card>
-  )
+  ),[image,imageInit])
   return(
     <>
       {(isImg)?
         (
-          <>{uploadImage}</>
+          <>{uploadImage()}</>
         ):(
           <>{uploadPdf}</>
         )
@@ -493,39 +395,57 @@ export function UploadFunc(props) {
 }
 
 export function ModifyBook(props) {
-  const {bookData, onError, onSuccess, onOpenModify, prof, imgFile, imgView, setImgView,
+  const {rootProps, onRootLink, onMainLink, onError, onSuccess, prof, imgFile, imgView, setImgView,
     imgCallback, url, responText, labelButton, modify, ...attr} = props;
-  var init = {
-    title: (bookData)?bookData.title:'',
-    publisher: (bookData)?bookData.publisher:{id:null,name:''},
-    description: (bookData)?bookData.description:''
-  }
-  const[fileInit, setFileInit] = useState((bookData)?bookData.file:null);
-  const[typeData,setTypeData] = useState((bookData)?bookData.theme:[]);
-  const[newTypeData,setNewTypeData] = useState([]);
-  const[type,setType] = useState({id:null,name:''});
+  const[fileInit, setFileInit] = useState(null);
+  const[imgInit, setImgInit] = useState(null);
+  const[themeData,setThemeData] = useState([]);
+  const[newThemeData,setNewThemeData] = useState([]);
+  const[theme,setTheme] = useState({id:null,name:''});
+  const[themeDataSuggestion,setThemeDataSuggestion] = useState([]);
+  const[loadingTheme,setLoadingTheme] = useState(false);
+  const[openTheme, setOpenTheme] = useState(false);
+  const[publisher, setPublisher] = useState({id:null,name:''});
+  const[publisherDataSuggestion,setPublisherDataSuggestion] = useState([]);
+  const[loadingPublisher,setLoadingPublisher] = useState(false);
+  const[openPublisher, setOpenPublisher] = useState(false);
   const[pdfFile, setPdfFile] = useState()
   const[preventClick, setPreventClick] = useState(false)
-  const[data, setData] = useState(init)
+  const[data, setData] = useState({id:'',title:'',description:''})
+  useEffect(()=>{
+    if(modify && onRootLink && onMainLink && rootProps){
+      let url = new URLSearchParams(decodeURI(rootProps.location.search));
+      if(url && url.get('id') && url.get('title') && url.get('description') && url.get('publisher') && url.get('theme')){
+        setData({id:url.get('id'),title:url.get('title'),description:url.get('description')});
+        setPublisher(JSON.parse(url.get('publisher')))
+        setThemeData(JSON.parse(url.get('theme')))
+        setImgView({...imgView,data:null});
+        setImgInit(url.get('image'))
+        setFileInit(url.get('file'))
+        onRootLink(0);
+        onMainLink(1);
+      }
+    }
+  },[])
   const onUpload = () => {
-    if(data.title && data.publisher && data.description && (typeData.length > 0 || newTypeData.length > 0) && prof.id && ((pdfFile && imgFile) || modify)){
+    if(data.title && publisher.name && data.description && (themeData.length > 0 || newThemeData.length > 0) && prof.id && ((pdfFile && imgFile) || modify)){
       setPreventClick(true)
       var user = new FormData();
-      if(bookData){
-          user.append('idBook',bookData.id);
+      if(data.id){
+          user.append('idBook',data.id);
       }
       user.append('title',data.title);
-      if(data.publisher.id === null){
-          user.append('newPublisher',data.publisher.name);
+      if(publisher.id === null){
+          user.append('newPublisher',publisher.name);
       }else {
-          user.append('publisher',data.publisher.id);
+          user.append('publisher',publisher.id);
       }
       user.append('description',data.description);
-      if(typeData.length !== 0){
-          user.append('theme',typeData.map(a => a.id));
+      if(themeData.length !== 0){
+          user.append('theme',themeData.map(a => a.id));
       }
-      if(newTypeData.length !== 0){
-          user.append('newTheme',newTypeData.map(a => a.name));
+      if(newThemeData.length !== 0){
+          user.append('newTheme',newThemeData.map(a => a.name));
       }
       user.append('favorite',true);
       user.append('file',pdfFile);
@@ -533,14 +453,14 @@ export function ModifyBook(props) {
       if(modify){
         axios.put(url,user,{
           withCredentials:true,
-        }).then(a => {setPreventClick(false);onOpenModify(null);onSuccess(responText);})
+        }).then(a => {setPreventClick(false);window.location.href='/my-library';})
         .catch(err => {
           if(err.response){
             onError(err.response.data.message)
           }else {
             onError(err.message)
           }
-          setPreventClick(false);onOpenModify(null);})
+          setPreventClick(false);})
       }
       else{
         axios.post(url,user,{
@@ -564,17 +484,55 @@ export function ModifyBook(props) {
       onUpload();
     }
   }
-  const onClickItemType = (item) => {
+  const onClickItemTheme = (item) => {
     if(item.id === null){
-      setNewTypeData([...newTypeData, item])
+      setNewThemeData([...newThemeData, item])
     }
     else{
-      setTypeData([...typeData, item])
+      setThemeData([...themeData, item])
     }
-    setType({id: null, name:''})
+    setTheme({id: null, name:''})
   }
-  const onDeleteTypeData = (name, data, setData) => {
+  const onDeleteThemeData = (name, data, setData) => {
     setData(data.filter(s => s.name !== name))
+  }
+
+  const idFuncFilterElement =  [setPublisher,setTheme]
+  const openFilterElement =  [openPublisher, openTheme]
+  const openFuncFilterElement =  [setOpenPublisher, setOpenTheme]
+  const loadingFilterElement =  [setLoadingPublisher, setLoadingTheme]
+  const dataFilterElement =  [setPublisherDataSuggestion, setThemeDataSuggestion]
+  const urlFilterElement = [searchPublisherBookURL, searchThemeBookURL]
+  let timeout = null
+  const handleInputValue = async(id,vl) => {
+    idFuncFilterElement[id]({id:null, name: vl});
+    clearTimeout(timeout);
+    loadingFilterElement[id](true);
+    if(!openFilterElement[id]){
+      openFuncFilterElement[id](true);
+    }
+    timeout = setTimeout(function () {
+      inputValueSearch(id,vl);
+    }, 1000);
+  }
+  const inputValueSearch = (id,vl) => {
+    axios.get(urlFilterElement[id], {
+      withCredentials:true,
+      params: {
+        words: vl,
+      },
+    }).then(res => {
+      if(res.data !== null){
+        dataFilterElement[id](res.data);
+      }
+    })
+    .catch(err => {
+      if(err.response){
+        onError(err.response.data.message);
+      }else {
+        onError(err.message);
+      }openFuncFilterElement[id](false)});
+      loadingFilterElement[id](false);
   }
   return(
       <Stack {...attr}>
@@ -583,46 +541,50 @@ export function ModifyBook(props) {
             <CustomTextField size='small' type='text' onKeyDown={handleKeyDown} name='title' value={data.title}
             onChange={(a) => setData({...data, title: a.target.value})} label='Book Title' sx={{color:'white'}}
             InputLabelProps={{style:{fontSize: '1rem',}}} InputProps={{style:{fontSize: '1rem',}}}/>
-            <Search size='small' value={data.publisher} setValue={(item) => setData({...data, publisher:item})} urlSuggestion={searchPublisherBookURL}
-            onError={onError} isSuggestionSearch isSuggestionDataList label='Publisher' placeholder='' sx={{width:'100%',color:'white'}}
-            inputProps={{width:'100%'}} btnDeleteProps={{color:'white'}} btnSearchProps={{display:'none'}} btnFilterProps={{display:'none'}}/>
+            <Search id={"modify-publisher"+attr['id']} size='small' value={publisher.name} onChange={e => handleInputValue(0,e.target.value)}
+              placeholder='Publisher...' data={publisherDataSuggestion} labelData='name' onClickItemSearch={(item) => setPublisher(item)}
+              loading={loadingPublisher} label='Book Publisher' menuOpen={openPublisher} onMenuOpen={setOpenPublisher}
+              btnFilterStyle={{display:'none'}} onDelete={() => setPublisher({id:null,name:''})} onClickSearch={onUpload}
+              btnSearchStyle={{display:'none'}} onCloseMenu={() => {setOpenPublisher(false);setPublisherDataSuggestion([])}}
+              deleteButtonStyle={{color:'white'}} sx={{color:'white'}}/>
           </Stack>
-          <UploadFunc sx={{border:'4px solid rgba(89, 89, 89, .3)',
+          <UploadFunc id={attr['id']} sx={{border:'4px solid rgba(89, 89, 89, .3)',
             borderStyle: 'dashed'}} setImage={setImgView} image={imgView} setError={onError}
-            isImg={true} imgCallback={imgCallback} imageInit={(bookData)?bookData.image:null}/>
+            isImg={true} imgCallback={imgCallback} imageInit={(imgInit)?imgInit:null} setImgInit={setImgInit}/>
         </Stack>
         <CustomTextField value={data.description} sx={{color:'white'}} multiline rows={4} label='Description from your book'
           onChange={(a) => setData({...data, description: a.target.value})} helperText={"Use special character that start with: 'p>....<p' to make new paragraph,"+
           " '-=>.._,_.._,_..<=-' to make list and per list item separated by '_,_', '!--....--!' to make special sentence."}
           FormHelperTextProps={{style:{color:'white',fontSize:'.8rem'}}} InputLabelProps={{style:{fontSize: '1rem',}}} InputProps={{style:{fontSize: '1rem',}}}/>
-        <Search size='small' value={type} setValue={setType} urlSuggestion={searchThemeBookURL} onClickItemSuggestion={onClickItemType}
-          FormHelperTextProps={{style:{color:'white',fontSize:'.8rem'}}} onError={onError} isSuggestionSearch isSuggestionDataList
-          label='Book Theme' callback={(item) => onClickItemType(item)} helperText="Please select your Theme" placeholder="Theme..."
-          sx={{width:'100%',color:'white'}} inputProps={{width:'100%'}} btnSearchProps={{display:'none'}} btnFilterProps={{display:'none'}}/>
+          <Search id={"modify-theme"+attr['id']} size='small' value={theme.name} onChange={e => handleInputValue(1,e.target.value)}
+            placeholder='Theme Book...' data={themeDataSuggestion} labelData='name' onClickItemSearch={(item) => onClickItemTheme(item)}
+            loading={loadingTheme} label='Book Theme' menuOpen={openTheme} onMenuOpen={setOpenTheme} btnFilterStyle={{display:'none'}}
+            onDelete={() => setTheme({id:null,name:''})} onClickSearch={onUpload} btnSearchStyle={{display:'none'}}
+            onCloseMenu={() => {setOpenTheme(false);setThemeDataSuggestion([])}} deleteButtonStyle={{color:'white'}} sx={{color:'white'}}/>
         <Stack direction='row' spacing={1} display='flex' flexWrap='wrap'>
         {
-            (typeData.length > 0)?
-            typeData.map((a,i) => (
+            (themeData.length > 0)?
+            themeData.map((a,i) => (
               <Chip sx={{color:'white',fontSize:'1rem',marginBottom:'10px','& .MuiChip-deleteIcon':{fontSize:'1.4rem'}}}
-                key={i} label={a.name} onDelete={() => onDeleteTypeData(a.name,typeData,setTypeData)}/>
-            )):<></>}
+                key={i} label={a.name} onDelete={() => onDeleteThemeData(a.name,themeData,setThemeData)}/>
+            )):null}
         {
-            (newTypeData.length > 0)?
-            newTypeData.map((a,i) => (
+            (newThemeData.length > 0)?
+            newThemeData.map((a,i) => (
               <Chip sx={{color:'white',fontSize:'1rem',marginBottom:'10px','& .MuiChip-deleteIcon':{fontSize:'1.4rem'}}}
-                key={i} label={a.name} onDelete={() => onDeleteTypeData(a.name,newTypeData,setNewTypeData)}/>
-            )):<></>}
+                key={i} label={a.name} onDelete={() => onDeleteThemeData(a.name,newThemeData,setNewThemeData)}/>
+            )):null}
         </Stack>
-        <UploadFunc sx={{border:'4px solid rgba(89, 89, 89, .3)', paddingTop:'20px', paddingBottom:'20px',
+        <UploadFunc id={attr['id']} sx={{border:'4px solid rgba(89, 89, 89, .3)', paddingTop:'20px', paddingBottom:'20px',
           borderStyle: 'dashed', background: 'rgba(255, 255, 255, .2)'}} file={pdfFile} setFile={setPdfFile}
           isImg={false} fileInit={fileInit} setFileInit={setFileInit} setError={onError}/>
         <Box justifyContent='center' alignItems='center' display='flex'>
           <Button variant='contained' sx={{background:'#0099cc'}} onClick={onUpload}
-            disabled={preventClick} startIcon={(preventClick)?<CircularProgress size='1rem' color="primary"/>:<></>}>{(labelButton)?labelButton:'Add Books'}</Button>
-          {(bookData)?
+            disabled={preventClick} startIcon={(preventClick)?<CircularProgress size='1rem' color="primary"/>:null}>{(labelButton)?labelButton:'Add Books'}</Button>
+          {(data.id)?
             <Button variant='contained' color='error' sx={{marginLeft:'10px'}}
-              onClick={e => {onOpenModify(null);setImgView({data:null});}}>Cancel</Button>
-              :<></>
+              onClick={e => {window.location.reload();}}>Cancel</Button>
+              :null
           }
         </Box>
       </Stack>

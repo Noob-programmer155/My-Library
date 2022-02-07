@@ -7,8 +7,9 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import {useHistory} from 'react-router-dom';
 import {makeStyles} from '@mui/styles';
 import {useSelector, useDispatch} from 'react-redux';
+import {ContainerFeedback} from '../../utils/otherComponent';
 import {profile, setProf, setOnline, userOnline} from './../../../funcredux/profile_redux';
-import {Typography, Box, IconButton, Avatar, Skeleton, Chip, Divider, Button} from '@mui/material';
+import {Typography, Box, IconButton, Avatar, Skeleton, Chip, Divider, Button, Snackbar} from '@mui/material';
 import {verUserURL,imageUserURL,addUserOnlineURL,deleteUserOnlineURL} from './../../../constant/constantDataURL';
 
 const useStyle = makeStyles({
@@ -23,6 +24,7 @@ const useStyle = makeStyles({
   avatar: {
     width: '8rem',
     height: '8rem',
+    fontSize: '4rem',
     background: '#006666',
     marginTop: '20px',
     marginBottom: '20px',
@@ -104,7 +106,8 @@ const useStyle = makeStyles({
 });
 
 export default function Profile(props) {
-  const {onerror, container,path} = props;
+  const {container,path} = props;
+  const [error, setError] = useState();
   const [respon, setRespon] = useState();
   const style = useStyle();
   const history = useHistory();
@@ -132,9 +135,9 @@ export default function Profile(props) {
           }).then(resp => dispatch(setOnline(true)))
           .catch(err => {
             if(err.response){
-              onerror(err.response.data.message)
+              setError(err.response.data.message)
             }else {
-              onerror(err.message)
+              setError(err.message)
             }
           })
         }
@@ -148,9 +151,9 @@ export default function Profile(props) {
         }).then(resp => dispatch(setOnline(false)))
         .catch(err => {
           if(err.response){
-            onerror(err.response.data.message)
+            setError(err.response.data.message)
           }else {
-            onerror(err.message)
+            setError(err.message)
           }
         })
       }
@@ -166,12 +169,12 @@ export default function Profile(props) {
       }
     }
     else {
-      onerror("You`re offline, connect it to internet, and try again");
+      setError("You`re offline, connect it to internet, and try again");
     }}).catch(err => {if(userProfile){
       if(err.response){
-        onerror(err.response.data.message)
+        setError(err.response.data.message)
       }else {
-        onerror(err.message)
+        setError(err.message)
       }
     } if(container){history.push("/login")}})
   },[]);
@@ -229,6 +232,12 @@ export default function Profile(props) {
             {log}
           </>)
           }
+          <Snackbar anchorOrigin={{vertical:'top',horizontal:'center'}} open={Boolean(error)} onClose={() => setError(null)}
+            autoHideDuration={4000} sx={{zIndex: (theme) => theme.zIndex.drawer + 5}}>
+            <ContainerFeedback severity='error' onClose={() => setError(null)}>
+              {error}
+            </ContainerFeedback>
+          </Snackbar>
       </>
   );
 }

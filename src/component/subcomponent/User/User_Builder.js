@@ -5,7 +5,7 @@ import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import axios from 'axios';
 import UserInfo,{roleColor} from './User';
 import {styled} from '@mui/material/styles';
-import {OnDeleteComponent, Search, PasswordContainer} from '../utils/otherComponent';
+import {OnDeleteComponent, PasswordContainer, Search} from '../utils/otherComponent';
 import {upgradeAdminURL,getReportURL,verifyPasswordURL} from './../../constant/constantDataURL';
 import {Paper, Table, TableContainer, TableHead, TableBody, TableCell, TableRow, IconButton,
   TablePagination, Box, Typography, useMediaQuery,Button, TextField,Drawer, Stack} from '@mui/material';
@@ -15,12 +15,11 @@ const Cell = styled(TableCell)(({theme}) => ({
 }))
 
 export default function UserBuilder(props) {
-  const{setError, type, urlMainData, setRespon, role, urlSearch} = props;
+  const{setError, type, setRespon, role, urlMainData} = props;
   const[users, setUsers] = useState([]);
   const[disabled, setDisabled] = useState(false);
   const[rowsPerPage, setRowsPerPage] = useState({value:10});
   const[searchValue, setSearchValue] = useState("");
-  const[allDataCounts, setAllDataCounts] = useState(0);
   const[allDataCountsSearch, setAllDataCountsSearch] = useState(0);
   const[openCustomReport, setOpenCustomReport] = useState(false)
   const[valueCustomReport, setValueCustomReport] = useState({start:'',end:''})
@@ -30,18 +29,19 @@ export default function UserBuilder(props) {
   const[admin, setAdmin] = useState();
   const[info, setInfo] = useState();
   const sm = useMediaQuery('(min-width:500px)');
-  useEffect(()=>{
-    if((type==='admin'&&role==='MANAGER')||type==='user'){
+  const handleClickSearch = () => {
+    if((type==='admin'&&role==='MANAGER')||(type==='user'&&(role==='MANAGER'||role==='ADMINISTRATIF'))){
       axios.get(urlMainData,{
         withCredentials:true,
         params:{
+          words: searchValue,
           page: 0,
-          size: 10,
+          size: rowsPerPage.value,
         }
       }).then(res => {
         if(res.data !== null){
           setUsers(res.data.data);
-          setAllDataCounts(res.data.sizeAllData);
+          setAllDataCountsSearch(res.data.sizeAllData);
         }
         else{
           setError("there is an incorrect response from server, please try again");
@@ -55,36 +55,14 @@ export default function UserBuilder(props) {
         }
       })
     }
-  },[type,role,setError,urlMainData])
-
-  const handleChangePage = (dataSize,n) => {
-    setPage(n)
-    axios.get(urlMainData,{
-      withCredentials:true,
-      params:{
-        page: n,
-        size: (dataSize.dt)?dataSize.dt:rowsPerPage.value
-      }
-    }).then(res => {
-        if(res.data !== null){
-          setUsers(res.data.data);
-          setAllDataCounts(res.data.sizeAllData);
-        }
-        else{
-          setError("there is an incorrect response from server, please try again");
-        }
-      })
-    .catch(err => {
-      if(err.response){
-        setError(err.response.data.message)
-      }else {
-        setError(err.message)
-      }
-    })
   }
+  useEffect(()=>{
+    handleClickSearch()
+  },[])
+
   const handleChangePageSearch = (dataSize,n) => {
     setPage(n)
-    axios.get(urlSearch, {
+    axios.get(urlMainData, {
       withCredentials:true,
       params:{
         words: searchValue,
@@ -106,11 +84,7 @@ export default function UserBuilder(props) {
   const handleChangeRowsPerPage = (e) => {
     setRowsPerPage({...rowsPerPage, value:parseInt(e.target.value,10)})
     setPage(0)
-    if(allDataCountsSearch > 0){
-      handleChangePageSearch({dt:parseInt(e.target.value,10)},0)
-    }else{
-      handleChangePage({dt:parseInt(e.target.value,10)},0)
-    }
+    handleChangePageSearch({dt:parseInt(e.target.value,10)},0)
   }
   const addOrRemoveAdmin = () => {
     return new Promise(function(success, error) {
@@ -204,11 +178,10 @@ export default function UserBuilder(props) {
   return(
     <>
       <Paper sx={{padding:'5px', paddingTop:'20px', display:'flex', justifyContent:'center', flexWrap:'wrap'}}>
-        <Box width='100%'>
-          <Search url={urlSearch} isPageSizeResult={false} value={searchValue} setValue={setSearchValue} callback={setUsers}
-            triggerPage={setPage} onError={setError} count={setAllDataCountsSearch} startCountPage={0} isPagination={true}
-            isSuggestionSearch={false} initSizeAllData={rowsPerPage.value} sxRoot={{marginBottom:'15px',marginLeft:'15px'}}
-            btnFilterProps={{display:'none'}}/>
+        <Box width='100%' marginLeft='10px'>
+          <Search id={"filter-search-user-"+type} value={searchValue} onChange={e => setSearchValue(e.target.value)}
+            placeholder='Search...' onDelete={() => setSearchValue("")} btnFilterStyle={{display:'none'}}
+            onClickSearch={handleClickSearch}/>
         </Box>
         <TableContainer component={Paper}>
           <Table>
@@ -264,10 +237,10 @@ export default function UserBuilder(props) {
         <TablePagination
           rowsPerPageOptions={[5, 10, 20]}
           component="div"
-          count={(allDataCountsSearch > 0)?allDataCountsSearch:allDataCounts}
+          count={allDataCountsSearch}
           rowsPerPage={rowsPerPage.value}
           page={page}
-          onPageChange={(allDataCountsSearch > 0)?handleChangePageSearch:handleChangePage}
+          onPageChange={handleChangePageSearch}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
         </Box>
