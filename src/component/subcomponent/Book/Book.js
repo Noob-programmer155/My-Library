@@ -157,8 +157,8 @@ export default function Book(props) {
     var list3 = list2.replace(/_,_/g,"</li><li class='li'>");
     var list4 = list3.replace(/!--/g,"<span class='span'>");
     var list5 = list4.replace(/--!/g,"</span>");
-    var list6 = list5.replace(/<p/gi,"</p>");
-    var list7 = list6.replace(/p>/gi,"<br/><p class='p'>");
+    var list6 = list5.replace(/<-p/gi,"</p>");
+    var list7 = list6.replace(/p->/gi,"<br/><p class='p'>");
     var newDesc = document.createElement('div');
     newDesc.className = 'p';
     newDesc.innerHTML= list7;

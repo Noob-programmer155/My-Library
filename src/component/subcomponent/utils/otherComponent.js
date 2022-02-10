@@ -553,7 +553,7 @@ export function ModifyBook(props) {
             isImg={true} imgCallback={imgCallback} imageInit={(imgInit)?imgInit:null} setImgInit={setImgInit}/>
         </Stack>
         <CustomTextField value={data.description} sx={{color:'white'}} multiline rows={4} label='Description from your book'
-          onChange={(a) => setData({...data, description: a.target.value})} helperText={"Use special character that start with: 'p>....<p' to make new paragraph,"+
+          onChange={(a) => setData({...data, description: a.target.value})} helperText={"Use special character that start with: 'p->....<-p' to make new paragraph,"+
           " '-=>.._,_.._,_..<=-' to make list and per list item separated by '_,_', '!--....--!' to make special sentence."}
           FormHelperTextProps={{style:{color:'white',fontSize:'.8rem'}}} InputLabelProps={{style:{fontSize: '1rem',}}} InputProps={{style:{fontSize: '1rem',}}}/>
           <Search id={"modify-theme"+attr['id']} size='small' value={theme.name} onChange={e => handleInputValue(1,e.target.value)}
