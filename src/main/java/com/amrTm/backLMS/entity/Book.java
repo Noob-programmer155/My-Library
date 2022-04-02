@@ -107,7 +107,7 @@ public class Book {
 	}
 	public void removeType(TypeBook typeBook) {
 		if(!this.typeBooks.contains(typeBook)) return ;
-		this.typeBooks.add(typeBook);
+		this.typeBooks.remove(typeBook);
 		typeBook.removeBook(this);
 	}
 	public User getBookUser() {
