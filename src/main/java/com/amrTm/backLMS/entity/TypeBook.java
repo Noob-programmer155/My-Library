@@ -14,6 +14,7 @@ import javax.persistence.ManyToMany;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import org.hibernate.annotations.SortComparator;
 
 @Entity
 @JsonIdentityInfo(
@@ -25,8 +26,9 @@ public class TypeBook {
 	private int id;
 	@Column(unique=true)
 	private String name;
-	@ManyToMany(cascade= {CascadeType.MERGE})
+	@ManyToMany(cascade= {CascadeType.PERSIST,CascadeType.MERGE})
 	@JoinTable(name="Type_Book", joinColumns={@JoinColumn(name="Book_Id")}, inverseJoinColumns={@JoinColumn(name="Type_Id")})
+//	@SortComparator()
 	private Set<Book> bookType = new HashSet<>();
 	public int getId() {
 		return id;

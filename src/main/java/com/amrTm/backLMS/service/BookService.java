@@ -158,7 +158,7 @@ public class BookService {
 		try {
 			Pageable data = PageRequest.of(0, 10);
 			List<String> dataRes = new ArrayList<>();
-			bookRepo.findAllByTitleContainsOrBookUserNameContainsOrPublisherBookNameContains(word, word, word, data).getContent().stream()
+			bookRepo.findDistinctByTitleContainsOrBookUserNameContainsOrPublisherBookNameContains(word, word, word, data).getContent().stream()
 					.forEach(a -> {
 						if(dataRes.size() <= 10) {
 							if(a.getTitle().contains(word)&&!dataRes.contains(a.getTitle())) dataRes.add(a.getTitle());
@@ -512,7 +512,7 @@ public class BookService {
 				IdUserBS = -1;
 			}
 			Pageable data = PageRequest.of(page, size, Sort.by("title"));
-			Page<Book> dataBook = bookRepo.findAllByTitleContainsOrBookUserNameContainsOrPublisherBookNameContains(exampleWords, exampleWords, exampleWords, data);
+			Page<Book> dataBook = bookRepo.findDistinctByTitleContainsOrBookUserNameContainsOrPublisherBookNameContains(exampleWords, exampleWords, exampleWords, data);
 			List<BookDTOResp> bookResponseData = dataBook.getContent().stream().map(a -> {
 				BookDTOResp book = new BookDTOResp();
 				book.setId(a.getId());

@@ -14,6 +14,10 @@ import java.util.Date;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.amrTm.backLMS.entity.User;
+import com.amrTm.backLMS.repository.UserRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -32,6 +36,9 @@ public class TokenTools {
 	private final long exp = 86400000;
 	private PrivateKey secret;
 	private String api;
+
+	@Autowired
+	private UserRepo userRepo;
 	
 	@PostConstruct
 	private void generatedKey() throws NoSuchAlgorithmException {
@@ -74,8 +81,8 @@ public class TokenTools {
 	
 	public Authentication getAuth(String token) {
 		Jws<Claims> claim = Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
-		Role role = Role.valueOf((String)claim.getBody().get("rl"));
-		return new UsernamePasswordAuthenticationToken(claim.getBody().getSubject(), "", Collections.singletonList(role));
+		User user = userRepo.findByEmail(claim.getBody().getSubject()).get();
+		return new UsernamePasswordAuthenticationToken(user, null, Collections.singletonList(user.getRole()));
 	}
 	
 	public String resolveToken(HttpServletRequest req) throws ParseException {
@@ -85,9 +92,15 @@ public class TokenTools {
 	
 	public boolean validateToken(String token) {
 		Jws<Claims> claim = Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
-		String dataApi = (String)claim.getBody().get("api");
-		byte[] rawApi = Base64.getDecoder().decode(dataApi);
-		byte[] api = Base64.getDecoder().decode(this.api);
-		return Arrays.equals(rawApi, api);
+		if (claim.getBody().getSubject() != null)
+			if (claim.getBody().containsKey("un"))
+				if (claim.getBody().containsKey("rl"))
+					if (claim.getBody().containsKey("api")) {
+						String dataApi = (String)claim.getBody().get("api");
+						byte[] rawApi = Base64.getDecoder().decode(dataApi);
+						byte[] api = Base64.getDecoder().decode(this.api);
+						return Arrays.equals(rawApi, api);
+					}
+		return false;
 	}
 }

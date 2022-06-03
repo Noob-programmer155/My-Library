@@ -64,16 +64,14 @@ public class AdminService {
 		try {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if(auth != null) {
-			String email = auth.getName();
-			return userRepo.findByEmail(email).map(user -> {
-				UserInfoDTO uid = new UserInfoDTO();
-				uid.setId(user.getId());
-				uid.setImage_url(user.getImage_url());
-				uid.setName(user.getName());
-				uid.setEmail(user.getEmail());
-				uid.setRole(user.getRole().toString());
-				return uid;
-			}).get();
+			User user = (User) auth.getPrincipal();
+			UserInfoDTO uid = new UserInfoDTO();
+			uid.setId(user.getId());
+			uid.setImage_url(user.getImage_url());
+			uid.setName(user.getName());
+			uid.setEmail(user.getEmail());
+			uid.setRole(user.getRole().toString());
+			return uid;
 		}
 		else {
 			res.sendError(403, "need`s authentication to view this page");

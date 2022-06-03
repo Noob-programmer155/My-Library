@@ -35,7 +35,12 @@ public class TokenFilter extends OncePerRequestFilter{
 			if(tokenTools.validateToken(token)) {
 				Authentication auth = tokenTools.getAuth(token);
 				SecurityContextHolder.getContext().setAuthentication(auth);
-			}}
+				filterChain.doFilter(request, response);
+				return;
+			}
+			SecurityContextHolder.clearContext();
+			response.sendError(403, "Wrong Cred");
+		}
 		catch(NullPointerException | IllegalArgumentException | ParseException e) {
 			SecurityContextHolder.clearContext();
 			response.sendError(400, e.getMessage());

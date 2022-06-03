@@ -9,7 +9,7 @@ public class CookieConfig {
 	public static CustomCookie getCustomCookie(HttpServletRequest req, String cookiename) throws ParseException {
 		String data = req.getHeader("Cookie");
 		CustomCookie cc = null;
-		String[] datas = data.split(";\s");
+		String[] datas = data.split(";\\s");
 		if(datas.length > 0) {
 			for(String item:datas) {
 				if(item.startsWith(cookiename)) {

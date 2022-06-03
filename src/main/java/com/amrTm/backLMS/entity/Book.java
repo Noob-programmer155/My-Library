@@ -4,29 +4,17 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import org.hibernate.annotations.SortComparator;
 
 @Entity
 @JsonIdentityInfo(
 		generator = ObjectIdGenerators.PropertyGenerator.class,
 		property = "id")
-@NamedEntityGraph(name="Book.bookFavorite", attributeNodes= {@NamedAttributeNode("bookFavorite")})
-@NamedEntityGraph(name="Book.bookUser", attributeNodes= {@NamedAttributeNode("bookUser")})
-@NamedEntityGraph(name="Book.typeBooks", attributeNodes= {@NamedAttributeNode("typeBooks")})
-@NamedEntityGraph(name="Book.search", attributeNodes= {@NamedAttributeNode("bookUser"),@NamedAttributeNode("publisherBook")})
 public class Book {
 	@Id
 	private String id;
@@ -40,16 +28,17 @@ public class Book {
 	private String file;
 	@Column(nullable=false)
 	private String image;
-	@ManyToOne(optional = false)
+	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@JoinTable(name="Book_User", joinColumns= {@JoinColumn(name="Book_Id")}, inverseJoinColumns = {@JoinColumn(name="User_Id")})
 	@NotNull
 	private User bookUser;
-	@ManyToOne(optional = false)
+	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@JoinTable(name="Book_Publisher", joinColumns= {@JoinColumn(name="Book_Id")}, inverseJoinColumns = {@JoinColumn(name="Publisher_Id")})
 	@NotNull
 	private Publisher publisherBook;
-	@ManyToMany(cascade= {CascadeType.MERGE})
+	@ManyToMany(cascade= {CascadeType.PERSIST,CascadeType.MERGE})
 	@JoinTable(name="Favorite_Book", joinColumns={@JoinColumn(name="Book_Id")}, inverseJoinColumns={@JoinColumn(name="User_Id")})
+//	@SortComparator(value = )
 	private Set<User> bookFavorite= new HashSet<>();
 	@ManyToMany(mappedBy="bookType")
 	private Set<TypeBook> typeBooks = new HashSet<>();
