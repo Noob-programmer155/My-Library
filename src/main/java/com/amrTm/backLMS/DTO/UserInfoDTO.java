@@ -7,6 +7,19 @@ public class UserInfoDTO {
 	private String role;
 	private String image_url;
 	private boolean status;
+
+	public UserInfoDTO() {
+	}
+
+	public UserInfoDTO(Builder builder) {
+		this.id = builder.id;
+		this.name = builder.name;
+		this.email = builder.email;
+		this.role = builder.role;
+		this.image_url = builder.image_url;
+		this.status = builder.status;
+	}
+
 	public long getId() {
 		return id;
 	}
@@ -42,5 +55,40 @@ public class UserInfoDTO {
 	}
 	public void setStatus(boolean status) {
 		this.status = status;
+	}
+	public static class Builder{
+		private long id;
+		private String name;
+		private String email;
+		private String role;
+		private String image_url;
+		private boolean status;
+		public Builder id(long id){
+			this.id = id;
+			return this;
+		}
+		public Builder name(String name){
+			this.name = name;
+			return this;
+		}
+		public Builder email(String email){
+			this.email = email;
+			return this;
+		}
+		public Builder role(String role){
+			this.role = role;
+			return this;
+		}
+		public Builder image(String image){
+			this.image_url = image;
+			return this;
+		}
+		public Builder status(Boolean status){
+			this.status = status;
+			return this;
+		}
+		public UserInfoDTO build(){
+			return new UserInfoDTO(this);
+		}
 	}
 }

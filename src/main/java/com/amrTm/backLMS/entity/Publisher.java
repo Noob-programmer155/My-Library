@@ -3,11 +3,7 @@ package com.amrTm.backLMS.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -22,7 +18,7 @@ public class Publisher {
 	private Long id;
 	@Column(unique=true)
 	private String name;
-	@OneToMany(mappedBy="publisherBook")
+	@OneToMany(mappedBy="publisherBook", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Book> books = new ArrayList<>();
 	public Long getId() {
 		return id;

@@ -33,6 +33,10 @@ public class FileConfig {
 	private static final String path = "src/main/resources/static";
 	public static String saveImageBook(MultipartFile data,  String name) throws IOException {
 		String nm = name+'.'+IMAGE_EKS;
+		File dir = new File(path+"/image/book");
+		if(!dir.exists()){
+			dir.mkdirs();
+		}
 		File fd = new File(path+"/image/book/"+nm);
 		fd.createNewFile();
 		FileOutputStream output = new FileOutputStream(fd);
@@ -43,6 +47,10 @@ public class FileConfig {
 	}
 	public static String saveImageUser(MultipartFile data, String name) throws IOException {
 		String nm = name+'.'+IMAGE_EKS;
+		File dir = new File(path+"/image/user");
+		if(!dir.exists()){
+			dir.mkdirs();
+		}
 		File fd = new File(path+"/image/user/"+nm);
 		fd.createNewFile();
 		FileOutputStream output = new FileOutputStream(fd);
@@ -55,6 +63,10 @@ public class FileConfig {
 	public static String saveFileBook(MultipartFile data, String name, boolean modify) throws IOException {
 		String nm = null;
 		File fd = null;
+		File dir = new File(path+"/file");
+		if(!dir.exists()){
+			dir.mkdirs();
+		}
 		if(!modify) {
 			nm = name+'.'+FILE_EKS;
 			fd = new File(path+"/file/"+nm);

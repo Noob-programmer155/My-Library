@@ -14,6 +14,24 @@ public class BookDTOResp {
 	private String image;
 	private boolean favorite;
 	private boolean status;
+
+	public BookDTOResp() {
+	}
+
+	public BookDTOResp(Builder builder) {
+		this.id = builder.id;
+		this.title = builder.title;
+		this.author = builder.author;
+		this.publisher = builder.publisher;
+		this.publishDate = builder.publishDate;
+		this.description = builder.description;
+		this.theme = builder.theme;
+		this.file = builder.file;
+		this.image = builder.image;
+		this.favorite = builder.favorite;
+		this.status = builder.status;
+	}
+
 	public String getId() {
 		return id;
 	}
@@ -79,5 +97,66 @@ public class BookDTOResp {
 	}
 	public void setStatus(boolean status) {
 		this.status = status;
+	}
+
+	public static class Builder {
+		private String id;
+		private String title;
+		private String author;
+		private PublisherDTOResp publisher;
+		private String publishDate;
+		private String description;
+		private List<TypeDTOResp> theme;
+		private String file;
+		private String image;
+		private boolean favorite;
+		private boolean status;
+		public Builder id(String id) {
+			this.id = id;
+			return this;
+		}
+		public Builder title(String title) {
+			this.title = title;
+			return this;
+		}
+		public Builder author(String author) {
+			this.author = author;
+			return this;
+		}
+		public Builder publisher(PublisherDTOResp publisher) {
+			this.publisher = publisher;
+			return this;
+		}
+		public Builder date(String date) {
+			this.publishDate = date;
+			return this;
+		}
+		public Builder description(String description) {
+			this.description = description;
+			return this;
+		}
+		public Builder theme(List<TypeDTOResp> themes) {
+			this.theme = themes;
+			return this;
+		}
+		public Builder file(String file) {
+			this.file = file;
+			return this;
+		}
+		public Builder image(String image) {
+			this.image = image;
+			return this;
+		}
+		public Builder favorite(Boolean favorite) {
+			this.favorite = favorite;
+			return this;
+		}
+		public Builder status(Boolean status) {
+			this.status = status;
+			return this;
+		}
+		public BookDTOResp build() {
+			return new BookDTOResp(this);
+		}
 	}
 }

@@ -26,9 +26,8 @@ public class TypeBook {
 	private int id;
 	@Column(unique=true)
 	private String name;
-	@ManyToMany(cascade= {CascadeType.PERSIST,CascadeType.MERGE})
+	@ManyToMany
 	@JoinTable(name="Type_Book", joinColumns={@JoinColumn(name="Book_Id")}, inverseJoinColumns={@JoinColumn(name="Type_Id")})
-//	@SortComparator()
 	private Set<Book> bookType = new HashSet<>();
 	public int getId() {
 		return id;

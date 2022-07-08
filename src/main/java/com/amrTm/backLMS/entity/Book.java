@@ -30,17 +30,14 @@ public class Book {
 	private String image;
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@JoinTable(name="Book_User", joinColumns= {@JoinColumn(name="Book_Id")}, inverseJoinColumns = {@JoinColumn(name="User_Id")})
-	@NotNull
 	private User bookUser;
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@JoinTable(name="Book_Publisher", joinColumns= {@JoinColumn(name="Book_Id")}, inverseJoinColumns = {@JoinColumn(name="Publisher_Id")})
-	@NotNull
 	private Publisher publisherBook;
-	@ManyToMany(cascade= {CascadeType.PERSIST,CascadeType.MERGE})
+	@ManyToMany
 	@JoinTable(name="Favorite_Book", joinColumns={@JoinColumn(name="Book_Id")}, inverseJoinColumns={@JoinColumn(name="User_Id")})
-//	@SortComparator(value = )
 	private Set<User> bookFavorite= new HashSet<>();
-	@ManyToMany(mappedBy="bookType")
+	@ManyToMany(mappedBy="bookType", cascade= {CascadeType.PERSIST,CascadeType.MERGE})
 	private Set<TypeBook> typeBooks = new HashSet<>();
 	
 	public String getId() {
