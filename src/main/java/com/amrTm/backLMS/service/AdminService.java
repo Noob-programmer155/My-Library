@@ -84,7 +84,7 @@ public class AdminService {
 	
 	public UserInfoDTO standardLogin(String username, String password, HttpServletResponse res) throws IOException {
 		try {
-			Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username,password));
+			Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username.toLowerCase(),password));
 			User user = userRepo.findByEmail(auth.getName()).get();
 			if (tokenTools.createToken(user.getName(), user.getEmail().toLowerCase(), user.getRole(), res)) {
 				UserInfoDTO uid = new UserInfoDTO();
