@@ -60,7 +60,7 @@ public class AdminService {
 	@Autowired
 	private BookReportRepo bookReportRepo;
 	
-	public UserInfoDTO getInfoAdmin(HttpServletResponse res) throws IOException {
+	public UserInfoDTO getInfoUser(HttpServletResponse res) throws IOException {
 		try {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if(auth != null) {

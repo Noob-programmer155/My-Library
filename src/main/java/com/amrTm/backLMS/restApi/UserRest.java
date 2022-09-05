@@ -47,8 +47,8 @@ public class UserRest {
 	
 	//success
 	@GetMapping("/get")
-	public UserInfoDTO getAdmin(HttpServletResponse res) throws IOException {
-		return adminService.getInfoAdmin(res);
+	public UserInfoDTO getUser(HttpServletResponse res) throws IOException {
+		return adminService.getInfoUser(res);
 	}
 	
 	//success

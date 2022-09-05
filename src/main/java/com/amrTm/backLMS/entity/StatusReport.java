@@ -2,8 +2,8 @@ package com.amrTm.backLMS.entity;
 
 public enum StatusReport {
 	DELETE,
-	DELETE_TYPE,
-	DELETE_SUGGESTION,
+//	DELETE_TYPE,
+//	DELETE_SUGGESTION,
 	ADD,
 	DOWNLOAD,
 	IN_STANDARD,
