@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
@@ -14,11 +15,11 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 		property = "id")
 public class Publisher {
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 	@Column(unique=true)
 	private String name;
-	@OneToMany(mappedBy="publisherBook", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy="publisherBook", cascade = {CascadeType.MERGE}, orphanRemoval = true)
 	private List<Book> books = new ArrayList<>();
 	public Long getId() {
 		return id;

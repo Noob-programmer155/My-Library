@@ -5,9 +5,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -43,11 +41,11 @@ public class BookRest {
 		return bookServices.getImageBook(path,res);
 	}
 	
-	@PostMapping(path="/file/{path}")
-	public String getfile(@PathVariable String path, @RequestParam String idBook,HttpServletResponse res) throws IOException {
-		Resource rsc = bookServices.getFileBook(path,res);
+	@PostMapping(path="/file/{path}",produces = {MediaType.APPLICATION_PDF_VALUE})
+	public byte[] getfile(@PathVariable String path, @RequestParam String idBook,HttpServletResponse res) throws IOException {
+		byte[] rsc = bookServices.getFileBook(path,res);
 		bookServices.modifyRekomend(idBook, res);
-		return Base64.encodeBase64String(rsc.getInputStream().readAllBytes());
+		return rsc;
 //		return ResponseEntity.ok().contentType(MediaType.)
 //				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""+rsc.getFilename()+"\"").body(rsc);
 	}

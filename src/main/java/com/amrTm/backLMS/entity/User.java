@@ -9,6 +9,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 
 import com.amrTm.backLMS.entity.userOAuth.Provider;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
@@ -18,7 +19,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 		property = "id")
 public class User {
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 	@Column(unique=true)
 	private String name;
@@ -26,9 +27,9 @@ public class User {
 	@Column(unique=true)
 	@Email(regexp="(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])")
 	private String email;
-	@OneToMany(mappedBy="bookUser", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy="bookUser", cascade = {CascadeType.MERGE}, orphanRemoval = true)
 	private List<Book> myBook = new ArrayList<>();
-	@ManyToMany(mappedBy="bookFavorite", cascade= {CascadeType.PERSIST,CascadeType.MERGE})
+	@ManyToMany(mappedBy="bookFavorite", cascade= {CascadeType.MERGE})
 	private Set<Book> favorite = new HashSet<>();
 	@Enumerated
 	private Role role;

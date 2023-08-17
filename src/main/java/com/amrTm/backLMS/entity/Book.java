@@ -5,11 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import org.hibernate.annotations.SortComparator;
 
 @Entity
 @JsonIdentityInfo(
@@ -37,7 +34,8 @@ public class Book {
 	@ManyToMany
 	@JoinTable(name="Favorite_Book", joinColumns={@JoinColumn(name="Book_Id")}, inverseJoinColumns={@JoinColumn(name="User_Id")})
 	private Set<User> bookFavorite= new HashSet<>();
-	@ManyToMany(mappedBy="bookType", cascade= {CascadeType.PERSIST,CascadeType.MERGE})
+
+	@ManyToMany(mappedBy="bookType", cascade= {CascadeType.MERGE})
 	private Set<TypeBook> typeBooks = new HashSet<>();
 	
 	public String getId() {

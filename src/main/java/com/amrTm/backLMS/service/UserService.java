@@ -1,5 +1,7 @@
 package com.amrTm.backLMS.service;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
@@ -11,7 +13,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,19 +48,22 @@ public class UserService {
 	private BookRepo bookRepo;
 	@Autowired
 	private UserReportRepo userReportRepo;
+	@Autowired
+	private FileConfig fileConfig;
+	@Value("${filestorage}")
+	private String storage;
 	
 	private Set<Long> userOnline = new HashSet<>();
 	
 	@PreAuthorize("hasAnyAuthority('ANON','USER','SELLER','ADMINISTRATIF','MANAGER')")
 	public byte[] getImageUser(String path, HttpServletResponse res) throws IOException {
-		ClassPathResource resource = new ClassPathResource("static/image/user/"+path);
-		byte[] data = null;
+		FileInputStream resource = new FileInputStream(storage+"/image/user/"+path);
 		try {
-			data = resource.getInputStream().readAllBytes();
+			return resource.readAllBytes();
 		} catch (IOException e) {
 			res.sendError(500, "there`s some error when fetching data");
+			return new byte[]{};
 		}
-		return data;
 	}
 	
 //	@PreAuthorize("hasAnyAuthority('ADMINISTRATIF','MANAGER')")
@@ -143,11 +148,11 @@ public class UserService {
 		UserInfoDTO resUser = null;
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			User user = userRepo.findByEmail(auth.getName()).get();
+			User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 			user.setName(userModel.getName());
 			user.setEmail(userModel.getEmail().toLowerCase());
 			if(image != null) {
-				user.setImage_url(FileConfig.modifyImageUser(image,user.getImage_url()));
+				user.setImage_url(fileConfig.modifyImageUser(image,user.getImage_url()));
 			}
 			User modUser = userRepo.save(user);
 			resUser = new UserInfoDTO();
@@ -176,19 +181,19 @@ public class UserService {
 				User user = userRepo.findByEmail(email).get();
 				long idUser = user.getId();
 				if(user.getRole().equals(Role.SELLER) || user.getRole().equals(Role.USER) || user.getRole().equals(Role.ANON)) {
-					User userAdmin = userRepo.findByEmail(auth.getName()).get();
+					User userAdmin = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 					String name = userAdmin.getName();
 					if(user.getRole().equals(Role.SELLER)) {
 						for (Book book : user.getMyBook()) {
-							FileConfig.deleteBooksFile(book.getFile());
-							FileConfig.deleteBooksImage(book.getImage());
+							fileConfig.deleteBooksFile(book.getFile());
+							fileConfig.deleteBooksImage(book.getImage());
 							book.getTypeBooks().forEach(re -> {
 								re.removeBook(book);
 							});
 							bookRepo.delete(book);
 						}
 					}
-					FileConfig.deleteUserImage(user.getImage_url());
+					fileConfig.deleteUserImage(user.getImage_url());
 					userRepo.delete(user);
 					
 					UserReport ur = new UserReport();
@@ -220,8 +225,8 @@ public class UserService {
 				String name = user.getName();
 				long idUser = user.getId();
 				if(user.getRole().equals(Role.ADMINISTRATIF)) {
-					User manager = userRepo.findByEmail(auth.getName()).get();
-					FileConfig.deleteUserImage(user.getImage_url());
+					User manager = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
+					fileConfig.deleteUserImage(user.getImage_url());
 					userRepo.delete(user);
 					
 					UserReport ur = new UserReport();

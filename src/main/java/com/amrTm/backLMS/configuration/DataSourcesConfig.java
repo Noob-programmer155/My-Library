@@ -21,8 +21,8 @@ public class DataSourcesConfig {
 		DriverManagerDataSource data = new DriverManagerDataSource();
 		data.setDriverClassName("com.mysql.cj.jdbc.Driver");
 		data.setUrl("jdbc:mysql://localhost:3306/lms");
-		data.setUsername("root");
-		data.setPassword("AmarM124890#");
+		data.setUsername("amar");
+		data.setPassword("Amar1234#");
 		return data;
 	}
 	

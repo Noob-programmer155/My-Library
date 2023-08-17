@@ -12,6 +12,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.amrTm.backLMS.security.UserDetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -59,24 +60,28 @@ public class AdminService {
 	
 	@Autowired
 	private BookReportRepo bookReportRepo;
+
+	@Autowired
+	private FileConfig fileConfig;
 	
 	public UserInfoDTO getInfoUser(HttpServletResponse res) throws IOException {
 		try {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if(auth != null) {
-			User user = (User) auth.getPrincipal();
-			UserInfoDTO uid = new UserInfoDTO();
-			uid.setId(user.getId());
-			uid.setImage_url(user.getImage_url());
-			uid.setName(user.getName());
-			uid.setEmail(user.getEmail());
-			uid.setRole(user.getRole().toString());
-			return uid;
-		}
-		else {
-			res.sendError(403, "need`s authentication to view this page");
-			return null;
-		}}catch(Exception e) {
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			if(auth != null) {
+				User user = (User) auth.getPrincipal();
+				UserInfoDTO uid = new UserInfoDTO();
+				uid.setId(user.getId());
+				uid.setImage_url(user.getImage_url());
+				uid.setName(user.getName());
+				uid.setEmail(user.getEmail());
+				uid.setRole(user.getRole().toString());
+				return uid;
+			}
+			else {
+				res.sendError(403, "need`s authentication to view this page");
+				return null;
+			}
+		} catch(Exception e) {
 			res.sendError(500, "There`s some error when connect to the server, try to connect again");
 			return null;
 		}
@@ -85,7 +90,7 @@ public class AdminService {
 	public UserInfoDTO standardLogin(String username, String password, HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username.toLowerCase(),password));
-			User user = userRepo.findByEmail(auth.getName()).get();
+			User user = userRepo.findByEmail(((UserDetail)auth.getPrincipal()).getName()).get();
 			if (tokenTools.createToken(user.getName(), user.getEmail().toLowerCase(), user.getRole(), res)) {
 				UserInfoDTO uid = new UserInfoDTO();
 				uid.setId(user.getId());
@@ -114,7 +119,7 @@ public class AdminService {
 			user.setClientId(null);
 			user.setEmail(userModel.getEmail().toLowerCase());
 			if(image != null) {
-				user.setImage_url(FileConfig.saveImageUser(image, new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())));
+				user.setImage_url(fileConfig.saveImageUser(image, new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())));
 			}
 			user.setName(userModel.getName());
 			user.setPassword(new BCryptPasswordEncoder().encode(userModel.getPassword()));
@@ -224,7 +229,7 @@ public class AdminService {
 	public boolean validatePassword(String password, HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			User user = userRepo.findByEmail(auth.getName()).get();
+			User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 			return new BCryptPasswordEncoder().matches(password, user.getPassword());
 		}catch(Exception e) {
 			res.sendError(500, "There`s some error when fetching data");
@@ -237,7 +242,7 @@ public class AdminService {
 	public boolean modifyUserPassword(String oldPass, String newPass, HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			User user = userRepo.findByEmail(auth.getName()).get();
+			User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 			if(new BCryptPasswordEncoder().matches(oldPass, user.getPassword())) {
 				user.setPassword(new BCryptPasswordEncoder().encode(newPass));
 				userRepo.save(user);
@@ -256,7 +261,7 @@ public class AdminService {
 	public boolean promotingUser(HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			User user = userRepo.findByEmail(auth.getName()).get();
+			User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 			user.setRole(Role.SELLER);
 			User modUser = userRepo.save(user);
 			

@@ -56,3 +56,4 @@ spring:
               - public_profile
 listpathurl: /user/verify, /user/login, /user/signup, /user/verify-oauth, /user/delete/useronline, /book/books, /book/alltype, /book/getbooksbytype, /book/searchBook, /book/author, 
              /book/types, /book/publisher, /book/bookRekommend, /book/filterBookResult, /book/searchBookResult, /book/title, /book/image/*, /login/**
+filestorage: <filestorage>

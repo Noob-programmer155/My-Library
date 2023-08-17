@@ -2,15 +2,12 @@ package com.amrTm.backLMS.entity;
 
 import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 public class BookReport {
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 	private String idBook;
 	private String titleBook;

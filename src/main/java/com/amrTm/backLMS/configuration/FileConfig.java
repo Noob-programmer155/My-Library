@@ -21,6 +21,8 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.amrTm.backLMS.entity.BookReport;
@@ -28,10 +30,12 @@ import com.amrTm.backLMS.entity.UserReport;
 import com.amrTm.backLMS.repository.BookReportRepo;
 import com.amrTm.backLMS.repository.UserReportRepo;
 
+@Component
 public class FileConfig {
 	private static final String IMAGE_EKS= "png", FILE_EKS = "pdf";
-	private static final String path = "src/main/resources/static";
-	public static String saveImageBook(MultipartFile data,  String name) throws IOException {
+	@Value("${filestorage}")
+	private String path;
+	public String saveImageBook(MultipartFile data,  String name) throws IOException {
 		String nm = name+'.'+IMAGE_EKS;
 		File dir = new File(path+"/image/book");
 		if(!dir.exists()){
@@ -45,7 +49,7 @@ public class FileConfig {
 		output.close();
 		return nm;
 	}
-	public static String saveImageUser(MultipartFile data, String name) throws IOException {
+	public String saveImageUser(MultipartFile data, String name) throws IOException {
 		String nm = name+'.'+IMAGE_EKS;
 		File dir = new File(path+"/image/user");
 		if(!dir.exists()){
@@ -60,7 +64,7 @@ public class FileConfig {
 		return nm;
 	}
 	
-	public static String saveFileBook(MultipartFile data, String name, boolean modify) throws IOException {
+	public String saveFileBook(MultipartFile data, String name, boolean modify) throws IOException {
 		String nm = null;
 		File fd = null;
 		File dir = new File(path+"/file");
@@ -82,7 +86,7 @@ public class FileConfig {
 		return nm;
 	}
 
-	public static String modifyImageUser(MultipartFile decode, String image_url) throws IOException {
+	public String modifyImageUser(MultipartFile decode, String image_url) throws IOException {
 		String newFile = null;
 		if(image_url != null) newFile = image_url;
 		else newFile = new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())+"."+IMAGE_EKS;
@@ -112,7 +116,7 @@ public class FileConfig {
 		return newFile;
 	}
 
-	public static String modifyImageBook(MultipartFile decode, String image) throws IOException {
+	public String modifyImageBook(MultipartFile decode, String image) throws IOException {
 		String newFile = null;
 		if(image != null) newFile = image;
 		else newFile = new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())+"."+IMAGE_EKS;
@@ -133,17 +137,17 @@ public class FileConfig {
 		return newFile;
 	}
 	
-	public static boolean deleteBooksFile(String nameFile) {
+	public boolean deleteBooksFile(String nameFile) {
 		File newfd = new File(path+"/file/"+nameFile);
 		return newfd.delete();
 	}
 	
-	public static boolean deleteBooksImage(String nameFile) {
+	public boolean deleteBooksImage(String nameFile) {
 		File newfd = new File(path+"/image/book/"+nameFile);
 		return newfd.delete();
 	}
 	
-	public static boolean deleteUserImage(String nameFile) {
+	public boolean deleteUserImage(String nameFile) {
 		if(nameFile.substring(0, 4).equals("http")) {
 			return true;
 		}

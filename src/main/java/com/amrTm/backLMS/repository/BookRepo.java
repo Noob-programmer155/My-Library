@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import com.amrTm.backLMS.entity.Book;
 
 @Repository
-public interface BookRepo extends PagingAndSortingRepository<Book,String>, BookRepoFilter{
+public interface BookRepo extends JpaRepository<Book,String>,PagingAndSortingRepository<Book,String>, BookRepoFilter{
 	public Page<Book> findAllByTitleContains(String title, Pageable page);
 	public Page<Book> findAllByBookFavoriteId(long id, Pageable page);
 	public Page<Book> findAllByBookUserId(long id, Pageable page);

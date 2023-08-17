@@ -1,18 +1,20 @@
 package com.amrTm.backLMS.service;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.support.PagedListHolder;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -64,11 +66,15 @@ public class BookService {
 	private BookReportRepo bookReportRepo;
 	@Autowired
 	private BookRepoFilerImpl bookRepoFilerImpl;
+	@Autowired
+	private FileConfig fileConfig;
+	@Value("${filestorage}")
+	private String storage;
 	
 	public byte[] getImageBook(String path, HttpServletResponse res) throws IOException {
 		try {
-			ClassPathResource resource = new ClassPathResource("static/image/book/"+path);
-			return resource.getInputStream().readAllBytes();
+			FileInputStream resource = new FileInputStream(storage+"/image/book/"+path);
+			return resource.readAllBytes();
 		}catch(Exception e) {
 			res.sendError(500, "There`s some error when fetching data");
 			return null;
@@ -76,10 +82,10 @@ public class BookService {
 	}
 	
 	@PreAuthorize("hasAnyAuthority('USER','SELLER','ADMINISTRATIF','MANAGER')")
-	public Resource getFileBook(String path, HttpServletResponse res) throws IOException {
+	public byte[] getFileBook(String path, HttpServletResponse res) throws IOException {
 		try {
-			ClassPathResource resource = new ClassPathResource("static/file/"+path);
-			return resource;
+			FileInputStream resource = new FileInputStream(storage+"/file/"+path);
+			return resource.readAllBytes();
 		}catch(Exception e) {
 			res.sendError(500, "There`s some error when fetching data");
 			return null;
@@ -112,7 +118,7 @@ public class BookService {
 			if(auth != null) {
 				try {
 					
-					User user = userRepo.findByEmail(auth.getName()).get();
+					User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 					IdUserBT = user.getId();
 				}catch(NoSuchElementException e) {
 					IdUserBT = -1;
@@ -177,7 +183,7 @@ public class BookService {
 	public List<String> findMyBookSearch(String word, HttpServletResponse res) throws IOException{
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			User user = userRepo.findByEmail(auth.getName()).get();
+			User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 			Pageable data = PageRequest.of(0, 10);
 			List<String> dataRes = new ArrayList<>();
 			bookRepo.findAllBookUser(word, word, user.getId(), data).getContent().stream()
@@ -238,11 +244,11 @@ public class BookService {
 	
 	private long IdUserBR = -1;
 	public List<BookDTOResp> getBookRekommend(HttpServletResponse res) throws IOException{
-		try {
+//		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			if(auth != null) {
+			if(auth != null && auth.getPrincipal() instanceof User) {
 				try {
-					User user = userRepo.findByEmail(auth.getName()).get();
+					User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 					IdUserBR = user.getId();
 				}catch(NoSuchElementException e) {
 					IdUserBR = -1;
@@ -274,10 +280,10 @@ public class BookService {
 				book.setTitle(a.getTitle());
 				return book;
 			}).collect(Collectors.toList());
-		}catch(Exception e) {
-			res.sendError(500, "There`s some error when fetching data");
-			return null;
-		}
+//		}catch(Exception e) {
+//			res.sendError(500, "There`s some error when fetching data");
+//			return null;
+//		}
 	}
 	
 	@PreAuthorize("hasAnyAuthority('USER','SELLER','ADMINISTRATIF','MANAGER')")
@@ -285,7 +291,7 @@ public class BookService {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(auth != null) {
-				User user = userRepo.findByEmail(auth.getName()).get();
+				User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 				Pageable data = PageRequest.of(page, size, Sort.by("title"));
 				Page<Book> dataBook = bookRepo.findAllByBookFavoriteId(user.getId(), data);
 				List<BookDTOResp> bookResponseData = dataBook.getContent().stream().map(a -> {
@@ -321,13 +327,13 @@ public class BookService {
 			return null;
 		}
 	}
-	
+
 	@PreAuthorize("hasAuthority('SELLER')")
 	public BookResponse getMyBook(int page, int size, HttpServletResponse res) throws IOException {
-		try {	
+//		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(auth != null) {
-				User user = userRepo.findByEmail(auth.getName()).get();
+				User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 				Pageable data = PageRequest.of(page, size, Sort.by("title"));
 				Page<Book> dataBook = bookRepo.findAllByBookUserId(user.getId(), data);
 				List<BookDTOResp> bookResponseData = dataBook.getContent().stream().map(a -> {
@@ -355,10 +361,10 @@ public class BookService {
 				return response;
 			}
 			return null;
-		}catch(Exception e) {
-			res.sendError(500, "There`s some error when fetching data");
-			return null;
-		}
+//		}catch(Exception e) {
+//			res.sendError(500, "There`s some error when fetching data");
+//			return null;
+//		}
 	}
 
 	@PreAuthorize("hasAuthority('SELLER')")
@@ -366,7 +372,7 @@ public class BookService {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(auth != null) {
-				User user = userRepo.findByEmail(auth.getName()).get();
+				User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 				try {
 					BookDTOResp dataBook = bookRepo.findOneByBookUserIdAndTitleAndPublisherBookName(user.getId(), title, publisher).map(item -> {
 						BookDTOResp resBook = new BookDTOResp();
@@ -401,11 +407,11 @@ public class BookService {
 	
 	private long IdUserAB = -1;
 	public BookResponse getAllBook(int page, int size, HttpServletResponse res) throws IOException {
-		try {	
+//		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			if(auth != null) {
+			if(auth != null && auth.getPrincipal() instanceof User) {
 				try {
-					User user = userRepo.findByEmail(auth.getName()).get();
+					User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 					IdUserAB = user.getId();
 				}catch(NoSuchElementException e) {
 					IdUserAB = -1;
@@ -442,10 +448,10 @@ public class BookService {
 			response.setData(bookResponseData);
 			response.setSizeAllPage(dataBook.getTotalPages());
 			return response;
-		}catch(Exception e) {
-			res.sendError(500, "There`s some error when fetching data");
-			return null;
-		}
+//		}catch(Exception e) {
+//			res.sendError(500, "There`s some error when fetching data");
+//			return null;
+//		}
 	}
 	
 	private long IdUserBF = -1;
@@ -454,7 +460,7 @@ public class BookService {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(auth != null) {
 				try {
-					User user = userRepo.findByEmail(auth.getName()).get();
+					User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 					IdUserBF = user.getId();
 				}catch(NoSuchElementException e) {
 					IdUserBF = -1;
@@ -502,7 +508,7 @@ public class BookService {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			if(auth != null) {
 				try {
-					User user = userRepo.findByEmail(auth.getName()).get();
+					User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 					IdUserBS = user.getId();
 				}catch(NoSuchElementException e) {
 					IdUserBS = -1;
@@ -549,7 +555,7 @@ public class BookService {
 	public BookResponse getMyBookSearch(int page, int size, String exampleWords, HttpServletResponse res) throws IOException{
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			User user = userRepo.findByEmail(auth.getName()).get();
+			User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 			Pageable data = PageRequest.of(page, size, Sort.by("title"));
 			Page<Book> dataBook = bookRepo.findAllBookUser(exampleWords, exampleWords, user.getId(), data);
 			List<BookDTOResp> bookResponseData = dataBook.getContent().stream().map(a -> {
@@ -595,13 +601,14 @@ public class BookService {
 			return null;
 		}
 	}
-	
+
+	Logger log = Logger.getGlobal();
 	@PreAuthorize("hasAuthority('SELLER')")
 	@Transactional(isolation=Isolation.REPEATABLE_READ)
 	public void addBook(BookDTO book, MultipartFile file, MultipartFile image, HttpServletResponse res) throws IOException {
-		try {
+//		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			User user = userRepo.findByEmail(auth.getName()).get();
+			User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 			StringBuffer sb = new StringBuffer();
 			int c = (int)bookRepo.count();
 			sb.append(c+1+":");
@@ -614,12 +621,10 @@ public class BookService {
 			bfs.setPublishDate(new Date());
 			bfs.setRekomended(0);
 			bfs.setTitle(book.getTitle());
-			bfs.setFile(FileConfig.saveFileBook(file, new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date()),false));
-			bfs.setImage(FileConfig.saveImageBook(image,new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())));
-			
+			bfs.setFile(fileConfig.saveFileBook(file, new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date()),false));
+			bfs.setImage(fileConfig.saveImageBook(image,new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())));
 			bfs.setBookUser(user);
 			user.getMyBook().add(bfs);
-			
 			Publisher publisher = null;
 			if(book.getPublisher() != null) {
 				publisher = publisherRepo.findById((long)book.getPublisher()).get();
@@ -636,9 +641,8 @@ public class BookService {
 			}
 			bfs.setPublisherBook(publisher);
 			publisher.getBooks().add(bfs);
-			
-			Book newBook = bookRepo.save(bfs);
-			
+
+			Book newBook = bookRepo.saveAndFlush(bfs);
 			if(book.getTheme() != null) {
 				if(!book.getTheme().isEmpty()) {
 					typeBookRepo.findAllById(book.getTheme()).forEach(data-> {
@@ -652,16 +656,16 @@ public class BookService {
 					book.getNewTheme().forEach(se -> {
 						TypeBook tb = new TypeBook();
 						tb.setName(se);
-						TypeBook newTb = typeBookRepo.save(tb);
-						newTb.addBook(newBook);
-						typeBookRepo.save(newTb);
+						TypeBook typeBook = typeBookRepo.save(tb);
+						typeBook.addBook(newBook);
+						typeBookRepo.save(typeBook);
 					});
 				}
 				else {
 					throw new IOException("Request Attribut not permitted !!!");
 				}
 			}
-			
+
 			BookReport br = new BookReport();
 			br.setIdBook(newBook.getId());
 			br.setTitleBook(newBook.getTitle());
@@ -676,12 +680,12 @@ public class BookService {
 			br.setStatusReport(StatusReport.ADD);
 			br.setDateReport(new Date());
 			bookReportRepo.save(br);
-		} catch (IOException e) {
-			res.sendError(400, "All field`s must be filled including image and file field");
-		} 
-		catch(Exception e) {
-			res.sendError(500, "There`s some error when fetching data");
-		}
+//		} catch (IOException e) {
+//			res.sendError(400, "All field`s must be filled including image and file field");
+//		}
+//		catch(Exception e) {
+//			res.sendError(500, "There`s some error when fetching data");
+//		}
 	}
 	
 	private Publisher publisherModify = null;
@@ -691,16 +695,16 @@ public class BookService {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			Book bfs = bookRepo.findById(id).get();
-			User usr = userRepo.findByEmail(auth.getName()).get();
+			User usr = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 			if(bfs.getBookUser().getId() == usr.getId()) {
 				bfs.setDescription(bookModel.getDescription());
 				bfs.setPublishDate(bfs.getPublishDate());
 				bfs.setTitle(bookModel.getTitle());
 				if(file != null) {
-					bfs.setFile(FileConfig.saveFileBook(file, bfs.getFile(),true));
+					bfs.setFile(fileConfig.saveFileBook(file, bfs.getFile(),true));
 				}
 				if(image != null) {
-					bfs.setImage(FileConfig.modifyImageBook(image,bfs.getImage()));
+					bfs.setImage(fileConfig.modifyImageBook(image,bfs.getImage()));
 				}
 				
 				if(bookModel.getPublisher() != null) {
@@ -739,9 +743,8 @@ public class BookService {
 						bookModel.getNewTheme().forEach(se -> {
 							TypeBook tb = new TypeBook();
 							tb.setName(se);
-							TypeBook newTb = typeBookRepo.save(tb);
-							newTb.addBook(bookModify);
-							typeBookRepo.save(newTb);
+							tb.addBook(bookModify);
+							typeBookRepo.save(tb);
 						});
 					}
 				}
@@ -757,7 +760,7 @@ public class BookService {
 	public void modifyBookFav(String idBook, boolean delete, HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			User user = userRepo.findByEmail(auth.getName()).get();
+			User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 			Book books = bookRepo.findById(idBook).get();
 			if(delete) {
 				books.removeFavorite(user);
@@ -777,7 +780,7 @@ public class BookService {
 	public void modifyRekomend(String idBook, HttpServletResponse res) throws IOException {
 		try {
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			User usr = userRepo.findByEmail(auth.getName()).get();
+			User usr = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 			Book book = bookRepo.findById(idBook).get();
 			book.setRekomended(book.getRekomended()+1);
 			Book newBook = bookRepo.save(book);
@@ -807,7 +810,8 @@ public class BookService {
 	@Transactional(isolation=Isolation.REPEATABLE_READ)
 	public void deleteBook(String id, HttpServletResponse res) throws IOException {
 		try {
-			User user = userRepo.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).get();
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			User user = userRepo.findByEmail(((User)auth.getPrincipal()).getEmail()).get();
 			Book book = bookRepo.findById(id).get();
 			if(user.getMyBook().contains(book)) {
 				String idBook = book.getId();
@@ -817,9 +821,9 @@ public class BookService {
 				String emailAuthor = book.getBookUser().getEmail();
 				long idPublisher = book.getPublisherBook().getId();
 				String namePublisher = book.getPublisherBook().getName();
-				
-				FileConfig.deleteBooksFile(book.getFile());
-				FileConfig.deleteBooksImage(book.getImage());
+
+				fileConfig.deleteBooksFile(book.getFile());
+				fileConfig.deleteBooksImage(book.getImage());
 				book.getTypeBooks().forEach(re -> {
 					re.removeBook(book);
 				});
