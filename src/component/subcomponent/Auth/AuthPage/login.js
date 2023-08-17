@@ -109,9 +109,9 @@ export default function Login(props) {
             </Stack>
             <Divider sx={{marginTop:'20px',marginBottom:'20px'}}>OR</Divider>
             <Stack direction='column' spacing={2}>
-              <Button variant='contained' className={style.sizeDefaultButton} sx={{background:'#00cc99', width:'100%', textTransform:'capitalize', '&:hover':{background:'#00b359'}}} startIcon={<GoogleIcon/>}
+              <Button variant='contained' className={style.sizeDefaultButton} sx={{background:'#00cc99', width:'100%', textTransform:'capitalize', '&:hover':{background:'#00b359'}}} disabled startIcon={<GoogleIcon/>}
                 href={pathOauthURL+"/google"+pathOauthURLRedirect}>Login with Google</Button>
-              <Button variant='contained' className={style.sizeDefaultButton} sx={{ background:'#6666ff', width:'100%', textTransform:'capitalize'}} disabled={true} startIcon={<FacebookIcon/>}
+              <Button variant='contained' className={style.sizeDefaultButton} sx={{ background:'#6666ff', width:'100%', textTransform:'capitalize'}} disabled startIcon={<FacebookIcon/>}
                 href={pathOauthURL+"/facebook"+pathOauthURLRedirect}>Login with Facebook</Button>
             </Stack>
           </Paper>

@@ -130,27 +130,26 @@ export default function Book(props) {
       setData({...data, favorite: !data.favorite});
       document.body.style='overflow-y:auto;touch-action:auto;';
   }
-  const handleDownload = (e) => {
-    setPreventClick(true)
-    var FileSaver = require('file-saver');
-    var attr = new FormData();
-    attr.append('idBook',data.id)
-    axios.post(fileBookURL+data.file, attr,{
-      withCredentials:true,
-    }).then(res => {
-        if(res.data){
-          var eks = "data:application/pdf;base64,";
-          setPreventClick(false);
-          FileSaver.saveAs(`${eks}${res.data}`,`${data.title}.pdf`);
-        }
-      }).catch(err => {
-        if(err.response){
-          setError(err.response.data.message)
-        }else {
-          setError(err.message)
-        }
-        setPreventClick(false);})
-  }
+  // const handleDownload = (e) => {
+  //   setPreventClick(true)
+  //   var FileSaver = require('file-saver');
+  //   var attr = new FormData();
+  //   attr.append('idBook',data.id)
+  //   axios.post(, attr,{
+  //     withCredentials:true,
+  //   }).then(res => {
+  //       if(res.data){
+  //         setPreventClick(false);
+  //         FileSaver.saveAs(res.data,`${data.title}.pdf`);
+  //       }
+  //     }).catch(err => {
+  //       if(err.response){
+  //         setError(err.response.data.message)
+  //       }else {
+  //         setError(err.message)
+  //       }
+  //       setPreventClick(false);})
+  // }
   const funDesc = React.useCallback(() => {
     var list1 = data.description.replace(/-=>/g,"<br/><ol><li class='li'>");
     var list2 = list1.replace(/<=-/g,"</li></ol>");
@@ -229,11 +228,13 @@ export default function Book(props) {
                 }
               </Stack>
             </Box>
-              <Box id={id} sx={{overflow:'auto',maxHeight:(med)?'30vh':'40vh'}}></Box>
-              <Box justifyContent='center' alignItems='center' display='flex' sx={{marginTop:'20px'}}>
-              <Button variant='contained' className={style.buttonDownload} onClick={handleDownload}
-              disabled={(prof&&prof.role!=='ANON'&&!preventClick)? false:true}
-              startIcon={(!preventClick)?null:<CircularProgress size='1rem' color="primary"/>}>Download</Button>
+            <Box id={id} sx={{overflow:'auto',maxHeight:(med)?'30vh':'40vh'}}></Box>
+            <Box justifyContent='center' alignItems='center' display='flex' sx={{marginTop:'20px'}}>
+              <form method='POST' action={`${fileBookURL+data.file}?idBook=${data.id}`} target='blank' encType='application/x-www-form-urlencoded'>
+                <Button variant='contained' className={style.buttonDownload} download={`${data.title}.pdf`}
+                  disabled={(prof&&prof.role!=='ANON'&&!preventClick)? false:true} type='submit'
+                  startIcon={(!preventClick)?null:<CircularProgress size='1rem' color="primary"/>}>Download</Button>
+              </form>
               <IconButton className={style.buttonFavorite} onClick={handleFav} disabled={(prof&&prof.role!=='ANON'&&!preventFav)? false:true}>
                 {(data.favorite)? <FavoriteIcon sx={{color:'red',fontSize:'inherit'}}/> : <FavoriteBorderIcon sx={{fontSize:'inherit'}}/>}</IconButton>
             </Box>

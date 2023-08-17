@@ -65,9 +65,9 @@ export default function BookBuilder(props) {
         <Box justifyContent='center' alignItems='center' display='flex' sx={{color:'#ffff', marginLeft:'20px', marginRight:'20px'}}>
           <Tabs variant="fullWidth" value={changeTabBuilder} textColor='inherit' TabIndicatorProps={{style:{border:'none',backgroundColor:'transparent'}}}
             onChange={(e,n)=>setChangeTabBuilder(n)} orientation='horizontal' sx={{maxWidth:'100%',overflow:'auto',color:'#ffff',borderBottom:'none'}}>
-            <Tab id='tab-builder-book-0' key='tab-builder-book-key-0' value={0} aria-controls='panel-builder-book-0' sx={{backgroundColor:'#9999ff',borderRadius:'20px 0px 0px 0px', padding:'10px',
+            <Tab id='tab-builder-book-0' sx={{backgroundColor:'#9999ff',borderRadius:'20px 0px 0px 0px', padding:'10px',
               fontSize:'1rem'}} label='Add Your Book'/>
-            <Tab id='tab-builder-book-1' key='tab-builder-book-key-1' value={1} aria-controls='panel-builder-book-1' sx={{backgroundColor:'#ffa900',borderRadius:'0px 20px 0px 0px', padding:'10px',
+            <Tab id='tab-builder-book-1' sx={{backgroundColor:'#ffa900',borderRadius:'0px 20px 0px 0px', padding:'10px',
               fontSize:'1rem'}} label='Modify Your Book'/>
           </Tabs>
         </Box>

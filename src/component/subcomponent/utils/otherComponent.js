@@ -185,7 +185,7 @@ OnDeleteComponent.defaultProps = {
 }
 
 export const PasswordContainer = (props) => {
-  const{isVerify, setVerify, password, setPassword, onDelete, buttonTitle, disabled} = props;
+  const{isVerify, setVerify, password, setPassword, onDelete, disabled} = props;
   return(
     <Dialog open={isVerify} onClose={(e) => {e.stopPropagation();setVerify(false);setPassword('');}} sx={{zIndex:(theme) => theme.zIndex.drawer + 6}}>
       <DialogTitle sx={{fontSize:'1.2rem'}}>Confirm is that you</DialogTitle>
@@ -194,7 +194,7 @@ export const PasswordContainer = (props) => {
           onClick={e => e.stopPropagation()} onChange={(e) => {e.stopPropagation();setPassword(e.target.value);}} onKeyDown={(e) => {e.stopPropagation();if(e.keyCode === 13){onDelete(e);}}} label='Input Password'/>
       </DialogContent>
       <DialogActions>
-        <Button sx={{fontSize:'1rem'}} disabled={disabled} onClick={onDelete}>{buttonTitle}</Button>
+        <Button sx={{fontSize:'1rem'}} disabled={disabled} onClick={onDelete}>Ok</Button>
         <Button sx={{fontSize:'1rem'}} onClick={(e)=> {e.stopPropagation();setPassword('');setVerify(false);}}>Cancel</Button>
       </DialogActions>
     </Dialog>
@@ -224,17 +224,18 @@ export function UploadImage(props) {
       }
     }
     else{
-      setImage(new Croppie(document.getElementById(id),{
-        boundary:{
-          width: boundary.width,
-          height: boundary.height,
-        },
-        viewport:{
-          width:viewport.width,
-          height:viewport.height,
-          type:type,
-        }
-      }))
+      if (document.getElementById(id))
+        setImage(new Croppie(document.getElementById(id),{
+          boundary:{
+            width: boundary.width,
+            height: boundary.height,
+          },
+          viewport:{
+            width:viewport.width,
+            height:viewport.height,
+            type:type,
+          }
+        }))
     }
   },[img])
   return(
@@ -485,10 +486,7 @@ export function ModifyBook(props) {
     }
   }
   const onClickItemTheme = (item) => {
-    if(item.id === null){
-      setNewThemeData([...newThemeData, item])
-    }
-    else{
+    if(item.id !== null){
       setThemeData([...themeData, item])
     }
     setTheme({id: null, name:''})
@@ -505,7 +503,12 @@ export function ModifyBook(props) {
   const urlFilterElement = [searchPublisherBookURL, searchThemeBookURL]
   let timeout = null
   const handleInputValue = async(id,vl) => {
-    idFuncFilterElement[id]({id:null, name: vl});
+    if (id === 1 && vl.endsWith(",")) {
+      setNewThemeData([...newThemeData,{id:null,name:vl.substr(0,vl.length-1)}])
+      idFuncFilterElement[id]({id:null, name: ""});
+    } else {
+      idFuncFilterElement[id]({id:null, name: vl});
+    }
     clearTimeout(timeout);
     loadingFilterElement[id](true);
     if(!openFilterElement[id]){
@@ -560,6 +563,7 @@ export function ModifyBook(props) {
             placeholder='Theme Book...' data={themeDataSuggestion} labelData='name' onClickItemSearch={(item) => onClickItemTheme(item)}
             loading={loadingTheme} label='Book Theme' menuOpen={openTheme} onMenuOpen={setOpenTheme} btnFilterStyle={{display:'none'}}
             onDelete={() => setTheme({id:null,name:''})} onClickSearch={onUpload} btnSearchStyle={{display:'none'}}
+            helperText={`use "," to separate each theme`} FormHelperTextProps={{style:{color:'white',fontSize:'.8rem'}}}
             onCloseMenu={() => {setOpenTheme(false);setThemeDataSuggestion([])}} deleteButtonStyle={{color:'white'}} sx={{color:'white'}}/>
         <Stack direction='row' spacing={1} display='flex' flexWrap='wrap'>
         {
