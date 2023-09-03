@@ -1,5 +1,5 @@
 //mainURL
-export const mainURL= "http://localhost:8895";
+export const mainURL= process.env.REACT_APP_SERVER;
 export const redirectEks = "?redirect_uri=";
 
 //user
@@ -7,7 +7,7 @@ export const verUserURL = mainURL+"/user/get";
 export const signUpURL = mainURL+"/user/signup";
 export const logInURL = mainURL+"/user/login";
 export const pathOauthURL = mainURL+"/login/auth";
-export const pathOauthURLRedirect = redirectEks + "http://localhost:3000/login";
+export const pathOauthURLRedirect = redirectEks + process.env.REACT_APP_SERVER_FRONT_CLIENT +"/login";
 // export const getUsersURL = mainURL+"/user/getalluser";
 // export const getAdminURL = mainURL+"/user/getalladmin";
 export const searchUserURL = mainURL+"/user/search";
