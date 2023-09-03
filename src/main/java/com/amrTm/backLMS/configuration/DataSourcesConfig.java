@@ -5,6 +5,7 @@ import java.util.Properties;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -16,21 +17,27 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 @Configuration
 public class DataSourcesConfig {
+	@Value("${database.url}")
+	private String url;
+	@Value("${database.username}")
+	private String userdb;
+	@Value("${database.password}")
+	private String userpassdb;
 	@Bean
 	public DataSource dataSource() {
 		DriverManagerDataSource data = new DriverManagerDataSource();
 		data.setDriverClassName("com.mysql.cj.jdbc.Driver");
-		data.setUrl("jdbc:mysql://localhost:3306/lms");
-		data.setUsername("amar");
-		data.setPassword("Amar1234#");
+		data.setUrl(url);
+		data.setUsername(userdb);
+		data.setPassword(userpassdb);
 		return data;
 	}
-	
+
 	@Bean
 	public JpaTransactionManager transactionManager(EntityManagerFactory e) {
 		return new JpaTransactionManager(e);
 	}
-	
+
 	@Bean
 	public JpaVendorAdapter jpaVendorAdapter() {
 		HibernateJpaVendorAdapter vendor = new HibernateJpaVendorAdapter();
@@ -40,7 +47,7 @@ public class DataSourcesConfig {
 		vendor.setGenerateDdl(true);
 		return vendor;
 	}
-	
+
 	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
 		LocalContainerEntityManagerFactoryBean container = new LocalContainerEntityManagerFactoryBean();

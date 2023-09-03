@@ -59,9 +59,9 @@ public class SecurityMainProduction extends WebSecurityConfigurerAdapter{
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
-			.requiresChannel()
-				.anyRequest().requiresSecure()	
-			.and()
+//			.requiresChannel()
+//				.anyRequest().requiresSecure()
+//			.and()
 			.csrf()
 				.disable()
 			.cors()
@@ -70,15 +70,15 @@ public class SecurityMainProduction extends WebSecurityConfigurerAdapter{
 			.authorizeRequests()
 				.antMatchers("/user/**","/book/**").permitAll()
 				.anyRequest()
-					.anonymous()
-			.and()
-				.oauth2Login()
-					.userInfoEndpoint()
-						.userService(userOAuth2Service).and()
-					.authorizationEndpoint().baseUri("/login/auth")
-			.and()
-				.successHandler(userOAuth2SuccessHandler)
-				.failureHandler(userOAuth2FailureHandler);
+					.anonymous();
+//			.and()
+//				.oauth2Login()
+//					.userInfoEndpoint()
+//						.userService(userOAuth2Service).and()
+//					.authorizationEndpoint().baseUri("/login/auth")
+//			.and()
+//				.successHandler(userOAuth2SuccessHandler)
+//				.failureHandler(userOAuth2FailureHandler);
 //				.and()
 //					.logout()
 //						.logoutUrl("/user/logout")

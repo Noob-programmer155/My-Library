@@ -11,7 +11,7 @@
 	<groupId>com.AmrTm.boot</groupId>
 	<artifactId>library-backend.com</artifactId>
 	<version>1</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>library-backend</name>
 	<description>backend for library management system web</description>
 	<properties>
@@ -80,11 +80,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-tomcat</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
@@ -115,6 +110,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>MyLibrary-0.1</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

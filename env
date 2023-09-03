@@ -1,0 +1,13 @@
+ORIGIN_URLS=http://localhost::http://localhost:3000
+
+HOST_DB=db-mylibrary
+PORT_DB=3306
+NAME_DB=mylibrary
+USERNAME_DB=admin
+PASSWORD_DB=admin
+
+HOST_EMAIL=smtp.gmail.com
+EMAIL=rijalamar74@gmail.com
+PASSWRD_EMAIL=omentpsoptyvlasl
+PORT_EMAIL=587
+FILE_STORAGE=/home/amar/worked/MyLibrary/source
