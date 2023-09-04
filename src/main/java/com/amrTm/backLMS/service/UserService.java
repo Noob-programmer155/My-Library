@@ -166,9 +166,9 @@ public class UserService {
 		}catch(DataIntegrityViolationException e) {
 			res.sendError(400, "We found account with same email, please use another email");
 		}
-//		catch(Exception e) {
-//			res.sendError(500, "there`s some error when fetching data");
-//		}
+		catch(Exception e) {
+			res.sendError(500, "there`s some error when fetching data");
+		}
 		return resUser;
 	}
 	
