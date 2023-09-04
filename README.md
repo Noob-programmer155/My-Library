@@ -2,10 +2,10 @@
 My Library is an online Library Management System that is unique, simple, and easy to use.
 
 ## My Library Frontend
-My Library Frontend is made for the interface in My Library system that is built on React.Js
+My Library Frontend is made for the client interface in My Library system that is built on React.Js with design UI from MaterialUI v4
 
 ## My Library Backend
-[To Backend](https://github.com/Noob-programmer155/My-Library-Backend)
+My Library Backend is made for the Restful API in My Library system that is built on Java and Spring Framework (MVC and Security)
 
 ## Screenshot My Library Application
 <p align='center'>
