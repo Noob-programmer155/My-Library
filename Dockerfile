@@ -1,7 +1,7 @@
 FROM maven AS BUILD_CONTAINER
 ENV HOMEBUILD=/home/maven
 COPY --chown=mvn:mvn . ${HOMEBUILD}
-RUN cd ${HOMEBUILD} && mvn package -DskipTests
+RUN cd ${HOMEBUILD} && mvn compile -DskipTests && mvn package -DskipTests
 
 FROM openjdk:11
 ENV HOME=/home/app
@@ -10,6 +10,7 @@ ENV BUILD_FOLDER=/target
 
 COPY --from=BUILD_CONTAINER /home/maven/${BUILD_FOLDER}/${APP_NAME} ${HOME}/
 WORKDIR ${HOME}
+RUN chmod 775 ${APP_NAME}
 
 EXPOSE 8080
 

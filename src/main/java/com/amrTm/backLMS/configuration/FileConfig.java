@@ -90,6 +90,10 @@ public class FileConfig {
 		String newFile = null;
 		if(image_url != null) newFile = image_url;
 		else newFile = new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())+"."+IMAGE_EKS;
+		File dir = new File(path+"/image/user");
+		if(!dir.exists()){
+			dir.mkdirs();
+		}
 		File newfd = new File(path+"/image/user/"+newFile);
 		if(newfd.exists()) {
 			FileOutputStream output = new FileOutputStream(newfd);
@@ -121,6 +125,10 @@ public class FileConfig {
 		if(image != null) newFile = image;
 		else newFile = new SimpleDateFormat("ddMMyyyyhhmmssSSS").format(new Date())+"."+IMAGE_EKS;
 		File newfd = new File(path+"/image/book/"+newFile);
+		File dir = new File(path+"/image/user");
+		if(!dir.exists()){
+			dir.mkdirs();
+		}
 		if(newfd.exists()) {
 			FileOutputStream output = new FileOutputStream(newfd);
 			output.write(decode.getBytes());
